@@ -1,0 +1,970 @@
+openapi: "3.1.0"
+info:
+  title: "Sentinel Model 1 — Centralised CCTV Registry & GIS API"
+  description: |
+    The foundational CCTV Registry and GIS platform for Gujarat Sentinel.
+    Provides camera metadata management, GIS mapping, health monitoring,
+    gap analysis, and role-based audit trails.
+
+    **Key capabilities:**
+    - Bulk camera onboarding (CSV / JSON) up to 10,000 cameras
+    - PostGIS-based spatial queries (coverage, gaps, heatmap)
+    - RTSP/ONVIF probe-based health monitoring
+    - Full audit trail for every mutation
+    - CloudEvents publication to Kafka on every state change
+  version: "1.0.0"
+  contact:
+    name: "Sentinel Platform Team"
+    email: "sentinel.hackathon@gujarat.gov.in"
+  license:
+    name: "Gujarat Government Internal"
+
+servers:
+  - url: "http://localhost:8001"
+    description: "Local development"
+  - url: "https://sentinel-api.gujarat.gov.in/model1"
+    description: "Production"
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: cameras
+    description: Camera registry CRUD operations
+  - name: gis
+    description: GIS mapping, coverage and gap analysis
+  - name: health
+    description: Camera health monitoring
+  - name: audit
+    description: Audit trail queries
+  - name: system
+    description: Service health and metrics
+
+paths:
+  # ── Camera CRUD ────────────────────────────────────────────────────────────
+  /api/v1/cameras:
+    get:
+      operationId: listCameras
+      tags: [cameras]
+      summary: List cameras with filtering and pagination
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1, minimum: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 50, minimum: 1, maximum: 1000 }
+        - name: department_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/CameraStatus" }
+        - name: camera_type
+          in: query
+          schema: { $ref: "#/components/schemas/CameraType" }
+        - name: district
+          in: query
+          schema: { type: string }
+        - name: search
+          in: query
+          description: Full-text search on camera_id, name, location description
+          schema: { type: string }
+        - name: bbox
+          in: query
+          description: "Bounding box filter: min_lon,min_lat,max_lon,max_lat"
+          schema: { type: string, example: "70.0,21.0,74.0,24.5" }
+      responses:
+        "200":
+          description: Paginated list of cameras
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CameraListResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+    post:
+      operationId: registerCamera
+      tags: [cameras]
+      summary: Register a single camera
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CameraCreate" }
+      responses:
+        "201":
+          description: Camera registered successfully
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CameraResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /api/v1/cameras/bulk:
+    post:
+      operationId: bulkImportCameras
+      tags: [cameras]
+      summary: Bulk import cameras from CSV or JSON
+      description: |
+        Import up to 10,000 cameras in a single request.
+        Returns per-row success/failure with validation messages.
+        Partial failures are allowed — valid rows are committed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CameraBulkImport" }
+          text/csv:
+            schema:
+              type: string
+              description: |
+                CSV with headers matching CameraCreate fields.
+                Required: camera_id, name, latitude, longitude, department_id
+      responses:
+        "207":
+          description: Partial success — see per-row results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BulkImportResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/v1/cameras/{camera_id}:
+    parameters:
+      - name: camera_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: getCamera
+      tags: [cameras]
+      summary: Get camera details by ID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CameraResponse" }
+          description: Camera details with live health status
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      operationId: updateCamera
+      tags: [cameras]
+      summary: Update camera metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CameraUpdate" }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CameraResponse" }
+          description: Updated camera
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      operationId: deleteCamera
+      tags: [cameras]
+      summary: Soft-delete a camera (audit trail preserved)
+      responses:
+        "204":
+          description: Camera decommissioned
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/cameras/{camera_id}/health:
+    parameters:
+      - name: camera_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: getCameraHealth
+      tags: [cameras, health]
+      summary: Get latest health check result for a camera
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CameraHealthStatus" }
+          description: Health check result
+    post:
+      operationId: triggerHealthCheck
+      tags: [cameras, health]
+      summary: Trigger an immediate health check probe
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CameraHealthStatus" }
+          description: Health check result
+
+  # ── GIS ───────────────────────────────────────────────────────────────────
+  /api/v1/gis/cameras:
+    get:
+      operationId: getGisCameras
+      tags: [gis]
+      summary: Get all cameras as GeoJSON FeatureCollection
+      description: Returns a GeoJSON FeatureCollection optimised for Leaflet/OpenLayers rendering
+      parameters:
+        - name: department_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/CameraStatus" }
+        - name: bbox
+          in: query
+          schema: { type: string }
+        - name: cluster
+          in: query
+          description: Enable server-side clustering at given zoom level
+          schema: { type: integer, minimum: 1, maximum: 22 }
+      responses:
+        "200":
+          description: GeoJSON FeatureCollection
+          content:
+            application/geo+json:
+              schema: { $ref: "#/components/schemas/GeoJSONFeatureCollection" }
+
+  /api/v1/gis/coverage:
+    get:
+      operationId: getCoverage
+      tags: [gis]
+      summary: Get camera coverage polygons
+      description: |
+        Returns convex hull or configurable radius-based coverage polygons
+        per department/district for GIS visualisation.
+      parameters:
+        - name: radius_meters
+          in: query
+          schema: { type: integer, default: 50, minimum: 5, maximum: 500 }
+        - name: department_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: district
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Coverage GeoJSON polygons
+          content:
+            application/geo+json:
+              schema: { $ref: "#/components/schemas/GeoJSONFeatureCollection" }
+
+  /api/v1/gis/gaps:
+    get:
+      operationId: getGapAnalysis
+      tags: [gis]
+      summary: Get uncovered zone gap analysis
+      description: |
+        Identifies geographic zones with insufficient camera coverage.
+        Uses ST_VoronoiPolygons and configurable density thresholds.
+      parameters:
+        - name: grid_size_meters
+          in: query
+          schema: { type: integer, default: 500, minimum: 100, maximum: 5000 }
+        - name: min_camera_density
+          in: query
+          description: Minimum cameras per km²
+          schema: { type: number, default: 0.5 }
+        - name: district
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Gap analysis result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GapAnalysisResult" }
+
+  /api/v1/gis/heatmap:
+    get:
+      operationId: getHeatmap
+      tags: [gis]
+      summary: Get camera density heatmap data
+      parameters:
+        - name: resolution
+          in: query
+          description: H3 hexagon resolution (0-15)
+          schema: { type: integer, default: 7, minimum: 3, maximum: 12 }
+      responses:
+        "200":
+          description: Heatmap hex bins
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HeatmapResult" }
+
+  /api/v1/gis/districts:
+    get:
+      operationId: listDistricts
+      tags: [gis]
+      summary: List all Gujarat districts with camera counts
+      responses:
+        "200":
+          description: District list with stats
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DistrictListResponse" }
+
+  # ── Audit ─────────────────────────────────────────────────────────────────
+  /api/v1/audit:
+    get:
+      operationId: getAuditTrail
+      tags: [audit]
+      summary: Query audit trail
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 50, maximum: 200 }
+        - name: entity_type
+          in: query
+          schema: { type: string, enum: [camera, department, zone] }
+        - name: entity_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: action
+          in: query
+          schema: { type: string, enum: [create, update, delete, bulk_import, health_check] }
+        - name: actor_id
+          in: query
+          schema: { type: string }
+        - name: from_time
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to_time
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        "200":
+          description: Paginated audit trail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuditTrailResponse" }
+
+  # ── Departments ────────────────────────────────────────────────────────────
+  /api/v1/departments:
+    get:
+      operationId: listDepartments
+      tags: [cameras]
+      summary: List all registered departments
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DepartmentListResponse" }
+          description: Department list
+    post:
+      operationId: createDepartment
+      tags: [cameras]
+      summary: Register a new department
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DepartmentCreate" }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Department" }
+          description: Created department
+
+  # ── System ────────────────────────────────────────────────────────────────
+  /health:
+    get:
+      operationId: healthCheck
+      tags: [system]
+      summary: Service liveness probe
+      security: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthResponse" }
+          description: Service is healthy
+        "503":
+          description: Service is unhealthy
+
+  /ready:
+    get:
+      operationId: readinessCheck
+      tags: [system]
+      summary: Service readiness probe (checks DB + Kafka + Redis)
+      security: []
+      responses:
+        "200":
+          description: Service is ready
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReadinessResponse" }
+        "503":
+          description: Service not ready
+
+  /metrics:
+    get:
+      operationId: prometheusMetrics
+      tags: [system]
+      summary: Prometheus metrics endpoint
+      security: []
+      responses:
+        "200":
+          description: Prometheus text format metrics
+          content:
+            text/plain: {}
+
+# ── Components ────────────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "OIDC JWT token from Keycloak (realm: sentinel)"
+
+  schemas:
+    # ── Enums
+    CameraStatus:
+      type: string
+      enum: [online, offline, degraded, maintenance, decommissioned, unknown]
+      description: Live operational status of camera
+
+    CameraType:
+      type: string
+      enum: [dome, bullet, ptz, fisheye, thermal, box, analogue_ip_converter]
+      description: Physical camera type
+
+    StorageType:
+      type: string
+      enum: [cloud, local_nvr, edge_device, no_storage]
+
+    Protocol:
+      type: string
+      enum: [rtsp, onvif, sdk, http_mjpeg, hls, rtmp, webrtc]
+
+    Codec:
+      type: string
+      enum: [h264, h265, mjpeg, mpeg4, av1]
+
+    # ── Camera schemas
+    Location:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: 20.0
+          maximum: 25.0
+          description: "WGS84 latitude (Gujarat: 20.1°N to 24.7°N)"
+        longitude:
+          type: number
+          format: double
+          minimum: 68.0
+          maximum: 75.0
+          description: "WGS84 longitude (Gujarat: 68.2°E to 74.5°E)"
+        altitude_meters:
+          type: number
+          nullable: true
+        address:
+          type: string
+          maxLength: 500
+          description: Human-readable address
+        district:
+          type: string
+          maxLength: 100
+        taluka:
+          type: string
+          maxLength: 100
+        pincode:
+          type: string
+          pattern: "^[0-9]{6}$"
+
+    CameraCreate:
+      type: object
+      required: [camera_id, name, department_id, location, camera_type]
+      properties:
+        camera_id:
+          type: string
+          maxLength: 64
+          description: Unique identifier assigned by the department (e.g., HP-AHM-001)
+        name:
+          type: string
+          maxLength: 200
+          description: Human-readable camera name
+        department_id:
+          type: string
+          format: uuid
+          description: Reference to owning department
+        location:
+          $ref: "#/components/schemas/Location"
+        camera_type:
+          $ref: "#/components/schemas/CameraType"
+        protocol:
+          $ref: "#/components/schemas/Protocol"
+        codec:
+          $ref: "#/components/schemas/Codec"
+        resolution:
+          type: string
+          pattern: "^[0-9]+x[0-9]+$"
+          example: "1920x1080"
+        frame_rate:
+          type: integer
+          minimum: 1
+          maximum: 120
+        rtsp_url:
+          type: string
+          format: uri
+          description: RTSP stream URL (stored encrypted)
+        onvif_url:
+          type: string
+          format: uri
+        vendor:
+          type: string
+          maxLength: 100
+        model:
+          type: string
+          maxLength: 100
+        install_date:
+          type: string
+          format: date
+        amc_expiry_date:
+          type: string
+          format: date
+          description: Annual Maintenance Contract expiry
+        storage_type:
+          $ref: "#/components/schemas/StorageType"
+        retention_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+        is_public_domain:
+          type: boolean
+          default: true
+          description: False for private entity cameras
+        tags:
+          type: array
+          items: { type: string }
+          description: Free-form tags for search and grouping
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Vendor-specific or department-specific metadata
+
+    CameraUpdate:
+      type: object
+      description: Partial update — all fields optional
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        location:
+          $ref: "#/components/schemas/Location"
+        camera_type:
+          $ref: "#/components/schemas/CameraType"
+        protocol:
+          $ref: "#/components/schemas/Protocol"
+        codec:
+          $ref: "#/components/schemas/Codec"
+        resolution:
+          type: string
+        frame_rate:
+          type: integer
+        rtsp_url:
+          type: string
+          format: uri
+        status:
+          $ref: "#/components/schemas/CameraStatus"
+        amc_expiry_date:
+          type: string
+          format: date
+        storage_type:
+          $ref: "#/components/schemas/StorageType"
+        retention_days:
+          type: integer
+        tags:
+          type: array
+          items: { type: string }
+        metadata:
+          type: object
+          additionalProperties: true
+
+    CameraResponse:
+      allOf:
+        - $ref: "#/components/schemas/CameraCreate"
+        - type: object
+          required: [id, created_at, updated_at, status]
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Internal platform UUID
+            status:
+              $ref: "#/components/schemas/CameraStatus"
+            last_health_check:
+              type: string
+              format: date-time
+              nullable: true
+            health_status:
+              $ref: "#/components/schemas/CameraHealthStatus"
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            created_by:
+              type: string
+            deleted_at:
+              type: string
+              format: date-time
+              nullable: true
+
+    CameraHealthStatus:
+      type: object
+      properties:
+        camera_id:
+          type: string
+          format: uuid
+        is_reachable:
+          type: boolean
+        latency_ms:
+          type: integer
+          nullable: true
+        stream_active:
+          type: boolean
+        last_checked_at:
+          type: string
+          format: date-time
+        check_method:
+          type: string
+          enum: [rtsp_probe, onvif_probe, ping, api]
+        error_message:
+          type: string
+          nullable: true
+
+    CameraListResponse:
+      type: object
+      required: [items, total, page, page_size]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/CameraResponse" }
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+
+    CameraBulkImport:
+      type: object
+      required: [cameras]
+      properties:
+        cameras:
+          type: array
+          items: { $ref: "#/components/schemas/CameraCreate" }
+          minItems: 1
+          maxItems: 10000
+        skip_duplicates:
+          type: boolean
+          default: false
+          description: If true, skip cameras with duplicate camera_id. If false, update existing.
+        dry_run:
+          type: boolean
+          default: false
+          description: Validate without committing
+
+    BulkImportResult:
+      type: object
+      properties:
+        total:
+          type: integer
+        succeeded:
+          type: integer
+        failed:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+              camera_id:
+                type: string
+              error:
+                type: string
+
+    # ── GIS schemas
+    GeoJSONPoint:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type:
+          type: string
+          enum: [Point]
+        coordinates:
+          type: array
+          items: { type: number }
+          minItems: 2
+          maxItems: 3
+
+    GeoJSONFeature:
+      type: object
+      required: [type, geometry, properties]
+      properties:
+        type:
+          type: string
+          enum: [Feature]
+        geometry:
+          oneOf:
+            - $ref: "#/components/schemas/GeoJSONPoint"
+        properties:
+          type: object
+          additionalProperties: true
+        id:
+          type: string
+
+    GeoJSONFeatureCollection:
+      type: object
+      required: [type, features]
+      properties:
+        type:
+          type: string
+          enum: [FeatureCollection]
+        features:
+          type: array
+          items: { $ref: "#/components/schemas/GeoJSONFeature" }
+
+    GapAnalysisResult:
+      type: object
+      properties:
+        total_area_km2:
+          type: number
+        covered_area_km2:
+          type: number
+        gap_area_km2:
+          type: number
+        coverage_percent:
+          type: number
+        gap_zones:
+          $ref: "#/components/schemas/GeoJSONFeatureCollection"
+        district_breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              district:
+                type: string
+              camera_count:
+                type: integer
+              coverage_percent:
+                type: number
+
+    HeatmapResult:
+      type: object
+      properties:
+        resolution:
+          type: integer
+        hexbins:
+          type: array
+          items:
+            type: object
+            properties:
+              h3_index:
+                type: string
+              count:
+                type: integer
+              center:
+                $ref: "#/components/schemas/GeoJSONPoint"
+
+    DistrictListResponse:
+      type: object
+      properties:
+        districts:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              camera_count:
+                type: integer
+              online_count:
+                type: integer
+              offline_count:
+                type: integer
+
+    # ── Department schemas
+    DepartmentCreate:
+      type: object
+      required: [code, name]
+      properties:
+        code:
+          type: string
+          maxLength: 20
+          description: Short department code (e.g., HOME, RTO, FOOD)
+        name:
+          type: string
+          maxLength: 200
+        contact_email:
+          type: string
+          format: email
+        contact_phone:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+
+    Department:
+      allOf:
+        - $ref: "#/components/schemas/DepartmentCreate"
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            camera_count:
+              type: integer
+            created_at:
+              type: string
+              format: date-time
+
+    DepartmentListResponse:
+      type: object
+      properties:
+        departments:
+          type: array
+          items: { $ref: "#/components/schemas/Department" }
+        total:
+          type: integer
+
+    # ── Audit schemas
+    AuditEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        actor_id:
+          type: string
+        actor_ip:
+          type: string
+        diff:
+          type: object
+          additionalProperties: true
+          description: JSON diff of changed fields
+        timestamp:
+          type: string
+          format: date-time
+
+    AuditTrailResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AuditEntry" }
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+
+    # ── System schemas
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        service:
+          type: string
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ReadinessResponse:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        checks:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [ok, error]
+            redis:
+              type: string
+              enum: [ok, error]
+            kafka:
+              type: string
+              enum: [ok, error]
+
+    # ── Error schemas
+    ErrorDetail:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        trace_id:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorDetail" }
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorDetail" }
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorDetail" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorDetail" }
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorDetail" }
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorDetail" }

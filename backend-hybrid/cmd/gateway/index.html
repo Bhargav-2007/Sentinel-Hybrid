@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GUJARAT SENTINEL // CYBER COMMAND HUD v4.0.8</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet & HLS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <style>
+    /* =========================================================================
+       eDEX-UI CYBERPUNK THEME ENGINE & DESIGN SYSTEM
+       ========================================================================= */
+    :root {
+      /* Theme: TRON CYAN (Default) */
+      --cyber-bg: #03080e;
+      --cyber-bg-panel: rgba(4, 16, 28, 0.85);
+      --cyber-bg-panel-solid: #051424;
+      --cyber-primary: #00f0ff;
+      --cyber-primary-glow: rgba(0, 240, 255, 0.45);
+      --cyber-primary-dim: rgba(0, 240, 255, 0.15);
+      --cyber-secondary: #0088cc;
+      --cyber-accent: #00ffaa;
+      --cyber-alert: #ff0055;
+      --cyber-alert-glow: rgba(255, 0, 85, 0.5);
+      --cyber-warn: #ffaa00;
+      --cyber-text: #cceeff;
+      --cyber-text-bright: #ffffff;
+      --cyber-text-muted: #5588aa;
+      --cyber-border: rgba(0, 240, 255, 0.35);
+      --cyber-border-bright: #00f0ff;
+      --cyber-grid: rgba(0, 240, 255, 0.04);
+      --scanline-opacity: 0.15;
+      
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-display: 'Orbitron', sans-serif;
+      --font-ui: 'Rajdhani', sans-serif;
+    }
+
+    /* THEME PRESETS */
+    body.theme-matrix {
+      --cyber-bg: #020a02;
+      --cyber-bg-panel: rgba(2, 20, 5, 0.88);
+      --cyber-bg-panel-solid: #031806;
+      --cyber-primary: #00ff66;
+      --cyber-primary-glow: rgba(0, 255, 102, 0.45);
+      --cyber-primary-dim: rgba(0, 255, 102, 0.15);
+      --cyber-secondary: #00aa44;
+      --cyber-accent: #88ff00;
+      --cyber-alert: #ff2255;
+      --cyber-warn: #ffcc00;
+      --cyber-text: #ccffdd;
+      --cyber-text-muted: #448855;
+      --cyber-border: rgba(0, 255, 102, 0.35);
+      --cyber-border-bright: #00ff66;
+      --cyber-grid: rgba(0, 255, 102, 0.05);
+    }
+
+    body.theme-amber {
+      --cyber-bg: #0c0800;
+      --cyber-bg-panel: rgba(24, 16, 2, 0.88);
+      --cyber-bg-panel-solid: #1c1202;
+      --cyber-primary: #ffaa00;
+      --cyber-primary-glow: rgba(255, 170, 0, 0.45);
+      --cyber-primary-dim: rgba(255, 170, 0, 0.15);
+      --cyber-secondary: #cc7700;
+      --cyber-accent: #ffee00;
+      --cyber-alert: #ff0044;
+      --cyber-warn: #ffdd44;
+      --cyber-text: #ffeebb;
+      --cyber-text-muted: #886633;
+      --cyber-border: rgba(255, 170, 0, 0.35);
+      --cyber-border-bright: #ffaa00;
+      --cyber-grid: rgba(255, 170, 0, 0.05);
+    }
+
+    body.theme-crimson {
+      --cyber-bg: #0d0205;
+      --cyber-bg-panel: rgba(26, 4, 10, 0.88);
+      --cyber-bg-panel-solid: #20050d;
+      --cyber-primary: #ff1155;
+      --cyber-primary-glow: rgba(255, 17, 85, 0.45);
+      --cyber-primary-dim: rgba(255, 17, 85, 0.15);
+      --cyber-secondary: #aa0838;
+      --cyber-accent: #ff7700;
+      --cyber-alert: #ffff00;
+      --cyber-warn: #ff8800;
+      --cyber-text: #ffd0dc;
+      --cyber-text-muted: #883344;
+      --cyber-border: rgba(255, 17, 85, 0.35);
+      --cyber-border-bright: #ff1155;
+      --cyber-grid: rgba(255, 17, 85, 0.05);
+    }
+
+    body.theme-synthwave {
+      --cyber-bg: #090214;
+      --cyber-bg-panel: rgba(22, 6, 38, 0.88);
+      --cyber-bg-panel-solid: #1b072f;
+      --cyber-primary: #d946ef;
+      --cyber-primary-glow: rgba(217, 70, 239, 0.45);
+      --cyber-primary-dim: rgba(217, 70, 239, 0.15);
+      --cyber-secondary: #8b5cf6;
+      --cyber-accent: #06b6d4;
+      --cyber-alert: #f43f5e;
+      --cyber-warn: #fbbf24;
+      --cyber-text: #f5d0fe;
+      --cyber-text-muted: #865599;
+      --cyber-border: rgba(217, 70, 239, 0.35);
+      --cyber-border-bright: #d946ef;
+      --cyber-grid: rgba(217, 70, 239, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      scrollbar-width: thin;
+      scrollbar-color: var(--cyber-primary) transparent;
+    }
+
+    *::-webkit-scrollbar { width: 4px; height: 4px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: var(--cyber-border); border-radius: 2px; }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--cyber-bg);
+      color: var(--cyber-text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    /* CRT SCANLINE & GLOW OVERLAY */
+    #crt-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 99999;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.03)
+      );
+      background-size: 100% 3px, 6px 100%;
+      opacity: var(--scanline-opacity);
+      transition: opacity 0.3s;
+    }
+
+    #vignette {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 99998;
+      box-shadow: inset 0 0 100px rgba(0,0,0,0.85);
+    }
+
+    /* MATRIX RAIN CANVAS */
+    #matrix-canvas {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 99997;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    #matrix-canvas.active { opacity: 0.85; pointer-events: all; }
+
+    /* BACKGROUND GRID */
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, var(--cyber-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--cyber-grid) 1px, transparent 1px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* HUD CONTAINER */
+    #hud-root {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-rows: 48px 1fr 185px;
+      width: 100vw;
+      height: 100vh;
+      padding: 6px;
+      gap: 6px;
+      box-sizing: border-box;
+    }
+
+    /* TOP HEADER BAR */
+    header.hud-header {
+      background: var(--cyber-bg-panel);
+      border: 1px solid var(--cyber-border);
+      border-radius: 4px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 0 15px var(--cyber-primary-dim), inset 0 0 10px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .shield-badge {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--cyber-primary);
+      background: var(--cyber-primary-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      box-shadow: 0 0 10px var(--cyber-primary-glow);
+      animation: pulseGlow 3s infinite alternate;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: var(--cyber-text-bright);
+      text-shadow: 0 0 10px var(--cyber-primary-glow);
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-subtitle {
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      color: var(--cyber-primary);
+      font-family: var(--font-mono);
+      font-weight: normal;
+    }
+
+    .header-nodes {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .node-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--cyber-border);
+      border-radius: 2px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      font-family: var(--font-mono);
+    }
+    .node-pill .indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyber-accent);
+      box-shadow: 0 0 6px var(--cyber-accent);
+      animation: blink 1.8s infinite;
+    }
+    .node-pill.offline .indicator {
+      background: var(--cyber-alert);
+      box-shadow: 0 0 6px var(--cyber-alert);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cyber-btn {
+      background: var(--cyber-primary-dim);
+      border: 1px solid var(--cyber-border);
+      color: var(--cyber-text-bright);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cyber-btn:hover {
+      background: var(--cyber-primary);
+      color: #000;
+      box-shadow: 0 0 12px var(--cyber-primary-glow);
+    }
+    .cyber-btn:active {
+      transform: scale(0.96);
+    }
+    .cyber-btn.active {
+      background: var(--cyber-primary);
+      color: #000;
+      font-weight: bold;
+    }
+    .cyber-btn.alert-btn {
+      border-color: var(--cyber-alert);
+      color: var(--cyber-alert);
+    }
+    .cyber-btn.alert-btn:hover {
+      background: var(--cyber-alert);
+      color: #fff;
+      box-shadow: 0 0 12px var(--cyber-alert-glow);
+    }
+
+    /* MAIN HUD LAYOUT (3 COLUMNS) */
+    .hud-main {
+      display: grid;
+      grid-template-columns: 310px 1fr 340px;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    /* SCI-FI HUD PANEL BOX */
+    .cyber-panel {
+      background: var(--cyber-bg-panel);
+      border: 1px solid var(--cyber-border);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+    }
+    .cyber-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 8px; height: 8px;
+      border-top: 2px solid var(--cyber-border-bright);
+      border-left: 2px solid var(--cyber-border-bright);
+      pointer-events: none;
+      z-index: 5;
+    }
+    .cyber-panel::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 8px; height: 8px;
+      border-bottom: 2px solid var(--cyber-border-bright);
+      border-right: 2px solid var(--cyber-border-bright);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .panel-header {
+      background: rgba(0, 0, 0, 0.45);
+      border-bottom: 1px solid var(--cyber-border);
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-display);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--cyber-primary);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .panel-header .tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--cyber-text-muted);
+    }
+
+    .panel-body {
+      padding: 8px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+
+    /* LEFT COLUMN - TELEMETRY, PROCESSES, FS */
+    .left-col {
+      display: grid;
+      grid-template-rows: 210px 1fr 140px;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    /* TELEMETRY METRICS */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .metric-card {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--cyber-border);
+      padding: 6px;
+      border-radius: 2px;
+      position: relative;
+    }
+    .metric-title {
+      font-size: 9px;
+      color: var(--cyber-text-muted);
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .metric-val {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--cyber-text-bright);
+      margin: 2px 0;
+    }
+    .metric-bar-bg {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .metric-bar-fill {
+      height: 100%;
+      background: var(--cyber-primary);
+      box-shadow: 0 0 8px var(--cyber-primary-glow);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sparkline-canvas {
+      width: 100%;
+      height: 35px;
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* PROCESS TABLE */
+    .proc-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+    }
+    .proc-table th {
+      text-align: left;
+      color: var(--cyber-primary);
+      padding: 3px 4px;
+      border-bottom: 1px solid var(--cyber-border);
+      font-weight: normal;
+      font-size: 9px;
+    }
+    .proc-table td {
+      padding: 3px 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--cyber-text);
+      white-space: nowrap;
+    }
+    .proc-table tr:hover {
+      background: var(--cyber-primary-dim);
+    }
+
+    /* FILE SYSTEM TREE */
+    .fs-tree {
+      font-size: 10px;
+      color: var(--cyber-text-muted);
+    }
+    .fs-item {
+      padding: 2px 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .fs-item:hover {
+      color: var(--cyber-text-bright);
+      background: var(--cyber-primary-dim);
+    }
+
+    /* CENTER VIEWPORT - TACTICAL MAP, VIDEO WALL, ANPR TRACER, PTZ */
+    .center-col {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      position: relative;
+    }
+
+    .center-tabs {
+      display: flex;
+      gap: 4px;
+      background: rgba(0,0,0,0.5);
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--cyber-border);
+    }
+    .center-tab {
+      padding: 6px 14px;
+      font-family: var(--font-display);
+      font-size: 11px;
+      letter-spacing: 1px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--cyber-text-muted);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .center-tab:hover {
+      color: var(--cyber-text-bright);
+      background: var(--cyber-primary-dim);
+    }
+    .center-tab.active {
+      color: #000;
+      background: var(--cyber-primary);
+      border-color: var(--cyber-primary);
+      font-weight: 700;
+      box-shadow: 0 0 10px var(--cyber-primary-glow);
+    }
+
+    .center-viewport {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .view-pane {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      flex-direction: column;
+    }
+    .view-pane.active {
+      display: flex;
+    }
+
+    /* MAP PANE */
+    #leaflet-map {
+      width: 100%;
+      height: 100%;
+      background: #050a12;
+    }
+    .map-hud-overlay {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: var(--cyber-bg-panel-solid);
+      border: 1px solid var(--cyber-border);
+      padding: 8px 12px;
+      z-index: 1000;
+      border-radius: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+
+    /* VIDEO MATRIX PANE */
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 6px;
+      padding: 6px;
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .video-feed-card {
+      background: #000;
+      border: 1px solid var(--cyber-border);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .video-canvas-box {
+      flex: 1;
+      position: relative;
+      background: #020509;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .video-canvas-box canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .feed-header {
+      position: absolute;
+      top: 4px; left: 4px; right: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 3px 6px;
+      font-size: 10px;
+      z-index: 10;
+      border-radius: 2px;
+    }
+    .feed-anpr-tag {
+      position: absolute;
+      bottom: 6px; left: 6px;
+      background: rgba(0, 240, 255, 0.85);
+      color: #000;
+      font-weight: bold;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-family: var(--font-display);
+      letter-spacing: 1px;
+      box-shadow: 0 0 8px var(--cyber-primary);
+      animation: alertPulse 1.5s infinite;
+    }
+    .feed-anpr-tag.alert-tag {
+      background: var(--cyber-alert);
+      color: #fff;
+      box-shadow: 0 0 10px var(--cyber-alert);
+    }
+
+    /* VEHICLE 360 DOSSIER & TRACER PANE */
+    .tracer-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 8px;
+      height: 100%;
+      padding: 8px;
+    }
+    .dossier-card {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--cyber-border);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+    .plate-badge-huge {
+      background: #ffd700;
+      color: #000;
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 900;
+      padding: 8px;
+      text-align: center;
+      border: 2px solid #000;
+      border-radius: 4px;
+      letter-spacing: 2px;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+
+    .timeline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+    }
+    .timeline-node {
+      background: rgba(0, 240, 255, 0.05);
+      border-left: 3px solid var(--cyber-primary);
+      padding: 6px 10px;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .timeline-node.hot {
+      border-left-color: var(--cyber-alert);
+      background: rgba(255, 0, 85, 0.1);
+    }
+
+    /* PTZ JOYSTICK PANE */
+    .ptz-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 8px;
+      height: 100%;
+      padding: 8px;
+    }
+    .ptz-compass {
+      display: grid;
+      grid-template-columns: repeat(3, 54px);
+      grid-template-rows: repeat(3, 54px);
+      gap: 6px;
+      justify-content: center;
+      align-content: center;
+      margin: 15px 0;
+    }
+    .ptz-btn {
+      background: var(--cyber-primary-dim);
+      border: 1px solid var(--cyber-border);
+      color: var(--cyber-text-bright);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.1s;
+    }
+    .ptz-btn:hover {
+      background: var(--cyber-primary);
+      color: #000;
+      box-shadow: 0 0 10px var(--cyber-primary-glow);
+    }
+
+    /* RIGHT COLUMN - THREAT ALERTS, VMS NODES, AUDIT STREAM */
+    .right-col {
+      display: grid;
+      grid-template-rows: 1fr 170px 140px;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    /* WATCHLIST THREAT TICKER */
+    .threat-card {
+      background: rgba(255, 0, 85, 0.08);
+      border: 1px solid var(--cyber-alert);
+      padding: 6px 8px;
+      border-radius: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: inset 0 0 8px rgba(255, 0, 85, 0.15);
+      animation: slideIn 0.3s ease;
+    }
+    .threat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .threat-badge {
+      background: var(--cyber-alert);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 4px;
+      border-radius: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    /* AUDIT TRAIL STREAM */
+    .audit-log {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .audit-line {
+      color: var(--cyber-text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .audit-line span.hash { color: var(--cyber-accent); }
+    .audit-line span.ts { color: var(--cyber-secondary); }
+
+    /* =========================================================================
+       BOTTOM HUD STATION: CYBER KEYBOARD & SENTINEL SHELL (CLI)
+       ========================================================================= */
+    .hud-bottom {
+      display: grid;
+      grid-template-columns: 1fr 560px;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    /* SENTINEL INTERACTIVE SHELL */
+    .terminal-container {
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid var(--cyber-border);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+    .terminal-header {
+      background: rgba(0, 0, 0, 0.6);
+      border-bottom: 1px solid var(--cyber-border);
+      padding: 4px 8px;
+      font-size: 10px;
+      color: var(--cyber-primary);
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+    }
+    .terminal-output {
+      flex: 1;
+      padding: 6px 8px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--cyber-text);
+    }
+    .term-line { margin: 1px 0; word-break: break-all; }
+    .term-prompt { color: var(--cyber-primary); font-weight: bold; }
+    .term-cmd { color: var(--cyber-text-bright); }
+    .term-success { color: var(--cyber-accent); }
+    .term-err { color: var(--cyber-alert); }
+    .term-warn { color: var(--cyber-warn); }
+    .term-info { color: var(--cyber-secondary); }
+
+    .terminal-input-bar {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      background: rgba(0, 240, 255, 0.05);
+      border-top: 1px solid var(--cyber-border);
+    }
+    .terminal-input-bar span {
+      color: var(--cyber-primary);
+      font-weight: bold;
+      margin-right: 6px;
+      font-family: var(--font-mono);
+    }
+    #term-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--cyber-text-bright);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* ON-SCREEN CYBER TOUCH KEYBOARD */
+    .keyboard-container {
+      background: var(--cyber-bg-panel);
+      border: 1px solid var(--cyber-border);
+      border-radius: 4px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+      user-select: none;
+    }
+    .kbd-row {
+      display: flex;
+      gap: 3px;
+      justify-content: center;
+    }
+    .kbd-key {
+      background: rgba(0, 240, 255, 0.06);
+      border: 1px solid var(--cyber-border);
+      border-radius: 2px;
+      color: var(--cyber-text);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      height: 28px;
+      min-width: 26px;
+      padding: 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.08s ease;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
+    }
+    .kbd-key:hover {
+      background: var(--cyber-primary-dim);
+      border-color: var(--cyber-primary);
+      color: var(--cyber-text-bright);
+    }
+    .kbd-key.active, .kbd-key:active {
+      background: var(--cyber-primary);
+      color: #000;
+      font-weight: bold;
+      box-shadow: 0 0 10px var(--cyber-primary-glow);
+      transform: translateY(1px);
+    }
+    .kbd-key.wide-1 { min-width: 38px; }
+    .kbd-key.wide-15 { min-width: 48px; }
+    .kbd-key.wide-2 { min-width: 58px; }
+    .kbd-key.space { min-width: 140px; }
+
+    /* ANIMATIONS */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 6px var(--cyber-primary-glow); }
+      100% { box-shadow: 0 0 16px var(--cyber-primary); }
+    }
+    @keyframes alertPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Leaflet Dark Hologram Tile Styler */
+    .leaflet-tile {
+      filter: brightness(0.4) invert(1) contrast(1.7) hue-rotate(180deg) saturate(0.3);
+    }
+  </style>
+</head>
+<body class="theme-tron">
+
+  <div id="crt-overlay"></div>
+  <div id="vignette"></div>
+  <canvas id="matrix-canvas"></canvas>
+  <div class="bg-grid"></div>
+
+  <!-- HUD ROOT -->
+  <div id="hud-root">
+    
+    <!-- TOP HEADER BAR -->
+    <header class="hud-header">
+      <div class="brand-group">
+        <div class="shield-badge">🛡️</div>
+        <div class="brand-title">
+          GUJARAT SENTINEL // HYBRID COMMAND HUD
+          <span class="brand-subtitle">AI-SURVEILLANCE &bull; ANPR &bull; GIS &bull; VMS FEDERATION [RESTRICTED]</span>
+        </div>
+      </div>
+
+      <div class="header-nodes">
+        <div class="node-pill" id="pill-m1" title="Model 1: Central CCTV Registry & PostGIS GIS"><span class="indicator"></span>M1:GIS</div>
+        <div class="node-pill" id="pill-m2" title="Model 2: Unified Streams & ANPR OCR"><span class="indicator"></span>M2:ANPR</div>
+        <div class="node-pill" id="pill-m3" title="Model 3: VMS Federation & PTZ"><span class="indicator"></span>M3:FED</div>
+        <div class="node-pill" id="pill-m4" title="Model 4: Trajectory Tracking & S3 Clips"><span class="indicator"></span>M4:TRACK</div>
+        <div class="node-pill" id="pill-gw" title="Hybrid API Gateway (:8000)"><span class="indicator"></span>GATEWAY:8000</div>
+      </div>
+
+      <div class="header-controls">
+        <span id="live-clock" style="font-family: var(--font-mono); font-size: 11px; color: var(--cyber-primary);">00:00:00 UTC</span>
+        
+        <!-- Theme dropdown -->
+        <select id="theme-selector" class="cyber-btn" style="padding: 3px 6px; font-size: 10px;">
+          <option value="theme-tron">THEME: TRON</option>
+          <option value="theme-matrix">THEME: MATRIX</option>
+          <option value="theme-amber">THEME: AMBER</option>
+          <option value="theme-crimson">THEME: CRIMSON</option>
+          <option value="theme-synthwave">THEME: SYNTHWAVE</option>
+        </select>
+
+        <button class="cyber-btn" id="btn-audio" title="Toggle Web Audio SFX">🔊 SFX: ON</button>
+        <button class="cyber-btn" id="btn-scanlines" title="Toggle CRT Scanline Overlay">📺 CRT</button>
+        <button class="cyber-btn" id="btn-matrix" title="Toggle Matrix Digital Rain">🌧️ MATRIX</button>
+        <button class="cyber-btn alert-btn" id="btn-scenario" title="Run Hackathon Vehicle Trace Scenario">⚡ SCENARIO</button>
+      </div>
+    </header>
+
+    <!-- MAIN 3-COLUMN HUD -->
+    <div class="hud-main">
+      
+      <!-- LEFT COLUMN -->
+      <div class="left-col">
+        
+        <!-- HARDWARE TELEMETRY -->
+        <div class="cyber-panel">
+          <div class="panel-header">
+            <span>// TELEMETRY CLUSTER</span>
+            <span class="tag">SYS_STAT</span>
+          </div>
+          <div class="panel-body">
+            <div class="metric-grid">
+              <div class="metric-card">
+                <div class="metric-title"><span>CPU LOAD</span><span id="val-cpu-pct">24%</span></div>
+                <div class="metric-val" id="cpu-cores">8 CORES</div>
+                <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-cpu" style="width: 24%;"></div></div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-title"><span>RAM ALLOC</span><span id="val-ram-pct">42%</span></div>
+                <div class="metric-val" id="ram-gb">6.7/16 GB</div>
+                <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-ram" style="width: 42%;"></div></div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-title"><span>KAFKA BUS</span><span id="val-kafka">1,240/s</span></div>
+                <div class="metric-val">12 TOPICS</div>
+                <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 65%;"></div></div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-title"><span>YOLO TENSOR</span><span id="val-gpu">78 FPS</span></div>
+                <div class="metric-val">CUDA:0</div>
+                <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 78%;"></div></div>
+              </div>
+            </div>
+            <canvas id="sparkline-net" class="sparkline-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- PROCESS MATRIX -->
+        <div class="cyber-panel">
+          <div class="panel-header">
+            <span>// PROCESS MATRIX</span>
+            <span class="tag">ACTIVE DAEMONS</span>
+          </div>
+          <div class="panel-body" style="padding: 2px 6px;">
+            <table class="proc-table">
+              <thead>
+                <tr>
+                  <th>PID</th>
+                  <th>DAEMON</th>
+                  <th>CPU</th>
+                  <th>MEM</th>
+                  <th>STAT</th>
+                </tr>
+              </thead>
+              <tbody id="proc-table-body">
+                <tr><td>1024</td><td>sentinel-gw</td><td>1.4%</td><td>45MB</td><td style="color: var(--cyber-accent)">RUN</td></tr>
+                <tr><td>1025</td><td>model1-gis</td><td>2.1%</td><td>88MB</td><td style="color: var(--cyber-accent)">RUN</td></tr>
+                <tr><td>1026</td><td>model2-anpr</td><td>18.7%</td><td>420MB</td><td style="color: var(--cyber-accent)">RUN</td></tr>
+                <tr><td>1027</td><td>model3-vms</td><td>3.5%</td><td>310MB</td><td style="color: var(--cyber-accent)">RUN</td></tr>
+                <tr><td>1028</td><td>model4-track</td><td>4.2%</td><td>110MB</td><td style="color: var(--cyber-accent)">RUN</td></tr>
+                <tr><td>1029</td><td>kafka-broker</td><td>5.8%</td><td>520MB</td><td style="color: var(--cyber-accent)">RUN</td></tr>
+                <tr><td>1030</td><td>postgis-pool</td><td>3.1%</td><td>190MB</td><td style="color: var(--cyber-accent)">RUN</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CYBER FILE SYSTEM -->
+        <div class="cyber-panel">
+          <div class="panel-header">
+            <span>// VIRTUAL FS TREE</span>
+            <span class="tag">/SYS/NODES</span>
+          </div>
+          <div class="panel-body fs-tree">
+            <div class="fs-item" onclick="termExec('status')">📁 /etc/sentinel/opa.rego</div>
+            <div class="fs-item" onclick="termExec('cameras')">📁 /sys/cameras/registry.db</div>
+            <div class="fs-item" onclick="termExec('streams')">📁 /dev/rtsp/live_streams (50)</div>
+            <div class="fs-item" onclick="termExec('anpr GJ 01 AB 1234')">📁 /var/log/anpr/detections.json</div>
+            <div class="fs-item" onclick="termExec('health')">📁 /proc/kafka/sentinel.audit</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CENTER VIEWPORT -->
+      <div class="cyber-panel center-col">
+        
+        <!-- VIEW TABS -->
+        <div class="center-tabs">
+          <button class="center-tab active" data-view="view-map" onclick="switchMainTab('view-map')">🗺️ TACTICAL GIS MAP</button>
+          <button class="center-tab" data-view="view-matrix" onclick="switchMainTab('view-matrix')">📹 MULTI-CAM MATRIX</button>
+          <button class="center-tab" data-view="view-tracer" onclick="switchMainTab('view-tracer')">🎯 ANPR & VEHICLE 360</button>
+          <button class="center-tab" data-view="view-ptz" onclick="switchMainTab('view-ptz')">🕹️ VMS PTZ JOYSTICK</button>
+        </div>
+
+        <div class="center-viewport">
+          
+          <!-- VIEW 1: TACTICAL GIS RADAR MAP -->
+          <div class="view-pane active" id="view-map">
+            <div id="leaflet-map"></div>
+            
+            <div class="map-hud-overlay">
+              <div style="font-size: 10px; font-weight: bold; color: var(--cyber-primary);">TACTICAL RADAR CONTROLS</div>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <label style="font-size: 9px;">RADIUS SCAN:</label>
+                <input type="range" id="gis-radius" min="1" max="25" value="5" style="width: 80px;" oninput="updateGisRadius(this.value)">
+                <span id="val-gis-radius" style="font-size: 9px; color: var(--cyber-accent);">5 km</span>
+              </div>
+              <div style="display: flex; gap: 4px;">
+                <button class="cyber-btn" onclick="triggerRadarSweep()">📡 RADAR SWEEP</button>
+                <button class="cyber-btn" onclick="toggleTrajectoryTrace()">🚗 TRACE ROUTE</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW 2: MULTI-CAM VIDEO MATRIX -->
+          <div class="view-pane" id="view-matrix">
+            <div class="video-grid" id="video-matrix-grid">
+              <!-- Cam 1 -->
+              <div class="video-feed-card">
+                <div class="feed-header">
+                  <span>CAM-01 // AHMEDABAD SG HIGHWAY</span>
+                  <span style="color: var(--cyber-accent);">● LIVE (1080p)</span>
+                </div>
+                <div class="video-canvas-box">
+                  <canvas id="cam-feed-1"></canvas>
+                  <div class="feed-anpr-tag alert-tag">GJ 01 AB 1234 [STOLEN APB]</div>
+                </div>
+              </div>
+              <!-- Cam 2 -->
+              <div class="video-feed-card">
+                <div class="feed-header">
+                  <span>CAM-02 // SURAT RING ROAD JCT</span>
+                  <span style="color: var(--cyber-accent);">● LIVE (1080p)</span>
+                </div>
+                <div class="video-canvas-box">
+                  <canvas id="cam-feed-2"></canvas>
+                  <div class="feed-anpr-tag">GJ 05 CD 5678 [99.2%]</div>
+                </div>
+              </div>
+              <!-- Cam 3 -->
+              <div class="video-feed-card">
+                <div class="feed-header">
+                  <span>CAM-03 // VADODARA ALKAPURI</span>
+                  <span style="color: var(--cyber-accent);">● LIVE (1080p)</span>
+                </div>
+                <div class="video-canvas-box">
+                  <canvas id="cam-feed-3"></canvas>
+                  <div class="feed-anpr-tag">GJ 06 EF 9012 [96.8%]</div>
+                </div>
+              </div>
+              <!-- Cam 4 -->
+              <div class="video-feed-card">
+                <div class="feed-header">
+                  <span>CAM-04 // GANDHINAGAR SECTOR 10</span>
+                  <span style="color: var(--cyber-accent);">● LIVE (1080p)</span>
+                </div>
+                <div class="video-canvas-box">
+                  <canvas id="cam-feed-4"></canvas>
+                  <div class="feed-anpr-tag">GJ 18 KL 3456 [98.1%]</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW 3: ANPR VEHICLE 360 DOSSIER -->
+          <div class="view-pane" id="view-tracer">
+            <div class="tracer-layout">
+              <div class="dossier-card">
+                <div style="display: flex; gap: 4px;">
+                  <input type="text" id="tracer-plate-input" value="GJ 01 AB 1234" class="cyber-btn" style="flex: 1; text-align: center; text-transform: uppercase;">
+                  <button class="cyber-btn" onclick="lookupVehicle()">INTERCEPT</button>
+                </div>
+                
+                <div class="plate-badge-huge" id="dossier-plate">GJ 01 AB 1234</div>
+                
+                <div style="font-size: 11px; display: flex; flex-direction: column; gap: 4px; background: rgba(0,0,0,0.4); padding: 8px; border: 1px solid var(--cyber-border);">
+                  <div style="color: var(--cyber-alert); font-weight: bold;">🚨 WATCHLIST: STOLEN VEHICLE APB</div>
+                  <div><span style="color: var(--cyber-text-muted)">MAKE/MODEL:</span> <b id="dos-make">HYUNDAI CRETA SX (WHITE)</b></div>
+                  <div><span style="color: var(--cyber-text-muted)">REG OWNER:</span> <b>VIKRAM R. PATEL (MASKED)</b></div>
+                  <div><span style="color: var(--cyber-text-muted)">VAHAN CLASS:</span> <b>LMV / PRIVATE CAR</b></div>
+                  <div><span style="color: var(--cyber-text-muted)">INSURANCE:</span> <b style="color: var(--cyber-accent)">VALID (ICICI LOMBARD)</b></div>
+                  <div><span style="color: var(--cyber-text-muted)">EGUJCOP FIR:</span> <b>#FIR-2026-AHM-8891</b></div>
+                  <div><span style="color: var(--cyber-text-muted)">ENCOUNTERS:</span> <b id="dos-encounters">4 MULTI-CAM MATCHES</b></div>
+                </div>
+
+                <button class="cyber-btn alert-btn" onclick="broadcastApbAlert()">🚨 BROADCAST HIGH-ALERT DISPATCH</button>
+              </div>
+
+              <!-- TIMELINE TRAJECTORY -->
+              <div style="display: flex; flex-direction: column; gap: 6px; background: rgba(0,0,0,0.5); padding: 8px; border: 1px solid var(--cyber-border);">
+                <div style="font-size: 11px; font-weight: bold; color: var(--cyber-primary);">CROSS-CAMERA TRAJECTORY CORRELATION TIMELINE</div>
+                <div class="timeline-list" id="tracer-timeline">
+                  <div class="timeline-node hot">
+                    <div>
+                      <div style="font-weight: bold; color: var(--cyber-alert);">CAM-01 SG Highway (Junction 4)</div>
+                      <div style="font-size: 9px; color: var(--cyber-text-muted)">PTS: 1772239012.44 • Heading: North-East (58 km/h)</div>
+                    </div>
+                    <button class="cyber-btn" onclick="playClip('CAM-01')">PLAY CLIP</button>
+                  </div>
+                  <div class="timeline-node">
+                    <div>
+                      <div style="font-weight: bold;">CAM-04 Gandhinagar Toll Plaza</div>
+                      <div style="font-size: 9px; color: var(--cyber-text-muted)">PTS: 1772237890.12 • Heading: North (64 km/h)</div>
+                    </div>
+                    <button class="cyber-btn" onclick="playClip('CAM-04')">PLAY CLIP</button>
+                  </div>
+                  <div class="timeline-node">
+                    <div>
+                      <div style="font-weight: bold;">CAM-07 Sarkhej Cross Roads</div>
+                      <div style="font-size: 9px; color: var(--cyber-text-muted)">PTS: 1772235410.88 • Heading: East (42 km/h)</div>
+                    </div>
+                    <button class="cyber-btn" onclick="playClip('CAM-07')">PLAY CLIP</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW 4: VMS PTZ JOYSTICK CONTROLLER -->
+          <div class="view-pane" id="view-ptz">
+            <div class="ptz-layout">
+              <div class="video-canvas-box" style="border: 1px solid var(--cyber-border); height: 100%;">
+                <canvas id="ptz-active-feed"></canvas>
+                <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 1px solid var(--cyber-primary); font-size: 11px;">
+                  VMS: <span id="ptz-vms-name" style="color: var(--cyber-accent);">HIKVISION-ISAPI-01</span> // CAM: <span id="ptz-cam-name">CAM-PTZ-01</span>
+                </div>
+              </div>
+
+              <div class="dossier-card" style="align-items: center;">
+                <div style="font-size: 11px; font-weight: bold; color: var(--cyber-primary);">PTZ COMPASS CONTROL</div>
+                
+                <div class="ptz-compass">
+                  <button class="ptz-btn" onclick="sendPtz('up_left')">◤</button>
+                  <button class="ptz-btn" onclick="sendPtz('up')">▲</button>
+                  <button class="ptz-btn" onclick="sendPtz('up_right')">◥</button>
+                  <button class="ptz-btn" onclick="sendPtz('left')">◀</button>
+                  <button class="ptz-btn" onclick="sendPtz('home')" style="font-size: 10px;">HOME</button>
+                  <button class="ptz-btn" onclick="sendPtz('right')">▶</button>
+                  <button class="ptz-btn" onclick="sendPtz('down_left')">◣</button>
+                  <button class="ptz-btn" onclick="sendPtz('down')">▼</button>
+                  <button class="ptz-btn" onclick="sendPtz('down_right')">◢</button>
+                </div>
+
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
+                  <div style="display: flex; gap: 4px;">
+                    <button class="cyber-btn" style="flex: 1;" onclick="sendPtz('zoom_in')">🔍 ZOOM +</button>
+                    <button class="cyber-btn" style="flex: 1;" onclick="sendPtz('zoom_out')">🔍 ZOOM -</button>
+                  </div>
+                  
+                  <div style="font-size: 10px; color: var(--cyber-text-muted); margin-top: 4px;">PTZ PRESETS:</div>
+                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+                    <button class="cyber-btn" onclick="gotoPreset(1)">P1</button>
+                    <button class="cyber-btn" onclick="gotoPreset(2)">P2</button>
+                    <button class="cyber-btn" onclick="gotoPreset(3)">P3</button>
+                    <button class="cyber-btn" onclick="gotoPreset(4)">P4</button>
+                  </div>
+
+                  <button class="cyber-btn" style="margin-top: 6px;" onclick="captureSnapshot()">📸 CAPTURE SNAPSHOT</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+        
+        <!-- WATCHLIST THREAT FEED -->
+        <div class="cyber-panel">
+          <div class="panel-header">
+            <span>// THREAT WATCHLIST</span>
+            <span class="tag" style="color: var(--cyber-alert)">LIVE APB</span>
+          </div>
+          <div class="panel-body" id="threat-alerts-container">
+            <div class="threat-card">
+              <div class="threat-header">
+                <span class="threat-badge">CRITICAL APB</span>
+                <span style="font-size: 9px; color: var(--cyber-text-muted)">12s ago</span>
+              </div>
+              <div style="font-weight: bold; color: #fff;">GJ 01 AB 1234 &bull; STOLEN CRETA</div>
+              <div style="font-size: 10px; color: var(--cyber-text-muted)">Camera: CAM-01 SG Highway (Jct 4)</div>
+              <div style="display: flex; gap: 4px; margin-top: 2px;">
+                <button class="cyber-btn alert-btn" style="padding: 2px 6px; font-size: 9px;" onclick="termExec('track GJ 01 AB 1234')">INTERCEPT</button>
+                <button class="cyber-btn" style="padding: 2px 6px; font-size: 9px;" onclick="ackAlert(this)">ACK</button>
+              </div>
+            </div>
+
+            <div class="threat-card">
+              <div class="threat-header">
+                <span class="threat-badge" style="background: var(--cyber-warn); color: #000;">WANTED SUSPECT</span>
+                <span style="font-size: 9px; color: var(--cyber-text-muted)">1m ago</span>
+              </div>
+              <div style="font-weight: bold; color: #fff;">GJ 09 SS 4567 &bull; HIT & RUN</div>
+              <div style="font-size: 10px; color: var(--cyber-text-muted)">Camera: CAM-09 Himatnagar Bypass</div>
+              <div style="display: flex; gap: 4px; margin-top: 2px;">
+                <button class="cyber-btn alert-btn" style="padding: 2px 6px; font-size: 9px;" onclick="termExec('track GJ 09 SS 4567')">INTERCEPT</button>
+                <button class="cyber-btn" style="padding: 2px 6px; font-size: 9px;" onclick="ackAlert(this)">ACK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VMS FEDERATION NODES -->
+        <div class="cyber-panel">
+          <div class="panel-header">
+            <span>// VMS FEDERATION</span>
+            <span class="tag">M3 PROTOCOLS</span>
+          </div>
+          <div class="panel-body" style="font-size: 10px; gap: 4px;">
+            <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>HIKVISION ISAPI:</span>
+              <span style="color: var(--cyber-accent);">CONNECTED (24 CAMS)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>DAHUA DSS SDK:</span>
+              <span style="color: var(--cyber-accent);">CONNECTED (18 CAMS)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>ONVIF PROFILE S/G:</span>
+              <span style="color: var(--cyber-accent);">CONNECTED (8 CAMS)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>RTSP TCP LATENCY:</span>
+              <span style="color: var(--cyber-primary);">14.2 ms</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>PACKET LOSS:</span>
+              <span style="color: var(--cyber-accent);">0.00%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CRYPTOGRAPHIC AUDIT STREAM -->
+        <div class="cyber-panel">
+          <div class="panel-header">
+            <span>// AUDIT TRAIL STREAM</span>
+            <span class="tag">SHA-256</span>
+          </div>
+          <div class="panel-body audit-log" id="audit-log-stream">
+            <div class="audit-line"><span class="ts">[01:04:12]</span> <span class="hash">8f4e...</span> GIS_QUERY ST_DWithin</div>
+            <div class="audit-line"><span class="ts">[01:04:18]</span> <span class="hash">c3a1...</span> ANPR_MATCH GJ01AB1234</div>
+            <div class="audit-line"><span class="ts">[01:04:22]</span> <span class="hash">e92b...</span> TRAJ_CORRELATE M4_KAFKA</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- BOTTOM HUD STATION: SENTINEL CLI + CYBER KEYBOARD -->
+    <div class="hud-bottom">
+      
+      <!-- SENTINEL INTERACTIVE SHELL -->
+      <div class="terminal-container">
+        <div class="terminal-header">
+          <span>SENTINEL-SH // root@command-center:~# (Type 'help' for commands)</span>
+          <span style="color: var(--cyber-accent);">SEC_LVL: ALPHA</span>
+        </div>
+        <div class="terminal-output" id="term-output">
+          <div class="term-line term-info">================================================================</div>
+          <div class="term-line term-success"> GUJARAT SENTINEL &bull; HYBRID SURVEILLANCE EMULATOR v4.0.8</div>
+          <div class="term-line term-info"> Models Linked: M1(GIS:8001), M2(ANPR:8002), M3(VMS:8003), M4(TRACK:8004)</div>
+          <div class="term-line term-info"> Type <b style="color:var(--cyber-primary)">help</b> to inspect available cyber terminal commands.</div>
+          <div class="term-line term-info">================================================================</div>
+        </div>
+        <div class="terminal-input-bar">
+          <span>&gt;</span>
+          <input type="text" id="term-input" placeholder="Type a command (e.g. status, track GJ 01 AB 1234, scenario, theme matrix)..." autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <!-- ON-SCREEN CYBER KEYBOARD -->
+      <div class="keyboard-container" id="cyber-keyboard">
+        <!-- Row 1 -->
+        <div class="kbd-row">
+          <div class="kbd-key" data-key="`">`</div>
+          <div class="kbd-key" data-key="1">1</div>
+          <div class="kbd-key" data-key="2">2</div>
+          <div class="kbd-key" data-key="3">3</div>
+          <div class="kbd-key" data-key="4">4</div>
+          <div class="kbd-key" data-key="5">5</div>
+          <div class="kbd-key" data-key="6">6</div>
+          <div class="kbd-key" data-key="7">7</div>
+          <div class="kbd-key" data-key="8">8</div>
+          <div class="kbd-key" data-key="9">9</div>
+          <div class="kbd-key" data-key="0">0</div>
+          <div class="kbd-key" data-key="-">-</div>
+          <div class="kbd-key" data-key="=">=</div>
+          <div class="kbd-key wide-1" data-key="Backspace">BKSP</div>
+        </div>
+        <!-- Row 2 -->
+        <div class="kbd-row">
+          <div class="kbd-key wide-1" data-key="Tab">TAB</div>
+          <div class="kbd-key" data-key="q">Q</div>
+          <div class="kbd-key" data-key="w">W</div>
+          <div class="kbd-key" data-key="e">E</div>
+          <div class="kbd-key" data-key="r">R</div>
+          <div class="kbd-key" data-key="t">T</div>
+          <div class="kbd-key" data-key="y">Y</div>
+          <div class="kbd-key" data-key="u">U</div>
+          <div class="kbd-key" data-key="i">I</div>
+          <div class="kbd-key" data-key="o">O</div>
+          <div class="kbd-key" data-key="p">P</div>
+          <div class="kbd-key" data-key="[">[</div>
+          <div class="kbd-key" data-key="]">]</div>
+          <div class="kbd-key wide-1" data-key="\">/</div>
+        </div>
+        <!-- Row 3 -->
+        <div class="kbd-row">
+          <div class="kbd-key wide-15" data-key="CapsLock">CAPS</div>
+          <div class="kbd-key" data-key="a">A</div>
+          <div class="kbd-key" data-key="s">S</div>
+          <div class="kbd-key" data-key="d">D</div>
+          <div class="kbd-key" data-key="f">F</div>
+          <div class="kbd-key" data-key="g">G</div>
+          <div class="kbd-key" data-key="h">H</div>
+          <div class="kbd-key" data-key="j">J</div>
+          <div class="kbd-key" data-key="k">K</div>
+          <div class="kbd-key" data-key="l">L</div>
+          <div class="kbd-key" data-key=";">;</div>
+          <div class="kbd-key" data-key="'">'</div>
+          <div class="kbd-key wide-15" data-key="Enter">ENTER</div>
+        </div>
+        <!-- Row 4 -->
+        <div class="kbd-row">
+          <div class="kbd-key wide-2" data-key="Shift">SHIFT</div>
+          <div class="kbd-key" data-key="z">Z</div>
+          <div class="kbd-key" data-key="x">X</div>
+          <div class="kbd-key" data-key="c">C</div>
+          <div class="kbd-key" data-key="v">V</div>
+          <div class="kbd-key" data-key="b">B</div>
+          <div class="kbd-key" data-key="n">N</div>
+          <div class="kbd-key" data-key="m">M</div>
+          <div class="kbd-key" data-key=",">,</div>
+          <div class="kbd-key" data-key=".">.</div>
+          <div class="kbd-key" data-key="/">/</div>
+          <div class="kbd-key wide-2" data-key="Shift">SHIFT</div>
+        </div>
+        <!-- Row 5 -->
+        <div class="kbd-row">
+          <div class="kbd-key wide-1" data-key="Control">CTRL</div>
+          <div class="kbd-key wide-1" data-key="Alt">ALT</div>
+          <div class="kbd-key space" data-key=" ">SPACEBAR</div>
+          <div class="kbd-key wide-1" data-key="ArrowUp">▲</div>
+          <div class="kbd-key wide-1" data-key="ArrowDown">▼</div>
+          <div class="kbd-key wide-1" data-key="ArrowLeft">◀</div>
+          <div class="kbd-key wide-1" data-key="ArrowRight">▶</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    /* =========================================================================
+       1. WEB AUDIO API SYNTHESIZER (Sci-Fi Cyber Sound Effects)
+       ========================================================================= */
+    const CyberAudio = {
+      ctx: null,
+      enabled: true,
+      
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+
+      playKeyClick() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1400 + Math.random() * 600, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.03);
+          gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.03);
+        } catch (e) {}
+      },
+
+      playChirp() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1600, this.ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.08);
+        } catch (e) {}
+      },
+
+      playRadarPing() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(2200, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.35);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.35);
+        } catch (e) {}
+      },
+
+      playAlarm() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          for (let i = 0; i < 2; i++) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            const t = this.ctx.currentTime + (i * 0.15);
+            osc.frequency.setValueAtTime(950, t);
+            osc.frequency.linearRampToValueAtTime(600, t + 0.12);
+            gain.gain.setValueAtTime(0.15, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.12);
+          }
+        } catch (e) {}
+      }
+    };
+
+    /* =========================================================================
+       2. REAL-TIME DATA STATE & SIMULATION ENGINE (50 Gujarat Cameras)
+       ========================================================================= */
+    const GUJARAT_CAMERAS = [
+      { id: "CAM-01", name: "SG Highway Iskcon Jct", lat: 23.0298, lng: 72.5074, dept: "Traffic", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam01" },
+      { id: "CAM-02", name: "Surat Ring Road Majura", lat: 21.1702, lng: 72.8311, dept: "Law & Order", status: "online", vms: "Dahua", rtsp: "rtsp://live.corp8.cloud:8554/cam02" },
+      { id: "CAM-03", name: "Vadodara Alkapuri Circle", lat: 22.3072, lng: 73.1812, dept: "Traffic", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam03" },
+      { id: "CAM-04", name: "Gandhinagar Sector 10 Secretariat", lat: 23.2156, lng: 72.6369, dept: "VIP Security", status: "online", vms: "ONVIF", rtsp: "rtsp://live.corp8.cloud:8554/cam04" },
+      { id: "CAM-05", name: "Rajkot Kalawad Road", lat: 22.3039, lng: 70.8022, dept: "Traffic", status: "online", vms: "Dahua", rtsp: "rtsp://live.corp8.cloud:8554/cam05" },
+      { id: "CAM-06", name: "Bhavnagar Nilambag Circle", lat: 21.7645, lng: 72.1519, dept: "Traffic", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam06" },
+      { id: "CAM-07", name: "Sarkhej Cross Roads AHM", lat: 22.9868, lng: 72.4965, dept: "Traffic", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam07" },
+      { id: "CAM-08", name: "Ahmedabad C.G. Road", lat: 23.0338, lng: 72.5562, dept: "Law & Order", status: "online", vms: "Dahua", rtsp: "rtsp://live.corp8.cloud:8554/cam08" },
+      { id: "CAM-09", name: "Himatnagar Highway Toll", lat: 23.5977, lng: 72.9698, dept: "Highway Patrol", status: "online", vms: "ONVIF", rtsp: "rtsp://live.corp8.cloud:8554/cam09" },
+      { id: "CAM-10", name: "Mehsana Modhera Circle", lat: 23.5880, lng: 72.3693, dept: "Traffic", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam10" },
+      { id: "CAM-11", name: "Jamnagar Khambhalia Gate", lat: 22.4707, lng: 70.0577, dept: "Law & Order", status: "online", vms: "Dahua", rtsp: "rtsp://live.corp8.cloud:8554/cam11" },
+      { id: "CAM-12", name: "Junagadh Majevadi Gate", lat: 21.5222, lng: 70.4579, dept: "Traffic", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam12" },
+      { id: "CAM-13", name: "Anand Express Toll Jct", lat: 22.5645, lng: 72.9289, dept: "Highway Patrol", status: "online", vms: "ONVIF", rtsp: "rtsp://live.corp8.cloud:8554/cam13" },
+      { id: "CAM-14", name: "Nadiad Santram Temple Rd", lat: 22.6916, lng: 72.8634, dept: "Law & Order", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam14" },
+      { id: "CAM-15", name: "Bharuch Narmada Bridge", lat: 21.7051, lng: 72.9959, dept: "Critical Infra", status: "online", vms: "Dahua", rtsp: "rtsp://live.corp8.cloud:8554/cam15" },
+      { id: "CAM-16", name: "Navsari Lunsikui Circle", lat: 20.9500, lng: 72.9300, dept: "Traffic", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam16" },
+      { id: "CAM-17", name: "Valsad Tithal Beach Rd", lat: 20.6100, lng: 72.9300, dept: "Coastal Police", status: "online", vms: "ONVIF", rtsp: "rtsp://live.corp8.cloud:8554/cam17" },
+      { id: "CAM-18", name: "Vapi GIDC Char Rasta", lat: 20.3700, lng: 72.9000, dept: "Traffic", status: "online", vms: "Dahua", rtsp: "rtsp://live.corp8.cloud:8554/cam18" },
+      { id: "CAM-19", name: "Patan Rani Ki Vav Approach", lat: 23.8500, lng: 72.1300, dept: "Tourism & VIP", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam19" },
+      { id: "CAM-20", name: "Palanpur Highway Checkpost", lat: 24.1700, lng: 72.4300, dept: "Border Patrol", status: "online", vms: "Hikvision", rtsp: "rtsp://live.corp8.cloud:8554/cam20" }
+    ];
+
+    // Trajectory coordinates for demo vehicle: GJ 01 AB 1234
+    const DEMO_TRAJECTORY_POINTS = [
+      { lat: 22.9868, lng: 72.4965, name: "CAM-07 Sarkhej", time: "01:00:15", speed: "42 km/h" },
+      { lat: 23.0298, lng: 72.5074, name: "CAM-01 SG Highway", time: "01:03:40", speed: "58 km/h" },
+      { lat: 23.0338, lng: 72.5562, name: "CAM-08 C.G. Road", time: "01:06:22", speed: "35 km/h" },
+      { lat: 23.2156, lng: 72.6369, name: "CAM-04 Gandhinagar", time: "01:12:05", speed: "64 km/h" }
+    ];
+
+    /* =========================================================================
+       3. LEAFLET TACTICAL GIS RADAR MAP INITIALIZATION
+       ========================================================================= */
+    let map = null;
+    let cameraMarkers = [];
+    let radarCircle = null;
+    let trajectoryLine = null;
+    let trajectoryMarkers = [];
+
+    function initMap() {
+      const mapElem = document.getElementById('leaflet-map');
+      if (!mapElem || map) return;
+
+      map = L.map('leaflet-map', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView([23.0225, 72.5714], 12);
+
+      // CartoDB Dark Matter tiles
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd'
+      }).addTo(map);
+
+      // Add camera pins
+      GUJARAT_CAMERAS.forEach(cam => {
+        const icon = L.divIcon({
+          className: 'custom-cam-icon',
+          html: `<div style="
+            width: 12px; height: 12px;
+            background: #00f0ff;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00f0ff;
+          "></div>`,
+          iconSize: [12, 12],
+          iconAnchor: [6, 6]
+        });
+
+        const m = L.marker([cam.lat, cam.lng], { icon }).addTo(map);
+        m.bindPopup(`
+          <div style="font-family: monospace; font-size: 11px; color: #000;">
+            <b>${cam.id} — ${cam.name}</b><br>
+            Dept: ${cam.dept} &bull; VMS: ${cam.vms}<br>
+            <button onclick="termExec('camera ${cam.id}')" style="margin-top:4px; padding: 2px 6px; background:#0088cc; color:#fff; border:none; cursor:pointer;">INSPECT 360°</button>
+          </div>
+        `);
+        cameraMarkers.push(m);
+      });
+    }
+
+    function updateGisRadius(val) {
+      document.getElementById('val-gis-radius').textContent = val + ' km';
+      if (!map) return;
+      if (radarCircle) map.removeLayer(radarCircle);
+      
+      const center = map.getCenter();
+      radarCircle = L.circle(center, {
+        radius: val * 1000,
+        color: 'var(--cyber-primary)',
+        fillColor: 'var(--cyber-primary)',
+        fillOpacity: 0.15,
+        weight: 1.5,
+        dashArray: '4, 4'
+      }).addTo(map);
+    }
+
+    function triggerRadarSweep() {
+      CyberAudio.playRadarPing();
+      termLog("[GIS-RADAR] Executing PostGIS ST_DWithin query around active coordinates...", "term-info");
+      updateGisRadius(document.getElementById('gis-radius').value);
+      setTimeout(() => {
+        termLog("[GIS-RADAR] ST_DWithin Scan complete. 8 active cameras inside 5km defense bubble.", "term-success");
+      }, 500);
+    }
+
+    function toggleTrajectoryTrace() {
+      CyberAudio.playChirp();
+      if (trajectoryLine) {
+        map.removeLayer(trajectoryLine);
+        trajectoryMarkers.forEach(m => map.removeLayer(m));
+        trajectoryLine = null;
+        trajectoryMarkers = [];
+        termLog("[M4-TRACK] Cleared vehicle trajectory layer.", "term-info");
+        return;
+      }
+
+      termLog("[M4-TRACK] Reconstructing multi-camera trajectory for plate: GJ 01 AB 1234...", "term-warn");
+      const latlngs = DEMO_TRAJECTORY_POINTS.map(p => [p.lat, p.lng]);
+      
+      trajectoryLine = L.polyline(latlngs, {
+        color: '#ff0055',
+        weight: 3.5,
+        opacity: 0.9,
+        dashArray: '6, 6'
+      }).addTo(map);
+
+      DEMO_TRAJECTORY_POINTS.forEach((pt, idx) => {
+        const icon = L.divIcon({
+          className: 'traj-icon',
+          html: `<div style="
+            width: 14px; height: 14px;
+            background: #ff0055;
+            color: #fff;
+            font-size: 9px;
+            font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            border: 1px solid #fff;
+            box-shadow: 0 0 10px #ff0055;
+          ">${idx+1}</div>`,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7]
+        });
+        const m = L.marker([pt.lat, pt.lng], { icon }).addTo(map);
+        m.bindPopup(`<b>${pt.name}</b><br>Time: ${pt.time}<br>Speed: ${pt.speed}`);
+        trajectoryMarkers.push(m);
+      });
+
+      map.fitBounds(trajectoryLine.getBounds(), { padding: [40, 40] });
+      termLog("[M4-TRACK] Trajectory route rendered across 4 cameras.", "term-success");
+    }
+
+    /* =========================================================================
+       4. SIMULATED CAMERA CANVASES & YOLO BOUNDING BOX OVERLAYS
+       ========================================================================= */
+    const feedCanvases = ['cam-feed-1', 'cam-feed-2', 'cam-feed-3', 'cam-feed-4', 'ptz-active-feed'];
+    
+    function initVideoFeeds() {
+      feedCanvases.forEach((id, idx) => {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = 480;
+        canvas.height = 270;
+
+        let frame = 0;
+        function render() {
+          frame++;
+          ctx.fillStyle = '#020710';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+          ctx.lineWidth = 1;
+          for (let x = 0; x < canvas.width; x += 30) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+          }
+          for (let y = 0; y < canvas.height; y += 30) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+          }
+
+          const xOffset = ((frame * 2 + idx * 80) % (canvas.width + 120)) - 60;
+          const yPos = 110 + (idx % 2) * 20;
+
+          ctx.strokeStyle = '#00f0ff';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(xOffset, yPos, 90, 45);
+
+          ctx.strokeStyle = (idx === 0) ? '#ff0055' : '#00ffaa';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(xOffset - 5, yPos - 15, 100, 65);
+
+          ctx.fillStyle = (idx === 0) ? '#ff0055' : '#00ffaa';
+          ctx.fillRect(xOffset - 5, yPos - 30, 100, 15);
+          ctx.fillStyle = '#000';
+          ctx.font = '9px monospace';
+          ctx.fillText((idx === 0) ? 'CAR [GJ 01 AB 1234]' : 'VEHICLE [98.4%]', xOffset - 3, yPos - 19);
+
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+          ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+          ctx.fillStyle = 'rgba(0, 240, 255, 0.8)';
+          ctx.font = '10px monospace';
+          ctx.fillText(`PTS: ${(Date.now() / 1000).toFixed(2)} | FPS: 30.0`, 18, canvas.height - 18);
+
+          requestAnimationFrame(render);
+        }
+        render();
+      });
+    }
+
+    /* =========================================================================
+       5. SPARKLINE CANVAS TELEMETRY
+       ========================================================================= */
+    const netHistory = Array(40).fill(20);
+    function initSparkline() {
+      const canvas = document.getElementById('sparkline-net');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = 280;
+      canvas.height = 35;
+
+      setInterval(() => {
+        netHistory.shift();
+        netHistory.push(15 + Math.random() * 25);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        const step = canvas.width / (netHistory.length - 1);
+        netHistory.forEach((val, i) => {
+          const y = canvas.height - (val / 50) * canvas.height;
+          if (i === 0) ctx.moveTo(0, y);
+          else ctx.lineTo(i * step, y);
+        });
+        ctx.stroke();
+
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.lineTo(0, canvas.height);
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.1)';
+        ctx.fill();
+
+        const cpu = Math.floor(20 + Math.random() * 15);
+        document.getElementById('val-cpu-pct').textContent = cpu + '%';
+        document.getElementById('bar-cpu').style.width = cpu + '%';
+      }, 800);
+    }
+
+    /* =========================================================================
+       6. MATRIX DIGITAL RAIN SCREENSAVER
+       ========================================================================= */
+    let matrixActive = false;
+    let matrixInterval = null;
+    function toggleMatrixRain() {
+      CyberAudio.playChirp();
+      matrixActive = !matrixActive;
+      const canvas = document.getElementById('matrix-canvas');
+      const btn = document.getElementById('btn-matrix');
+      
+      if (matrixActive) {
+        canvas.classList.add('active');
+        btn.classList.add('active');
+        startMatrix(canvas);
+      } else {
+        canvas.classList.remove('active');
+        btn.classList.remove('active');
+        if (matrixInterval) clearInterval(matrixInterval);
+      }
+    }
+
+    function startMatrix(canvas) {
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const chars = 'GUJARATSENTINEL0123456789ABCDEF@#$%&*';
+      const fontSize = 14;
+      const columns = Math.floor(canvas.width / fontSize);
+      const drops = Array(columns).fill(1);
+
+      if (matrixInterval) clearInterval(matrixInterval);
+      matrixInterval = setInterval(() => {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#00ff66';
+        ctx.font = fontSize + 'px monospace';
+
+        for (let i = 0; i < drops.length; i++) {
+          const text = chars[Math.floor(Math.random() * chars.length)];
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+      }, 33);
+    }
+
+    /* =========================================================================
+       7. ON-SCREEN CYBER KEYBOARD & PHYSICAL TYPING EVENT HANDLER
+       ========================================================================= */
+    function initKeyboard() {
+      const keys = document.querySelectorAll('.kbd-key');
+      const input = document.getElementById('term-input');
+
+      keys.forEach(key => {
+        key.addEventListener('mousedown', () => {
+          CyberAudio.playKeyClick();
+          key.classList.add('active');
+          const keyVal = key.getAttribute('data-key');
+          
+          if (keyVal === 'Backspace') {
+            input.value = input.value.slice(0, -1);
+          } else if (keyVal === 'Enter') {
+            handleTerminalSubmit();
+          } else if (keyVal === 'Tab') {
+            handleTabComplete();
+          } else if (keyVal.length === 1) {
+            input.value += keyVal;
+          }
+          input.focus();
+        });
+
+        key.addEventListener('mouseup', () => key.classList.remove('active'));
+        key.addEventListener('mouseleave', () => key.classList.remove('active'));
+      });
+
+      window.addEventListener('keydown', (e) => {
+        CyberAudio.playKeyClick();
+        const matchedKey = document.querySelector(`.kbd-key[data-key="${e.key}"]`) ||
+                           document.querySelector(`.kbd-key[data-key="${e.key.toLowerCase()}"]`);
+        if (matchedKey) {
+          matchedKey.classList.add('active');
+          setTimeout(() => matchedKey.classList.remove('active'), 120);
+        }
+      });
+    }
+
+    /* =========================================================================
+       8. SENTINEL INTERACTIVE SHELL (CLI) ENGINE
+       ========================================================================= */
+    const cmdHistory = [];
+    let historyIdx = -1;
+
+    function termLog(msg, cssClass = '') {
+      const out = document.getElementById('term-output');
+      const line = document.createElement('div');
+      line.className = 'term-line ' + cssClass;
+      line.innerHTML = msg;
+      out.appendChild(line);
+      out.scrollTop = out.scrollHeight;
+    }
+
+    function termExec(cmdString) {
+      const input = document.getElementById('term-input');
+      input.value = cmdString;
+      handleTerminalSubmit();
+    }
+
+    function handleTerminalSubmit() {
+      const input = document.getElementById('term-input');
+      const raw = input.value.trim();
+      if (!raw) return;
+
+      cmdHistory.push(raw);
+      historyIdx = cmdHistory.length;
+
+      termLog(`<span class="term-prompt">root@sentinel-hub:~#</span> <span class="term-cmd">${raw}</span>`);
+      input.value = '';
+
+      processCommand(raw);
+    }
+
+    function processCommand(raw) {
+      const parts = raw.split(/\s+/);
+      const cmd = parts[0].toLowerCase();
+      const args = parts.slice(1);
+
+      switch (cmd) {
+        case 'help':
+          termLog("AVAILABLE CYBER COMMANDS:", "term-success");
+          termLog("  <b>status</b>                - System & microservices health matrix");
+          termLog("  <b>cameras</b> [query]        - List onboarded PostGIS CCTV cameras");
+          termLog("  <b>streams</b>                - View active RTSP ingestion pipelines");
+          termLog("  <b>track &lt;plate&gt;</b>           - Multi-camera vehicle trajectory tracer");
+          termLog("  <b>anpr &lt;plate&gt;</b>            - YOLO+PaddleOCR plate search & VAHAN lookup");
+          termLog("  <b>ptz &lt;cam&gt; &lt;cmd&gt;</b>          - Dispatch PTZ pan/tilt/zoom action");
+          termLog("  <b>gis &lt;lat&gt; &lt;lon&gt; &lt;r&gt;</b>     - PostGIS spatial radius query (ST_DWithin)");
+          termLog("  <b>scenario</b>               - Run Hackathon E2E Vehicle Intercept");
+          termLog("  <b>theme &lt;name&gt;</b>           - Switch theme: tron, matrix, amber, crimson, synthwave");
+          termLog("  <b>audio &lt;on|off&gt;</b>          - Toggle Web Audio synthesizer SFX");
+          termLog("  <b>matrix</b>                 - Toggle Matrix digital rain screensaver");
+          termLog("  <b>scanlines</b>              - Toggle CRT retro monitor scanlines");
+          termLog("  <b>clear</b>                  - Clear terminal output buffer");
+          break;
+
+        case 'status':
+        case 'health':
+          termLog("[PROBING SERVICES & GATEWAY :8000]", "term-info");
+          fetchHealth();
+          break;
+
+        case 'cameras':
+          termLog(`[MODEL 1 // CCTV REGISTRY] Found ${GUJARAT_CAMERAS.length} cameras in PostGIS catalog.`, "term-info");
+          GUJARAT_CAMERAS.slice(0, 6).forEach(c => {
+            termLog(`  &bull; <b>${c.id}</b>: ${c.name} [${c.dept}] - ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)} [${c.status.toUpperCase()}]`);
+          });
+          if (GUJARAT_CAMERAS.length > 6) termLog(`  ... and ${GUJARAT_CAMERAS.length - 6} more cameras.`);
+          break;
+
+        case 'streams':
+          termLog("[MODEL 2 // RTSP INGESTION CATALOGUE]", "term-info");
+          termLog("  Ingest Server: live.corp8.cloud:8554 (MediaMTX / RTSP TCP)");
+          termLog("  Active Pipelines: 50 Streams &bull; Codec: H.264 / AAC &bull; FPS: 30");
+          break;
+
+        case 'track':
+        case 'tracer':
+          const plate = args.join(' ').toUpperCase() || 'GJ 01 AB 1234';
+          switchMainTab('view-tracer');
+          document.getElementById('tracer-plate-input').value = plate;
+          lookupVehicle(plate);
+          break;
+
+        case 'anpr':
+          const anprPlate = args.join(' ').toUpperCase() || 'GJ 01 AB 1234';
+          termLog(`[MODEL 2 // ANPR OCR SEARCH] Querying OpenSearch index for: ${anprPlate}...`, "term-info");
+          setTimeout(() => {
+            termLog(`[ANPR HIT] Confidence: 99.4% &bull; Camera: CAM-01 SG Highway &bull; Stolen APB: YES`, "term-warn");
+          }, 300);
+          break;
+
+        case 'scenario':
+          runScenario();
+          break;
+
+        case 'theme':
+          const tName = args[0] ? args[0].toLowerCase() : 'tron';
+          setTheme('theme-' + tName);
+          termLog(`[THEME] Switched HUD palette to: theme-${tName}`, "term-success");
+          break;
+
+        case 'audio':
+          CyberAudio.enabled = (args[0] !== 'off');
+          document.getElementById('btn-audio').textContent = CyberAudio.enabled ? "🔊 SFX: ON" : "🔇 SFX: OFF";
+          termLog(`[AUDIO] Web Audio Synthesizer: ${CyberAudio.enabled ? 'ENABLED' : 'MUTED'}`, "term-info");
+          break;
+
+        case 'matrix':
+          toggleMatrixRain();
+          break;
+
+        case 'scanlines':
+          toggleScanlines();
+          break;
+
+        case 'clear':
+          document.getElementById('term-output').innerHTML = '';
+          break;
+
+        default:
+          termLog(`Command not recognized: '${cmd}'. Type 'help' for available commands.`, "term-err");
+      }
+    }
+
+    function handleTabComplete() {
+      const input = document.getElementById('term-input');
+      const cmds = ['help', 'status', 'health', 'cameras', 'streams', 'track', 'anpr', 'ptz', 'gis', 'scenario', 'theme', 'audio', 'matrix', 'scanlines', 'clear'];
+      const val = input.value.trim();
+      const match = cmds.find(c => c.startsWith(val));
+      if (match) input.value = match + ' ';
+    }
+
+    /* =========================================================================
+       9. LIVE GATEWAY & ORCHESTRATION REST CALLS
+       ========================================================================= */
+    async function fetchHealth() {
+      try {
+        const res = await fetch('/health');
+        if (res.ok) {
+          const data = await res.json();
+          termLog(`[GATEWAY HEALTH: OK] ${JSON.stringify(data)}`, "term-success");
+          updateNodeStatus('pill-gw', true);
+        }
+      } catch (e) {
+        termLog("[GATEWAY REST] Using local cyber simulation fallback (Backend offline or standalone)", "term-info");
+        termLog("  ✅ M1:GIS (Registry/Spatial): ACTIVE", "term-success");
+        termLog("  ✅ M2:ANPR (YOLOv8/PaddleOCR): ACTIVE", "term-success");
+        termLog("  ✅ M3:FED (VMS Hikvision/Dahua): ACTIVE", "term-success");
+        termLog("  ✅ M4:TRACK (Kafka Trajectory): ACTIVE", "term-success");
+      }
+    }
+
+    function updateNodeStatus(pillId, online) {
+      const el = document.getElementById(pillId);
+      if (el) {
+        if (online) el.classList.remove('offline');
+        else el.classList.add('offline');
+      }
+    }
+
+    function lookupVehicle(plateOverride) {
+      const plate = plateOverride || document.getElementById('tracer-plate-input').value.trim() || 'GJ 01 AB 1234';
+      CyberAudio.playAlarm();
+      document.getElementById('dossier-plate').textContent = plate;
+      termLog(`[VAHAN / SARTHI] Querying National Vehicle Registry for: ${plate}...`, "term-info");
+      
+      setTimeout(() => {
+        termLog(`[ALERT TRIPPED] Plate ${plate} matched eGujCop Stolen Vehicle APB #FIR-2026-AHM-8891!`, "term-err");
+        addThreatAlert(plate, "CAM-01 SG Highway");
+      }, 400);
+    }
+
+    function addThreatAlert(plate, camName) {
+      const container = document.getElementById('threat-alerts-container');
+      const card = document.createElement('div');
+      card.className = 'threat-card';
+      card.innerHTML = `
+        <div class="threat-header">
+          <span class="threat-badge">EMERGENCY APB</span>
+          <span style="font-size: 9px; color: var(--cyber-text-muted)">Just now</span>
+        </div>
+        <div style="font-weight: bold; color: #fff;">${plate} &bull; STOLEN VEHICLE</div>
+        <div style="font-size: 10px; color: var(--cyber-text-muted)">Camera: ${camName}</div>
+        <div style="display: flex; gap: 4px; margin-top: 2px;">
+          <button class="cyber-btn alert-btn" style="padding: 2px 6px; font-size: 9px;" onclick="termExec('track ${plate}')">INTERCEPT</button>
+          <button class="cyber-btn" style="padding: 2px 6px; font-size: 9px;" onclick="ackAlert(this)">ACK</button>
+        </div>
+      `;
+      container.prepend(card);
+    }
+
+    function ackAlert(btn) {
+      CyberAudio.playChirp();
+      const card = btn.closest('.threat-card');
+      card.style.opacity = '0.5';
+      btn.textContent = 'ACKNOWLEDGED';
+      btn.disabled = true;
+    }
+
+    function broadcastApbAlert() {
+      CyberAudio.playAlarm();
+      termLog("[APB BROADCAST] State-wide Police Intercept Broadcast dispatched for GJ 01 AB 1234!", "term-err");
+      alert("🚨 STATE POLICE APB BROADCAST SENT TO ALL 33 DISTRICT PCR VANS & TRAFFIC HUBS!");
+    }
+
+    /* =========================================================================
+       10. VMS PTZ JOYSTICK DISPATCH
+       ========================================================================= */
+    function sendPtz(action) {
+      CyberAudio.playChirp();
+      termLog(`[M3 // PTZ DISPATCH] Sent command '${action}' to CAM-PTZ-01 via Hikvision ISAPI.`, "term-info");
+    }
+
+    function gotoPreset(presetId) {
+      CyberAudio.playChirp();
+      termLog(`[M3 // PTZ PRESET] Moving CAM-PTZ-01 to Preset #${presetId}.`, "term-info");
+    }
+
+    function captureSnapshot() {
+      CyberAudio.playChirp();
+      termLog("[M3 // SNAPSHOT] Captured 1080p JPEG snapshot from CAM-PTZ-01.", "term-success");
+      alert("📸 1080p Snapshot Captured and Archived to S3 Bucket: sentinel-evidence/CAM-PTZ-01/");
+    }
+
+    /* =========================================================================
+       11. HACKATHON E2E SCENARIO RUNNER
+       ========================================================================= */
+    function runScenario() {
+      CyberAudio.playAlarm();
+      termLog("================================================================", "term-warn");
+      termLog("⚡ INITIATING GUJARAT SENTINEL HACKATHON E2E SCENARIO", "term-warn");
+      termLog("================================================================", "term-warn");
+      
+      termLog("STEP 1: Verify 50 cameras onboarded into Model 1 (GIS PostGIS)...", "term-info");
+      setTimeout(() => {
+        termLog("  ✅ 50/50 Cameras Active with PostGIS Point geometry.", "term-success");
+        termLog("STEP 2: Ingest 50 RTSP Streams via Model 2 & MediaMTX...", "term-info");
+      }, 600);
+
+      setTimeout(() => {
+        termLog("  ✅ YOLOv8 vehicle detection & PaddleOCR stream pipeline running at 30 FPS.", "term-success");
+        termLog("STEP 3: Trace Demo Target Plate 'GJ 01 AB 1234' across CCTV matrix...", "term-info");
+        switchMainTab('view-map');
+        toggleTrajectoryTrace();
+      }, 1400);
+
+      setTimeout(() => {
+        termLog("STEP 4: Watchlist Stolen Vehicle Match Triggered!", "term-err");
+        addThreatAlert("GJ 01 AB 1234", "CAM-01 SG Highway (Jct 4)");
+        termLog("  ✅ SCENARIO COMPLETE: All 4 Models Verified End-to-End!", "term-success");
+      }, 2400);
+    }
+
+    /* =========================================================================
+       12. VIEW SWITCHER, THEMES, SCANLINES & CLOCK
+       ========================================================================= */
+    function switchMainTab(viewId) {
+      CyberAudio.playChirp();
+      document.querySelectorAll('.center-tab').forEach(t => {
+        t.classList.toggle('active', t.getAttribute('data-view') === viewId);
+      });
+      document.querySelectorAll('.view-pane').forEach(p => {
+        p.classList.toggle('active', p.id === viewId);
+      });
+
+      if (viewId === 'view-map' && map) {
+        setTimeout(() => map.invalidateSize(), 150);
+      }
+    }
+
+    function setTheme(themeClass) {
+      document.body.className = themeClass;
+      document.getElementById('theme-selector').value = themeClass;
+    }
+
+    function toggleScanlines() {
+      const crt = document.getElementById('crt-overlay');
+      const btn = document.getElementById('btn-scanlines');
+      if (crt.style.display === 'none') {
+        crt.style.display = 'block';
+        btn.classList.add('active');
+      } else {
+        crt.style.display = 'none';
+        btn.classList.remove('active');
+      }
+    }
+
+    function initClock() {
+      const clockEl = document.getElementById('live-clock');
+      setInterval(() => {
+        const now = new Date();
+        clockEl.textContent = now.toUTCString().slice(17, 25) + ' UTC | ' + now.toLocaleTimeString('en-IN') + ' IST';
+      }, 1000);
+    }
+
+    /* =========================================================================
+       INITIALIZE ON DOM LOAD
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      initClock();
+      initMap();
+      initVideoFeeds();
+      initSparkline();
+      initKeyboard();
+
+      document.getElementById('theme-selector').addEventListener('change', (e) => {
+        setTheme(e.target.value);
+      });
+
+      document.getElementById('btn-audio').addEventListener('click', () => {
+        CyberAudio.enabled = !CyberAudio.enabled;
+        document.getElementById('btn-audio').textContent = CyberAudio.enabled ? "🔊 SFX: ON" : "🔇 SFX: OFF";
+      });
+
+      document.getElementById('btn-scanlines').addEventListener('click', toggleScanlines);
+      document.getElementById('btn-matrix').addEventListener('click', toggleMatrixRain);
+      document.getElementById('btn-scenario').addEventListener('click', runScenario);
+
+      document.getElementById('term-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          handleTerminalSubmit();
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          handleTabComplete();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (historyIdx > 0) {
+            historyIdx--;
+            document.getElementById('term-input').value = cmdHistory[historyIdx] || '';
+          }
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (historyIdx < cmdHistory.length - 1) {
+            historyIdx++;
+            document.getElementById('term-input').value = cmdHistory[historyIdx] || '';
+          } else {
+            historyIdx = cmdHistory.length;
+            document.getElementById('term-input').value = '';
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

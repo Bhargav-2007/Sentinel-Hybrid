@@ -1,0 +1,327 @@
+# =============================================================================
+# Gujarat Sentinel Hybrid CCTV Platform — Services & Runtime Registry
+# Single Source of Truth for Service Discovery, Ports, Health Probes & Dependencies
+# =============================================================================
+
+version: "2.0.0"
+platform: "Gujarat Sentinel Hybrid Platform"
+
+# Global default timeouts and poll settings
+defaults:
+  startup_timeout_seconds: 120
+  health_poll_interval_seconds: 2.0
+  shutdown_timeout_seconds: 15
+  data_mode_required: "real"
+
+# =============================================================================
+# INFRASTRUCTURE SERVICES (Docker Compose)
+# =============================================================================
+infrastructure:
+  compose_file: "docker-compose.yml"
+  services:
+    postgres:
+      name: "PostgreSQL 16 + PostGIS"
+      type: "database"
+      container_name: "sentinel-postgres"
+      port: 5432
+      health:
+        type: "tcp"
+        host: "127.0.0.1"
+        port: 5432
+        timeout: 30
+      dependencies: []
+
+    redis:
+      name: "Redis 7.4"
+      type: "cache"
+      container_name: "sentinel-redis"
+      port: 6379
+      health:
+        type: "tcp"
+        host: "127.0.0.1"
+        port: 6379
+        timeout: 20
+      dependencies: []
+
+    zookeeper:
+      name: "Zookeeper 7.7"
+      type: "coordination"
+      container_name: "sentinel-zookeeper"
+      port: 2181
+      health:
+        type: "tcp"
+        host: "127.0.0.1"
+        port: 2181
+        timeout: 30
+      dependencies: []
+
+    kafka:
+      name: "Apache Kafka 7.7"
+      type: "event_stream"
+      container_name: "sentinel-kafka"
+      port: 29092
+      health:
+        type: "tcp"
+        host: "127.0.0.1"
+        port: 29092
+        timeout: 60
+      dependencies:
+        - zookeeper
+
+    opensearch:
+      name: "OpenSearch 2.17"
+      type: "search_analytics"
+      container_name: "sentinel-opensearch"
+      port: 9200
+      health:
+        type: "http"
+        url: "http://localhost:9200"
+        expected_status: [200, 401]
+        timeout: 60
+      dependencies: []
+
+    minio:
+      name: "MinIO S3 Object Storage"
+      type: "object_storage"
+      container_name: "sentinel-minio"
+      port: 9000
+      console_port: 9005
+      health:
+        type: "http"
+        url: "http://localhost:9000/minio/health/live"
+        expected_status: [200]
+        timeout: 30
+      dependencies: []
+
+    prometheus:
+      name: "Prometheus Monitoring"
+      type: "telemetry"
+      container_name: "sentinel-prometheus"
+      port: 9090
+      health:
+        type: "http"
+        url: "http://localhost:9090/-/healthy"
+        expected_status: [200]
+        timeout: 30
+      dependencies: []
+
+    grafana:
+      name: "Grafana SOC Dashboards"
+      type: "dashboard"
+      container_name: "sentinel-grafana"
+      port: 3000
+      health:
+        type: "http"
+        url: "http://localhost:3000/api/health"
+        expected_status: [200]
+        timeout: 30
+      dependencies:
+        - prometheus
+
+# =============================================================================
+# APPLICATION MICROSERVICES
+# =============================================================================
+services:
+
+  # ── Model 1: CCTV Registry & GIS Foundation ─────────────────────────────────
+  model1:
+    name: "Model 1 — Centralised CCTV Registry + GIS"
+    working_dir: "backend-model1"
+    runtime: "python"
+    port: 8001
+    command: "python -m uvicorn app.main:app --host 0.0.0.0 --port 8001"
+    env:
+      PORT: "8001"
+      MODEL1_PORT: "8001"
+      DATA_MODE: "real"
+    health:
+      type: "http"
+      url: "http://127.0.0.1:8001/health"
+      expected_status: [200]
+      timeout: 45
+    migrations:
+      tool: "alembic"
+      command: "alembic upgrade head"
+    dependencies:
+      - postgres
+      - redis
+      - kafka
+
+  # ── Model 2: Unified Viewing & ANPR Video Analytics ─────────────────────────
+  model2:
+    name: "Model 2 — Unified Viewing + Metadata + Analytics"
+    working_dir: "backend-model2"
+    runtime: "python"
+    port: 8002
+    command: "python -m uvicorn app.main:app --host 0.0.0.0 --port 8002"
+    env:
+      PORT: "8002"
+      MODEL2_PORT: "8002"
+      DATA_MODE: "real"
+      ENABLE_DEV_SEED: "false"
+    health:
+      type: "http"
+      url: "http://127.0.0.1:8002/health"
+      expected_status: [200]
+      timeout: 45
+    migrations:
+      tool: "alembic"
+      command: "alembic upgrade head"
+    dependencies:
+      - model1
+      - postgres
+      - kafka
+      - redis
+      - opensearch
+
+  # ── Model 3: VMS Federation & Middleware SDK ───────────────────────────────
+  model3:
+    name: "Model 3 — VMS Federation + Middleware"
+    working_dir: "backend-model3"
+    runtime: "java"
+    port: 8003
+    command: "mvn spring-boot:run"
+    jar_command: "java -jar target/sentinel-model3-1.0.0.jar"
+    env:
+      SERVER_PORT: "8003"
+      DATA_MODE: "real"
+    health:
+      type: "http"
+      url: "http://127.0.0.1:8003/actuator/health"
+      expected_status: [200]
+      timeout: 60
+    dependencies:
+      - model1
+      - postgres
+      - kafka
+      - redis
+
+  # ── Model 4: Central VMS & High-Throughput Trajectory Hub ────────────────────
+  model4:
+    name: "Model 4 — Central VMS + Video Archival"
+    working_dir: "backend-model4"
+    runtime: "go"
+    port: 8004
+    command: "go run cmd/server/main.go"
+    env:
+      PORT: "8004"
+      DATA_MODE: "real"
+    health:
+      type: "http"
+      url: "http://127.0.0.1:8004/health"
+      expected_status: [200]
+      timeout: 30
+    dependencies:
+      - model1
+      - postgres
+      - kafka
+      - redis
+      - minio
+
+  # ── AI Computer Vision & Neural Detection Microservice ──────────────────────
+  ai-detection:
+    name: "AI Computer Vision & ANPR Engine"
+    working_dir: "ai-detection"
+    runtime: "python"
+    port: 8006
+    command: "python -m uvicorn app.main:app --host 0.0.0.0 --port 8006"
+    env:
+      PORT: "8006"
+      AI_DEVICE: "auto"
+      DATA_MODE: "real"
+    health:
+      type: "http"
+      url: "http://127.0.0.1:8006/health"
+      expected_status: [200]
+      timeout: 45
+    dependencies: []
+
+  # ── Brain / Unified Platform Orchestrator (FastAPI) ─────────────────────────
+  orchestrator:
+    name: "Platform Orchestrator & Section 65B Brain"
+    working_dir: "backend-orchestrator"
+    runtime: "python"
+    port: 8005
+    command: "python -m uvicorn app.main:app --host 0.0.0.0 --port 8005"
+    env:
+      PORT: "8005"
+      DATA_MODE: "real"
+    health:
+      type: "http"
+      url: "http://127.0.0.1:8005/health"
+      expected_status: [200]
+      timeout: 30
+    dependencies:
+      - model1
+      - model2
+      - model3
+      - model4
+      - postgres
+      - redis
+
+  # ── Hybrid API Gateway & High-Throughput Proxy (Go) ─────────────────────────
+  hybrid-gateway:
+    name: "Hybrid API Gateway & Reverse Proxy"
+    working_dir: "backend-hybrid"
+    runtime: "go"
+    port: 8000
+    command: "go run cmd/gateway/main.go"
+    env:
+      PORT: "8000"
+      DATA_MODE: "real"
+    health:
+      type: "http"
+      url: "http://127.0.0.1:8000/health"
+      expected_status: [200]
+      timeout: 30
+    dependencies:
+      - model1
+      - model2
+      - model3
+      - model4
+      - orchestrator
+
+  # ── Police Situational Awareness Frontend (React SPA) ───────────────────────
+  frontend:
+    name: "Police Situational Awareness Command Center UI"
+    working_dir: "frontend"
+    runtime: "node"
+    port: 3001
+    package_manager: "npm"
+    command: "npm run dev"
+    env:
+      VITE_PORT: "3001"
+      VITE_API_BASE_URL: "http://localhost:8005/api/v1"
+      VITE_WS_BASE_URL: "ws://localhost:8005/api/v1/ws/live"
+      VITE_GATEWAY_URL: "http://localhost:8000"
+    health:
+      type: "http"
+      url: "http://127.0.0.1:3001"
+      expected_status: [200]
+      timeout: 30
+    dependencies:
+      - orchestrator
+      - hybrid-gateway
+
+# =============================================================================
+# TOPOLOGICAL DEPENDENCY TIERS
+# =============================================================================
+dependency_tiers:
+  tier0:
+    name: "Core Data Stores & Caches"
+    services: ["postgres", "redis", "zookeeper", "minio", "opensearch", "prometheus"]
+  tier1:
+    name: "Event Bus & Identity"
+    services: ["kafka", "grafana"]
+  tier2:
+    name: "Foundation Registry & Standalone AI"
+    services: ["model1", "ai-detection"]
+  tier3:
+    name: "Specialized Surveillance Models"
+    services: ["model2", "model3", "model4"]
+  tier4:
+    name: "Brain & API Gateway"
+    services: ["orchestrator", "hybrid-gateway"]
+  tier5:
+    name: "User Interface & Experience"
+    services: ["frontend"]

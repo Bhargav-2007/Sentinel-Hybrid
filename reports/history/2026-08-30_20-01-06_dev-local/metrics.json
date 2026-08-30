@@ -1,0 +1,11 @@
+{
+  "evaluation_id": "2026-08-30_20-01-06",
+  "timestamp_utc": "2026-08-30T20:01:06.679315+00:00",
+  "git_commit": "dev-local",
+  "git_branch": "main",
+  "mandatory_score": 81.0,
+  "bonus_score": 83.3,
+  "total_score": 85.3,
+  "total_requirements": 14,
+  "passed_requirements": 11
+}

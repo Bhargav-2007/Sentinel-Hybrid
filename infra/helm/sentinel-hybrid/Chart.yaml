@@ -1,0 +1,16 @@
+apiVersion: v2
+name: sentinel-hybrid
+description: Helm chart for Gujarat Sentinel Hybrid Video Surveillance Platform (Models 1-4 + Gateway)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+maintainers:
+  - name: Gujarat Police Command & Control
+    email: contact@police.gujarat.gov.in
+keywords:
+  - sentinel
+  - cctv
+  - anpr
+  - gis
+  - vms
+  - gujarat-police

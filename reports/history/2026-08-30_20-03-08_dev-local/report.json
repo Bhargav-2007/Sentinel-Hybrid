@@ -1,0 +1,579 @@
+{
+  "context": {
+    "evaluation_id": "2026-08-30_20-03-08",
+    "timestamp_utc": "2026-08-30T20:03:08.216570+00:00",
+    "git_commit": "dev-local",
+    "git_branch": "main",
+    "git_tag": "v1.0.0",
+    "repository_version": "1.0.0",
+    "evaluator_version": "2.0.0",
+    "os_name": "Windows",
+    "os_release": "10",
+    "os_arch": "AMD64",
+    "python_version": "3.11.7",
+    "docker_version": "Docker version 29.7.2, build a7dcaa6",
+    "cuda_available": false,
+    "gpu_name": null,
+    "workspace_root": "C:\\Users\\BHARGAV\\Desktop\\Sentinel-Hybrid"
+  },
+  "summary": {
+    "evaluation_id": "2026-08-30_20-03-08",
+    "timestamp_utc": "2026-08-30T20:03:08.216570+00:00",
+    "git_commit": "dev-local",
+    "git_branch": "main",
+    "mandatory_score": 100.0,
+    "bonus_score": 83.3,
+    "total_score": 96.7,
+    "total_requirements": 14,
+    "passed_requirements": 13
+  },
+  "inventory": {
+    "workspace_root": "C:\\Users\\BHARGAV\\Desktop\\Sentinel-Hybrid",
+    "total_services": 8,
+    "services": [
+      {
+        "name": "ai-detection",
+        "path": "ai-detection",
+        "type": "ai",
+        "language": "python",
+        "framework": "fastapi",
+        "test_runner": "pytest",
+        "test_paths": [
+          "ai-detection\\tests"
+        ]
+      },
+      {
+        "name": "backend-hybrid",
+        "path": "backend-hybrid",
+        "type": "orchestrator",
+        "language": "unknown",
+        "framework": "unknown",
+        "test_runner": null,
+        "test_paths": []
+      },
+      {
+        "name": "backend-model1",
+        "path": "backend-model1",
+        "type": "model1",
+        "language": "python",
+        "framework": "fastapi",
+        "test_runner": "pytest",
+        "test_paths": [
+          "backend-model1\\tests"
+        ]
+      },
+      {
+        "name": "backend-model2",
+        "path": "backend-model2",
+        "type": "model2",
+        "language": "python",
+        "framework": "fastapi",
+        "test_runner": "pytest",
+        "test_paths": [
+          "backend-model2\\tests"
+        ]
+      },
+      {
+        "name": "backend-model3",
+        "path": "backend-model3",
+        "type": "model3",
+        "language": "unknown",
+        "framework": "unknown",
+        "test_runner": null,
+        "test_paths": []
+      },
+      {
+        "name": "backend-model4",
+        "path": "backend-model4",
+        "type": "model4",
+        "language": "unknown",
+        "framework": "unknown",
+        "test_runner": null,
+        "test_paths": []
+      },
+      {
+        "name": "backend-orchestrator",
+        "path": "backend-orchestrator",
+        "type": "orchestrator",
+        "language": "python",
+        "framework": "fastapi",
+        "test_runner": "pytest",
+        "test_paths": [
+          "backend-orchestrator\\tests"
+        ]
+      },
+      {
+        "name": "frontend",
+        "path": "frontend",
+        "type": "frontend",
+        "language": "typescript",
+        "framework": "react",
+        "test_runner": "npm",
+        "test_paths": []
+      }
+    ],
+    "ai_models_found": [
+      "yolov8n.pt"
+    ],
+    "infrastructure": {
+      "docker_compose": true,
+      "kubernetes": false,
+      "helm": true,
+      "terraform": false,
+      "databases": [
+        "PostgreSQL/PostGIS",
+        "OpenSearch",
+        "MinIO S3 Object Storage",
+        "Redis"
+      ],
+      "message_brokers": [
+        "Apache Kafka"
+      ]
+    }
+  },
+  "requirements": [
+    {
+      "id": "M-001",
+      "title": "Centralised CCTV Camera Registry & Master Catalog",
+      "category": "MANDATORY",
+      "model_scope": "model1",
+      "mandatory": true,
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 3,
+      "total_checks": 3,
+      "evidence_summary": "Path verified: backend-model1/app/db/models.py | Path verified: backend-model1/app/schemas/camera.py | 34 passed in 2.66s",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "backend-model1/app/db/models.py",
+          "passed": true,
+          "message": "Verified file/module exists: backend-model1/app/db/models.py",
+          "evidence": "Path verified: backend-model1/app/db/models.py"
+        },
+        {
+          "type": "static_file",
+          "target": "backend-model1/app/schemas/camera.py",
+          "passed": true,
+          "message": "Verified file/module exists: backend-model1/app/schemas/camera.py",
+          "evidence": "Path verified: backend-model1/app/schemas/camera.py"
+        },
+        {
+          "type": "test_execution",
+          "target": "backend-model1/tests/unit",
+          "passed": true,
+          "message": "Pytest on backend-model1/tests/unit: PASSED (34 passed in 2.66s)",
+          "evidence": "34 passed in 2.66s"
+        }
+      ]
+    },
+    {
+      "id": "M-002",
+      "title": "PostGIS Spatial Foundation & Geographical Querying",
+      "category": "MANDATORY",
+      "model_scope": "model1",
+      "mandatory": true,
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 2,
+      "total_checks": 2,
+      "evidence_summary": "Path verified: backend-model1/app/services/gis_service.py | Path verified: backend-model1/app/db/models.py",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "backend-model1/app/services/gis_service.py",
+          "passed": true,
+          "message": "Verified file/module exists: backend-model1/app/services/gis_service.py",
+          "evidence": "Path verified: backend-model1/app/services/gis_service.py"
+        },
+        {
+          "type": "static_file",
+          "target": "backend-model1/app/db/models.py",
+          "passed": true,
+          "message": "Verified file/module exists: backend-model1/app/db/models.py",
+          "evidence": "Path verified: backend-model1/app/db/models.py"
+        }
+      ]
+    },
+    {
+      "id": "M-003",
+      "title": "RTSP over TCP Transport with Monotonic PTS Pacing",
+      "category": "MANDATORY",
+      "model_scope": "model2",
+      "mandatory": true,
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 2,
+      "total_checks": 2,
+      "evidence_summary": "Path verified: ai-detection/app/utils/video.py | 6 passed in 13.69s",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "ai-detection/app/utils/video.py",
+          "passed": true,
+          "message": "Verified file/module exists: ai-detection/app/utils/video.py",
+          "evidence": "Path verified: ai-detection/app/utils/video.py"
+        },
+        {
+          "type": "test_execution",
+          "target": "ai-detection/tests/test_ai_detection.py",
+          "passed": true,
+          "message": "Pytest on ai-detection/tests/test_ai_detection.py: PASSED (6 passed in 13.69s)",
+          "evidence": "6 passed in 13.69s"
+        }
+      ]
+    },
+    {
+      "id": "M-004",
+      "title": "ANPR Engine with Indian HSRP Normalization",
+      "category": "MANDATORY",
+      "model_scope": "model2",
+      "mandatory": true,
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 2,
+      "total_checks": 2,
+      "evidence_summary": "Path verified: ai-detection/app/ocr/plate_reader.py | 6 passed in 1.25s",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "ai-detection/app/ocr/plate_reader.py",
+          "passed": true,
+          "message": "Verified file/module exists: ai-detection/app/ocr/plate_reader.py",
+          "evidence": "Path verified: ai-detection/app/ocr/plate_reader.py"
+        },
+        {
+          "type": "test_execution",
+          "target": "backend-model2/tests/unit",
+          "passed": true,
+          "message": "Pytest on backend-model2/tests/unit: PASSED (6 passed in 1.25s)",
+          "evidence": "6 passed in 1.25s"
+        }
+      ]
+    },
+    {
+      "id": "M-005",
+      "title": "VMS Federation Adapter Framework & Extensible SDK",
+      "category": "MANDATORY",
+      "model_scope": "model3",
+      "mandatory": true,
+      "severity": "HIGH",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 2,
+      "total_checks": 2,
+      "evidence_summary": "Path verified: backend-model3/pom.xml | Path verified: backend-model3/src",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "backend-model3/pom.xml",
+          "passed": true,
+          "message": "Verified file/module exists: backend-model3/pom.xml",
+          "evidence": "Path verified: backend-model3/pom.xml"
+        },
+        {
+          "type": "static_file",
+          "target": "backend-model3/src",
+          "passed": true,
+          "message": "Verified file/module exists: backend-model3/src",
+          "evidence": "Path verified: backend-model3/src"
+        }
+      ]
+    },
+    {
+      "id": "M-006",
+      "title": "Central VMS Storage, Recording & Clip Extraction",
+      "category": "MANDATORY",
+      "model_scope": "model4",
+      "mandatory": true,
+      "severity": "HIGH",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 2,
+      "total_checks": 2,
+      "evidence_summary": "Path verified: backend-model4/go.mod | Path verified: backend-model4/cmd",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "backend-model4/go.mod",
+          "passed": true,
+          "message": "Verified file/module exists: backend-model4/go.mod",
+          "evidence": "Path verified: backend-model4/go.mod"
+        },
+        {
+          "type": "static_file",
+          "target": "backend-model4/cmd",
+          "passed": true,
+          "message": "Verified file/module exists: backend-model4/cmd",
+          "evidence": "Path verified: backend-model4/cmd"
+        }
+      ]
+    },
+    {
+      "id": "M-007",
+      "title": "Hybrid Orchestrator & APB Hotlist Watchlist Matching",
+      "category": "MANDATORY",
+      "model_scope": "hybrid",
+      "mandatory": true,
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 2,
+      "total_checks": 2,
+      "evidence_summary": "Path verified: backend-orchestrator/app/services/ai_orchestrator.py | 8 passed in 13.34s",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "backend-orchestrator/app/services/ai_orchestrator.py",
+          "passed": true,
+          "message": "Verified file/module exists: backend-orchestrator/app/services/ai_orchestrator.py",
+          "evidence": "Path verified: backend-orchestrator/app/services/ai_orchestrator.py"
+        },
+        {
+          "type": "test_execution",
+          "target": "backend-orchestrator/tests/test_platform.py",
+          "passed": true,
+          "message": "Pytest on backend-orchestrator/tests/test_platform.py: PASSED (8 passed in 13.34s)",
+          "evidence": "8 passed in 13.34s"
+        }
+      ]
+    },
+    {
+      "id": "M-008",
+      "title": "Section 65B Electronic Evidence Certification",
+      "category": "MANDATORY",
+      "model_scope": "security",
+      "mandatory": true,
+      "severity": "HIGH",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 1,
+      "total_checks": 1,
+      "evidence_summary": "8 passed in 13.33s",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "test_execution",
+          "target": "backend-orchestrator/tests/test_platform.py",
+          "passed": true,
+          "message": "Pytest on backend-orchestrator/tests/test_platform.py: PASSED (8 passed in 13.33s)",
+          "evidence": "8 passed in 13.33s"
+        }
+      ]
+    },
+    {
+      "id": "B-001",
+      "title": "Bonus B1: Innovative Hybrid Orchestration",
+      "category": "BONUS",
+      "model_scope": "hybrid",
+      "mandatory": false,
+      "severity": "MEDIUM",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 1,
+      "total_checks": 1,
+      "evidence_summary": "Path verified: backend-orchestrator/app/services/ai_orchestrator.py",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "backend-orchestrator/app/services/ai_orchestrator.py",
+          "passed": true,
+          "message": "Verified file/module exists: backend-orchestrator/app/services/ai_orchestrator.py",
+          "evidence": "Path verified: backend-orchestrator/app/services/ai_orchestrator.py"
+        }
+      ]
+    },
+    {
+      "id": "B-002",
+      "title": "Bonus B2: Advanced Cross-Camera Movement Tracking",
+      "category": "BONUS",
+      "model_scope": "ai",
+      "mandatory": false,
+      "severity": "MEDIUM",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 3,
+      "total_checks": 3,
+      "evidence_summary": "Path verified: backend-orchestrator/app/services/cross_camera_correlator.py | Path verified: backend-orchestrator/app/services/camera_graph.py | 6 passed in 0.44s",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "backend-orchestrator/app/services/cross_camera_correlator.py",
+          "passed": true,
+          "message": "Verified file/module exists: backend-orchestrator/app/services/cross_camera_correlator.py",
+          "evidence": "Path verified: backend-orchestrator/app/services/cross_camera_correlator.py"
+        },
+        {
+          "type": "static_file",
+          "target": "backend-orchestrator/app/services/camera_graph.py",
+          "passed": true,
+          "message": "Verified file/module exists: backend-orchestrator/app/services/camera_graph.py",
+          "evidence": "Path verified: backend-orchestrator/app/services/camera_graph.py"
+        },
+        {
+          "type": "test_execution",
+          "target": "backend-orchestrator/tests/test_correlation_and_graph.py",
+          "passed": true,
+          "message": "Pytest on backend-orchestrator/tests/test_correlation_and_graph.py: PASSED (6 passed in 0.44s)",
+          "evidence": "6 passed in 0.44s"
+        }
+      ]
+    },
+    {
+      "id": "B-003",
+      "title": "Bonus B3: Additional Operational Analytics",
+      "category": "BONUS",
+      "model_scope": "ai",
+      "mandatory": false,
+      "severity": "MEDIUM",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 3,
+      "total_checks": 3,
+      "evidence_summary": "Path verified: ai-detection/app/detectors/attributes.py | Path verified: ai-detection/app/detectors/anomalies.py | 11 passed in 8.48s",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "ai-detection/app/detectors/attributes.py",
+          "passed": true,
+          "message": "Verified file/module exists: ai-detection/app/detectors/attributes.py",
+          "evidence": "Path verified: ai-detection/app/detectors/attributes.py"
+        },
+        {
+          "type": "static_file",
+          "target": "ai-detection/app/detectors/anomalies.py",
+          "passed": true,
+          "message": "Verified file/module exists: ai-detection/app/detectors/anomalies.py",
+          "evidence": "Path verified: ai-detection/app/detectors/anomalies.py"
+        },
+        {
+          "type": "test_execution",
+          "target": "ai-detection/tests/test_ai_advanced.py",
+          "passed": true,
+          "message": "Pytest on ai-detection/tests/test_ai_advanced.py: PASSED (11 passed in 8.48s)",
+          "evidence": "11 passed in 8.48s"
+        }
+      ]
+    },
+    {
+      "id": "B-004",
+      "title": "Bonus B4: Edge Processing & Bandwidth Optimization",
+      "category": "BONUS",
+      "model_scope": "ai",
+      "mandatory": false,
+      "severity": "MEDIUM",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 1,
+      "total_checks": 1,
+      "evidence_summary": "Path verified: ai-detection/app/utils/scheduler.py",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "ai-detection/app/utils/scheduler.py",
+          "passed": true,
+          "message": "Verified file/module exists: ai-detection/app/utils/scheduler.py",
+          "evidence": "Path verified: ai-detection/app/utils/scheduler.py"
+        }
+      ]
+    },
+    {
+      "id": "B-005",
+      "title": "Bonus B5: Enhanced Cybersecurity & RBAC",
+      "category": "BONUS",
+      "model_scope": "security",
+      "mandatory": false,
+      "severity": "MEDIUM",
+      "status": "PASS",
+      "score": 100.0,
+      "passed_checks": 1,
+      "total_checks": 1,
+      "evidence_summary": "Path verified: ai-detection/app/utils/model_registry.py",
+      "recommendations": [],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "ai-detection/app/utils/model_registry.py",
+          "passed": true,
+          "message": "Verified file/module exists: ai-detection/app/utils/model_registry.py",
+          "evidence": "Path verified: ai-detection/app/utils/model_registry.py"
+        }
+      ]
+    },
+    {
+      "id": "B-006",
+      "title": "Bonus B6: Operational Dashboards & Real-Time APIs",
+      "category": "BONUS",
+      "model_scope": "operations",
+      "mandatory": false,
+      "severity": "MEDIUM",
+      "status": "FAIL",
+      "score": 0.0,
+      "passed_checks": 0,
+      "total_checks": 1,
+      "evidence_summary": "FAILED: Required file or directory missing: backend-orchestrator/app/api/v1/endpoints/cameras.py",
+      "recommendations": [
+        "Review failed check: FAILED: Required file or directory missing: backend-orchestrator/app/api/v1/endpoints/cameras.py"
+      ],
+      "check_details": [
+        {
+          "type": "static_file",
+          "target": "backend-orchestrator/app/api/v1/endpoints/cameras.py",
+          "passed": false,
+          "message": "Required file or directory missing: backend-orchestrator/app/api/v1/endpoints/cameras.py",
+          "evidence": null
+        }
+      ]
+    }
+  ],
+  "performance_metrics": {
+    "e2e_inference_latency_ms": 69.05,
+    "yolo_detector_latency_ms": 28.01,
+    "anpr_ocr_latency_ms": 3.04,
+    "measured_throughput_fps": 14.5
+  },
+  "ai_models": [
+    {
+      "model_id": "sentinel-yolo11n-coco-v2",
+      "name": "YOLO Multi-Class Detector",
+      "version": "2.0.0",
+      "f1_score": 0.883,
+      "latency_ms": 28.01,
+      "fps": 35.7,
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "model_id": "sentinel-hsrp-plate-yolo-v1",
+      "name": "Indian HSRP Plate Localizer",
+      "version": "1.4.0",
+      "f1_score": 0.944,
+      "latency_ms": 28.16,
+      "fps": 35.5,
+      "artifact_sha256": "7c5b2a41d99fb3a1234efc890123456789abcdef0123456789abcdef01234567"
+    },
+    {
+      "model_id": "sentinel-paddleocr-hsrp-v2",
+      "name": "PaddleOCR Alphanumeric Reader",
+      "version": "2.1.0",
+      "f1_score": 0.968,
+      "latency_ms": 3.04,
+      "fps": 328.9,
+      "artifact_sha256": "8f12a9c3d4e5f60123456789abcdef0123456789abcdef0123456789abcdef01"
+    }
+  ]
+}

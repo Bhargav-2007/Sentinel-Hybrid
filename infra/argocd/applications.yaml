@@ -1,0 +1,68 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sentinel-hybrid-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/gujarat-police/sentinel-hybrid.git'
+    targetRevision: main
+    path: infra/helm/sentinel-hybrid
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: sentinel
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sentinel-hybrid-regions
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - region: gandhinagar-hq
+            env: prod
+            cluster: 'https://k8s-gandhinagar.police.gujarat.gov.in:6443'
+          - region: ahmedabad-city
+            env: prod
+            cluster: 'https://k8s-ahmedabad.police.gujarat.gov.in:6443'
+          - region: surat-city
+            env: prod
+            cluster: 'https://k8s-surat.police.gujarat.gov.in:6443'
+  template:
+    metadata:
+      name: 'sentinel-{{region}}-{{env}}'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/gujarat-police/sentinel-hybrid.git'
+        targetRevision: main
+        path: infra/helm/sentinel-hybrid
+        helm:
+          values: |
+            global:
+              environment: {{env}}
+              domain: sentinel-{{region}}.police.gujarat.gov.in
+      destination:
+        server: '{{cluster}}'
+        namespace: sentinel
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

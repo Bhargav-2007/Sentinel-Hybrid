@@ -1,0 +1,5686 @@
+{
+  "report_type": "Sentinel Hackathon Evaluation Report",
+  "generated_at": "2026-08-29T07:02:10.614639+00:00",
+  "platform": "Gujarat Sentinel Hybrid CCTV Platform v1.0.0",
+  "models_deployed": [
+    "Model 1: Centralised CCTV Registry & GIS",
+    "Model 2: Unified Viewing & Metadata Analytics (ANPR)",
+    "Model 3: VMS Federation & Middleware",
+    "Model 4: Central VMS with Monitoring & Analytics",
+    "Hybrid: API Gateway & Cross-Model Orchestrator"
+  ],
+  "evaluation_plate": "GJ 01 AB 1234",
+  "vehicle_movement": {
+    "plate_number": "GJ 01 AB 1234",
+    "total_sightings": 471,
+    "route_points": [
+      {
+        "sequence": 1,
+        "timestamp": "2026-08-28T19:13:29.365369Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9471
+      },
+      {
+        "sequence": 2,
+        "timestamp": "2026-08-28T19:13:29.366826Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9706
+      },
+      {
+        "sequence": 3,
+        "timestamp": "2026-08-28T19:13:29.367729Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9736
+      },
+      {
+        "sequence": 4,
+        "timestamp": "2026-08-28T19:13:29.368473Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.965
+      },
+      {
+        "sequence": 5,
+        "timestamp": "2026-08-28T19:13:29.369194Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9228
+      },
+      {
+        "sequence": 6,
+        "timestamp": "2026-08-28T19:13:53.480455Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.944
+      },
+      {
+        "sequence": 7,
+        "timestamp": "2026-08-28T19:14:11.503164Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9774
+      },
+      {
+        "sequence": 8,
+        "timestamp": "2026-08-28T19:14:17.516960Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9387
+      },
+      {
+        "sequence": 9,
+        "timestamp": "2026-08-28T19:15:59.630648Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9513
+      },
+      {
+        "sequence": 10,
+        "timestamp": "2026-08-28T19:17:17.778237Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9596
+      },
+      {
+        "sequence": 11,
+        "timestamp": "2026-08-28T19:17:35.812763Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9383
+      },
+      {
+        "sequence": 12,
+        "timestamp": "2026-08-28T19:18:23.880416Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9158
+      },
+      {
+        "sequence": 13,
+        "timestamp": "2026-08-28T19:18:29.884225Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9296
+      },
+      {
+        "sequence": 14,
+        "timestamp": "2026-08-28T19:18:41.893399Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9189
+      },
+      {
+        "sequence": 15,
+        "timestamp": "2026-08-28T19:19:17.935871Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9672
+      },
+      {
+        "sequence": 16,
+        "timestamp": "2026-08-28T19:19:23.941100Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9508
+      },
+      {
+        "sequence": 17,
+        "timestamp": "2026-08-28T19:19:47.980006Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9276
+      },
+      {
+        "sequence": 18,
+        "timestamp": "2026-08-28T19:20:42.047227Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9468
+      },
+      {
+        "sequence": 19,
+        "timestamp": "2026-08-28T19:21:00.083962Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9438
+      },
+      {
+        "sequence": 20,
+        "timestamp": "2026-08-28T19:21:42.249883Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9709
+      },
+      {
+        "sequence": 21,
+        "timestamp": "2026-08-28T19:21:48.259712Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9368
+      },
+      {
+        "sequence": 22,
+        "timestamp": "2026-08-28T19:22:18.333949Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9891
+      },
+      {
+        "sequence": 23,
+        "timestamp": "2026-08-28T19:22:24.351142Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9227
+      },
+      {
+        "sequence": 24,
+        "timestamp": "2026-08-28T19:22:30.365208Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9649
+      },
+      {
+        "sequence": 25,
+        "timestamp": "2026-08-28T19:23:18.424303Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9173
+      },
+      {
+        "sequence": 26,
+        "timestamp": "2026-08-28T19:23:36.474485Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9582
+      },
+      {
+        "sequence": 27,
+        "timestamp": "2026-08-28T19:23:42.500974Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9424
+      },
+      {
+        "sequence": 28,
+        "timestamp": "2026-08-28T19:23:48.508137Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.959
+      },
+      {
+        "sequence": 29,
+        "timestamp": "2026-08-28T19:23:54.519966Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9539
+      },
+      {
+        "sequence": 30,
+        "timestamp": "2026-08-28T19:24:12.542015Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.912
+      },
+      {
+        "sequence": 31,
+        "timestamp": "2026-08-28T19:24:18.549661Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9146
+      },
+      {
+        "sequence": 32,
+        "timestamp": "2026-08-28T19:24:30.558294Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9568
+      },
+      {
+        "sequence": 33,
+        "timestamp": "2026-08-28T19:24:36.579564Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9674
+      },
+      {
+        "sequence": 34,
+        "timestamp": "2026-08-28T19:24:54.597935Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9479
+      },
+      {
+        "sequence": 35,
+        "timestamp": "2026-08-28T19:25:06.613527Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9419
+      },
+      {
+        "sequence": 36,
+        "timestamp": "2026-08-28T19:25:12.626215Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9854
+      },
+      {
+        "sequence": 37,
+        "timestamp": "2026-08-28T19:25:30.648371Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9347
+      },
+      {
+        "sequence": 38,
+        "timestamp": "2026-08-28T19:25:36.675188Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9343
+      },
+      {
+        "sequence": 39,
+        "timestamp": "2026-08-28T19:26:12.804631Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.979
+      },
+      {
+        "sequence": 40,
+        "timestamp": "2026-08-28T19:26:18.813815Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9849
+      },
+      {
+        "sequence": 41,
+        "timestamp": "2026-08-28T19:26:24.819977Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9837
+      },
+      {
+        "sequence": 42,
+        "timestamp": "2026-08-28T19:26:48.842460Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9624
+      },
+      {
+        "sequence": 43,
+        "timestamp": "2026-08-28T19:27:00.855988Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9515
+      },
+      {
+        "sequence": 44,
+        "timestamp": "2026-08-28T19:27:24.894272Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9742
+      },
+      {
+        "sequence": 45,
+        "timestamp": "2026-08-28T19:28:00.948230Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9492
+      },
+      {
+        "sequence": 46,
+        "timestamp": "2026-08-28T19:28:18.991429Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9442
+      },
+      {
+        "sequence": 47,
+        "timestamp": "2026-08-28T19:28:24.997295Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9491
+      },
+      {
+        "sequence": 48,
+        "timestamp": "2026-08-28T19:28:31.002127Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9586
+      },
+      {
+        "sequence": 49,
+        "timestamp": "2026-08-28T19:28:49.020226Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9765
+      },
+      {
+        "sequence": 50,
+        "timestamp": "2026-08-28T19:29:31.060844Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9416
+      },
+      {
+        "sequence": 51,
+        "timestamp": "2026-08-28T19:29:49.076450Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9858
+      },
+      {
+        "sequence": 52,
+        "timestamp": "2026-08-28T19:30:07.115203Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9238
+      },
+      {
+        "sequence": 53,
+        "timestamp": "2026-08-28T19:30:31.160189Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9433
+      },
+      {
+        "sequence": 54,
+        "timestamp": "2026-08-28T19:30:43.201084Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9259
+      },
+      {
+        "sequence": 55,
+        "timestamp": "2026-08-28T19:30:55.217457Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9884
+      },
+      {
+        "sequence": 56,
+        "timestamp": "2026-08-28T19:31:13.250769Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9724
+      },
+      {
+        "sequence": 57,
+        "timestamp": "2026-08-28T19:31:25.268730Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9836
+      },
+      {
+        "sequence": 58,
+        "timestamp": "2026-08-28T19:31:31.277205Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9641
+      },
+      {
+        "sequence": 59,
+        "timestamp": "2026-08-28T19:31:37.285215Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9536
+      },
+      {
+        "sequence": 60,
+        "timestamp": "2026-08-28T19:31:43.300102Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9807
+      },
+      {
+        "sequence": 61,
+        "timestamp": "2026-08-28T19:32:07.335172Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9308
+      },
+      {
+        "sequence": 62,
+        "timestamp": "2026-08-28T19:32:31.372713Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9723
+      },
+      {
+        "sequence": 63,
+        "timestamp": "2026-08-28T19:32:43.407774Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9315
+      },
+      {
+        "sequence": 64,
+        "timestamp": "2026-08-28T19:32:55.431876Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9891
+      },
+      {
+        "sequence": 65,
+        "timestamp": "2026-08-28T19:33:01.440488Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9612
+      },
+      {
+        "sequence": 66,
+        "timestamp": "2026-08-28T19:33:13.447902Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9445
+      },
+      {
+        "sequence": 67,
+        "timestamp": "2026-08-28T19:33:19.452219Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9326
+      },
+      {
+        "sequence": 68,
+        "timestamp": "2026-08-28T19:33:49.479051Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9478
+      },
+      {
+        "sequence": 69,
+        "timestamp": "2026-08-28T19:33:55.499814Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9214
+      },
+      {
+        "sequence": 70,
+        "timestamp": "2026-08-28T19:34:01.505724Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9611
+      },
+      {
+        "sequence": 71,
+        "timestamp": "2026-08-28T19:34:43.582230Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9756
+      },
+      {
+        "sequence": 72,
+        "timestamp": "2026-08-28T19:34:49.777040Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9885
+      },
+      {
+        "sequence": 73,
+        "timestamp": "2026-08-28T19:35:07.831946Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9207
+      },
+      {
+        "sequence": 74,
+        "timestamp": "2026-08-28T19:35:13.837981Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9726
+      },
+      {
+        "sequence": 75,
+        "timestamp": "2026-08-28T19:35:31.869859Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9604
+      },
+      {
+        "sequence": 76,
+        "timestamp": "2026-08-28T19:36:07.941262Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9687
+      },
+      {
+        "sequence": 77,
+        "timestamp": "2026-08-28T19:36:13.946777Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9418
+      },
+      {
+        "sequence": 78,
+        "timestamp": "2026-08-28T19:36:37.974377Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.92
+      },
+      {
+        "sequence": 79,
+        "timestamp": "2026-08-28T19:36:49.984641Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.949
+      },
+      {
+        "sequence": 80,
+        "timestamp": "2026-08-28T19:36:55.988300Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9734
+      },
+      {
+        "sequence": 81,
+        "timestamp": "2026-08-28T19:37:01.995916Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9551
+      },
+      {
+        "sequence": 82,
+        "timestamp": "2026-08-28T19:37:38.052925Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9189
+      },
+      {
+        "sequence": 83,
+        "timestamp": "2026-08-28T19:37:50.065330Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9158
+      },
+      {
+        "sequence": 84,
+        "timestamp": "2026-08-28T19:37:56.070167Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9532
+      },
+      {
+        "sequence": 85,
+        "timestamp": "2026-08-28T19:38:02.078760Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9453
+      },
+      {
+        "sequence": 86,
+        "timestamp": "2026-08-28T19:38:26.115900Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9322
+      },
+      {
+        "sequence": 87,
+        "timestamp": "2026-08-28T19:38:50.167131Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9788
+      },
+      {
+        "sequence": 88,
+        "timestamp": "2026-08-28T19:39:14.193845Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9672
+      },
+      {
+        "sequence": 89,
+        "timestamp": "2026-08-28T19:40:08.390897Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9561
+      },
+      {
+        "sequence": 90,
+        "timestamp": "2026-08-28T19:40:26.494169Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9846
+      },
+      {
+        "sequence": 91,
+        "timestamp": "2026-08-28T19:40:50.536130Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9123
+      },
+      {
+        "sequence": 92,
+        "timestamp": "2026-08-28T19:41:20.815360Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9376
+      },
+      {
+        "sequence": 93,
+        "timestamp": "2026-08-28T19:41:26.872666Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9687
+      },
+      {
+        "sequence": 94,
+        "timestamp": "2026-08-28T19:41:57.085457Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9885
+      },
+      {
+        "sequence": 95,
+        "timestamp": "2026-08-28T19:42:09.157881Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9781
+      },
+      {
+        "sequence": 96,
+        "timestamp": "2026-08-28T19:42:21.278025Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9854
+      },
+      {
+        "sequence": 97,
+        "timestamp": "2026-08-28T19:42:39.419902Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9805
+      },
+      {
+        "sequence": 98,
+        "timestamp": "2026-08-28T19:42:51.544328Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9154
+      },
+      {
+        "sequence": 99,
+        "timestamp": "2026-08-28T19:43:03.663675Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9333
+      },
+      {
+        "sequence": 100,
+        "timestamp": "2026-08-28T19:43:09.721482Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9613
+      },
+      {
+        "sequence": 101,
+        "timestamp": "2026-08-28T19:43:21.832897Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9789
+      },
+      {
+        "sequence": 102,
+        "timestamp": "2026-08-28T19:43:52.412456Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9271
+      },
+      {
+        "sequence": 103,
+        "timestamp": "2026-08-28T19:43:58.568476Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9158
+      },
+      {
+        "sequence": 104,
+        "timestamp": "2026-08-28T19:44:16.758047Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9852
+      },
+      {
+        "sequence": 105,
+        "timestamp": "2026-08-28T19:44:34.944426Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9446
+      },
+      {
+        "sequence": 106,
+        "timestamp": "2026-08-28T19:44:53.127753Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9179
+      },
+      {
+        "sequence": 107,
+        "timestamp": "2026-08-28T19:44:59.191835Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9536
+      },
+      {
+        "sequence": 108,
+        "timestamp": "2026-08-28T19:45:11.313862Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9755
+      },
+      {
+        "sequence": 109,
+        "timestamp": "2026-08-28T19:45:23.438958Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9288
+      },
+      {
+        "sequence": 110,
+        "timestamp": "2026-08-28T19:45:41.522327Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.97
+      },
+      {
+        "sequence": 111,
+        "timestamp": "2026-08-28T19:45:47.586883Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.963
+      },
+      {
+        "sequence": 112,
+        "timestamp": "2026-08-28T19:45:59.709160Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9645
+      },
+      {
+        "sequence": 113,
+        "timestamp": "2026-08-28T19:46:11.818036Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.922
+      },
+      {
+        "sequence": 114,
+        "timestamp": "2026-08-28T19:46:54.194675Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9509
+      },
+      {
+        "sequence": 115,
+        "timestamp": "2026-08-28T19:47:12.367509Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9198
+      },
+      {
+        "sequence": 116,
+        "timestamp": "2026-08-28T19:47:24.486837Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9373
+      },
+      {
+        "sequence": 117,
+        "timestamp": "2026-08-28T19:47:30.545715Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9572
+      },
+      {
+        "sequence": 118,
+        "timestamp": "2026-08-28T19:47:36.605804Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9742
+      },
+      {
+        "sequence": 119,
+        "timestamp": "2026-08-28T19:47:42.660830Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.936
+      },
+      {
+        "sequence": 120,
+        "timestamp": "2026-08-28T19:47:48.707436Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9582
+      },
+      {
+        "sequence": 121,
+        "timestamp": "2026-08-28T19:48:06.835605Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9897
+      },
+      {
+        "sequence": 122,
+        "timestamp": "2026-08-28T19:48:24.963087Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9216
+      },
+      {
+        "sequence": 123,
+        "timestamp": "2026-08-28T19:48:37.068891Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9821
+      },
+      {
+        "sequence": 124,
+        "timestamp": "2026-08-28T19:49:01.308682Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9624
+      },
+      {
+        "sequence": 125,
+        "timestamp": "2026-08-28T19:49:31.611979Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9627
+      },
+      {
+        "sequence": 126,
+        "timestamp": "2026-08-28T19:50:13.935649Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9609
+      },
+      {
+        "sequence": 127,
+        "timestamp": "2026-08-28T19:50:26.064514Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9545
+      },
+      {
+        "sequence": 128,
+        "timestamp": "2026-08-28T19:50:38.130358Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9143
+      },
+      {
+        "sequence": 129,
+        "timestamp": "2026-08-28T19:50:44.190967Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9647
+      },
+      {
+        "sequence": 130,
+        "timestamp": "2026-08-28T19:50:56.325600Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9214
+      },
+      {
+        "sequence": 131,
+        "timestamp": "2026-08-28T19:51:20.488755Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9353
+      },
+      {
+        "sequence": 132,
+        "timestamp": "2026-08-28T19:52:08.851578Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9173
+      },
+      {
+        "sequence": 133,
+        "timestamp": "2026-08-28T19:52:45.166593Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9212
+      },
+      {
+        "sequence": 134,
+        "timestamp": "2026-08-28T19:52:51.230707Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9573
+      },
+      {
+        "sequence": 135,
+        "timestamp": "2026-08-28T19:53:21.485645Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.93
+      },
+      {
+        "sequence": 136,
+        "timestamp": "2026-08-28T19:53:33.608300Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9832
+      },
+      {
+        "sequence": 137,
+        "timestamp": "2026-08-28T19:53:39.649696Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9466
+      },
+      {
+        "sequence": 138,
+        "timestamp": "2026-08-28T19:53:57.738221Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9146
+      },
+      {
+        "sequence": 139,
+        "timestamp": "2026-08-28T19:54:21.957720Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9291
+      },
+      {
+        "sequence": 140,
+        "timestamp": "2026-08-28T19:55:58.800706Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9532
+      },
+      {
+        "sequence": 141,
+        "timestamp": "2026-08-28T19:56:10.870033Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9685
+      },
+      {
+        "sequence": 142,
+        "timestamp": "2026-08-28T19:56:41.088816Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9693
+      },
+      {
+        "sequence": 143,
+        "timestamp": "2026-08-28T19:56:53.210366Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9798
+      },
+      {
+        "sequence": 144,
+        "timestamp": "2026-08-28T19:57:29.506535Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9686
+      },
+      {
+        "sequence": 145,
+        "timestamp": "2026-08-28T19:57:41.626970Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9403
+      },
+      {
+        "sequence": 146,
+        "timestamp": "2026-08-28T19:58:36.184331Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9287
+      },
+      {
+        "sequence": 147,
+        "timestamp": "2026-08-28T19:58:48.304935Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9114
+      },
+      {
+        "sequence": 148,
+        "timestamp": "2026-08-28T19:59:06.493076Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.969
+      },
+      {
+        "sequence": 149,
+        "timestamp": "2026-08-28T19:59:12.546138Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9212
+      },
+      {
+        "sequence": 150,
+        "timestamp": "2026-08-28T19:59:18.609096Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9738
+      },
+      {
+        "sequence": 151,
+        "timestamp": "2026-08-28T19:59:30.722709Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9313
+      },
+      {
+        "sequence": 152,
+        "timestamp": "2026-08-28T19:59:36.784790Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9627
+      },
+      {
+        "sequence": 153,
+        "timestamp": "2026-08-28T19:59:54.961782Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.945
+      },
+      {
+        "sequence": 154,
+        "timestamp": "2026-08-28T20:00:13.152874Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9337
+      },
+      {
+        "sequence": 155,
+        "timestamp": "2026-08-28T20:00:37.355251Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.916
+      },
+      {
+        "sequence": 156,
+        "timestamp": "2026-08-28T20:01:13.623446Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9202
+      },
+      {
+        "sequence": 157,
+        "timestamp": "2026-08-28T20:01:25.739914Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9663
+      },
+      {
+        "sequence": 158,
+        "timestamp": "2026-08-28T20:01:43.924429Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.966
+      },
+      {
+        "sequence": 159,
+        "timestamp": "2026-08-28T20:03:32.840506Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9754
+      },
+      {
+        "sequence": 160,
+        "timestamp": "2026-08-28T20:03:38.902091Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9403
+      },
+      {
+        "sequence": 161,
+        "timestamp": "2026-08-28T20:04:27.336005Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9153
+      },
+      {
+        "sequence": 162,
+        "timestamp": "2026-08-28T20:05:15.860454Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9696
+      },
+      {
+        "sequence": 163,
+        "timestamp": "2026-08-28T20:05:52.220582Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9312
+      },
+      {
+        "sequence": 164,
+        "timestamp": "2026-08-28T20:06:04.307983Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9242
+      },
+      {
+        "sequence": 165,
+        "timestamp": "2026-08-28T20:06:28.548325Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9897
+      },
+      {
+        "sequence": 166,
+        "timestamp": "2026-08-28T20:07:29.104460Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9128
+      },
+      {
+        "sequence": 167,
+        "timestamp": "2026-08-28T20:07:35.173741Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9522
+      },
+      {
+        "sequence": 168,
+        "timestamp": "2026-08-28T20:08:11.540066Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9754
+      },
+      {
+        "sequence": 169,
+        "timestamp": "2026-08-28T20:08:23.662587Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.981
+      },
+      {
+        "sequence": 170,
+        "timestamp": "2026-08-28T20:08:53.918360Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9732
+      },
+      {
+        "sequence": 171,
+        "timestamp": "2026-08-28T20:09:36.326720Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9117
+      },
+      {
+        "sequence": 172,
+        "timestamp": "2026-08-28T20:10:00.567717Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9131
+      },
+      {
+        "sequence": 173,
+        "timestamp": "2026-08-28T20:10:24.773352Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9847
+      },
+      {
+        "sequence": 174,
+        "timestamp": "2026-08-28T20:10:42.937943Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9537
+      },
+      {
+        "sequence": 175,
+        "timestamp": "2026-08-28T20:10:55.054636Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9469
+      },
+      {
+        "sequence": 176,
+        "timestamp": "2026-08-28T20:11:01.110777Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9495
+      },
+      {
+        "sequence": 177,
+        "timestamp": "2026-08-28T20:11:07.166588Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9667
+      },
+      {
+        "sequence": 178,
+        "timestamp": "2026-08-28T20:11:13.220611Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9418
+      },
+      {
+        "sequence": 179,
+        "timestamp": "2026-08-28T20:11:43.495364Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9666
+      },
+      {
+        "sequence": 180,
+        "timestamp": "2026-08-28T20:12:07.725963Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9109
+      },
+      {
+        "sequence": 181,
+        "timestamp": "2026-08-28T20:12:50.096733Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9541
+      },
+      {
+        "sequence": 182,
+        "timestamp": "2026-08-28T20:13:08.210037Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.986
+      },
+      {
+        "sequence": 183,
+        "timestamp": "2026-08-28T20:13:26.393408Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9307
+      },
+      {
+        "sequence": 184,
+        "timestamp": "2026-08-28T20:13:50.655847Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9336
+      },
+      {
+        "sequence": 185,
+        "timestamp": "2026-08-28T20:14:45.198770Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9468
+      },
+      {
+        "sequence": 186,
+        "timestamp": "2026-08-28T20:15:03.266721Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9286
+      },
+      {
+        "sequence": 187,
+        "timestamp": "2026-08-28T20:15:09.322374Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9557
+      },
+      {
+        "sequence": 188,
+        "timestamp": "2026-08-28T20:15:33.569669Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9434
+      },
+      {
+        "sequence": 189,
+        "timestamp": "2026-08-28T20:15:57.824197Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9474
+      },
+      {
+        "sequence": 190,
+        "timestamp": "2026-08-28T20:16:22.078292Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9668
+      },
+      {
+        "sequence": 191,
+        "timestamp": "2026-08-28T20:16:46.326009Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9876
+      },
+      {
+        "sequence": 192,
+        "timestamp": "2026-08-28T20:17:04.460164Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9886
+      },
+      {
+        "sequence": 193,
+        "timestamp": "2026-08-28T20:17:16.583145Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9135
+      },
+      {
+        "sequence": 194,
+        "timestamp": "2026-08-28T20:17:52.901629Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.98
+      },
+      {
+        "sequence": 195,
+        "timestamp": "2026-08-28T20:17:58.966266Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9618
+      },
+      {
+        "sequence": 196,
+        "timestamp": "2026-08-28T20:18:17.138001Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9491
+      },
+      {
+        "sequence": 197,
+        "timestamp": "2026-08-28T20:18:29.253371Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9529
+      },
+      {
+        "sequence": 198,
+        "timestamp": "2026-08-28T20:18:35.312491Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9884
+      },
+      {
+        "sequence": 199,
+        "timestamp": "2026-08-28T20:18:47.424448Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9458
+      },
+      {
+        "sequence": 200,
+        "timestamp": "2026-08-28T20:19:05.549459Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9284
+      },
+      {
+        "sequence": 201,
+        "timestamp": "2026-08-28T20:19:29.633567Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9853
+      },
+      {
+        "sequence": 202,
+        "timestamp": "2026-08-28T20:19:59.784627Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9223
+      },
+      {
+        "sequence": 203,
+        "timestamp": "2026-08-28T20:20:05.840680Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9333
+      },
+      {
+        "sequence": 204,
+        "timestamp": "2026-08-28T20:20:17.949600Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9243
+      },
+      {
+        "sequence": 205,
+        "timestamp": "2026-08-28T20:20:23.995441Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9748
+      },
+      {
+        "sequence": 206,
+        "timestamp": "2026-08-28T20:21:00.246656Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.93
+      },
+      {
+        "sequence": 207,
+        "timestamp": "2026-08-28T20:21:18.392680Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9846
+      },
+      {
+        "sequence": 208,
+        "timestamp": "2026-08-28T20:22:06.838628Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9563
+      },
+      {
+        "sequence": 209,
+        "timestamp": "2026-08-28T20:22:43.045367Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9599
+      },
+      {
+        "sequence": 210,
+        "timestamp": "2026-08-28T20:23:01.216265Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9412
+      },
+      {
+        "sequence": 211,
+        "timestamp": "2026-08-28T20:23:07.243192Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9284
+      },
+      {
+        "sequence": 212,
+        "timestamp": "2026-08-28T20:23:31.442906Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9387
+      },
+      {
+        "sequence": 213,
+        "timestamp": "2026-08-28T20:24:37.951830Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9887
+      },
+      {
+        "sequence": 214,
+        "timestamp": "2026-08-28T20:24:56.025199Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9702
+      },
+      {
+        "sequence": 215,
+        "timestamp": "2026-08-28T20:25:26.214036Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9662
+      },
+      {
+        "sequence": 216,
+        "timestamp": "2026-08-28T20:25:32.275264Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9872
+      },
+      {
+        "sequence": 217,
+        "timestamp": "2026-08-28T20:26:14.564510Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9842
+      },
+      {
+        "sequence": 218,
+        "timestamp": "2026-08-28T20:26:32.657370Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9473
+      },
+      {
+        "sequence": 219,
+        "timestamp": "2026-08-28T20:27:56.996318Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9793
+      },
+      {
+        "sequence": 220,
+        "timestamp": "2026-08-28T20:28:15.019005Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9701
+      },
+      {
+        "sequence": 221,
+        "timestamp": "2026-08-28T20:28:33.094727Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9893
+      },
+      {
+        "sequence": 222,
+        "timestamp": "2026-08-28T20:28:57.120516Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9683
+      },
+      {
+        "sequence": 223,
+        "timestamp": "2026-08-28T20:29:09.135330Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9639
+      },
+      {
+        "sequence": 224,
+        "timestamp": "2026-08-28T20:30:45.420040Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9545
+      },
+      {
+        "sequence": 225,
+        "timestamp": "2026-08-28T20:30:51.442142Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9317
+      },
+      {
+        "sequence": 226,
+        "timestamp": "2026-08-28T20:31:45.714307Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9408
+      },
+      {
+        "sequence": 227,
+        "timestamp": "2026-08-28T20:32:09.800811Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9106
+      },
+      {
+        "sequence": 228,
+        "timestamp": "2026-08-28T20:32:33.981703Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9795
+      },
+      {
+        "sequence": 229,
+        "timestamp": "2026-08-28T20:33:16.285928Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9107
+      },
+      {
+        "sequence": 230,
+        "timestamp": "2026-08-28T20:34:28.735851Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9688
+      },
+      {
+        "sequence": 231,
+        "timestamp": "2026-08-28T20:34:52.974538Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9462
+      },
+      {
+        "sequence": 232,
+        "timestamp": "2026-08-28T20:35:53.435712Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9655
+      },
+      {
+        "sequence": 233,
+        "timestamp": "2026-08-28T20:36:05.452851Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9686
+      },
+      {
+        "sequence": 234,
+        "timestamp": "2026-08-28T20:36:17.522002Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9279
+      },
+      {
+        "sequence": 235,
+        "timestamp": "2026-08-28T20:36:53.850969Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.935
+      },
+      {
+        "sequence": 236,
+        "timestamp": "2026-08-28T20:37:05.871706Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.922
+      },
+      {
+        "sequence": 237,
+        "timestamp": "2026-08-28T20:37:24.061046Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9502
+      },
+      {
+        "sequence": 238,
+        "timestamp": "2026-08-28T20:37:30.125097Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9567
+      },
+      {
+        "sequence": 239,
+        "timestamp": "2026-08-28T20:37:36.175318Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9267
+      },
+      {
+        "sequence": 240,
+        "timestamp": "2026-08-28T20:37:48.292989Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.976
+      },
+      {
+        "sequence": 241,
+        "timestamp": "2026-08-28T20:38:18.474994Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9367
+      },
+      {
+        "sequence": 242,
+        "timestamp": "2026-08-28T20:38:30.552494Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9114
+      },
+      {
+        "sequence": 243,
+        "timestamp": "2026-08-28T20:38:48.681992Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9504
+      },
+      {
+        "sequence": 244,
+        "timestamp": "2026-08-28T20:38:54.743226Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9597
+      },
+      {
+        "sequence": 245,
+        "timestamp": "2026-08-28T20:39:00.751025Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9693
+      },
+      {
+        "sequence": 246,
+        "timestamp": "2026-08-28T20:39:12.811001Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.948
+      },
+      {
+        "sequence": 247,
+        "timestamp": "2026-08-28T20:39:30.945834Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9657
+      },
+      {
+        "sequence": 248,
+        "timestamp": "2026-08-28T20:39:42.963644Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9633
+      },
+      {
+        "sequence": 249,
+        "timestamp": "2026-08-28T20:39:55.080799Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9741
+      },
+      {
+        "sequence": 250,
+        "timestamp": "2026-08-28T20:40:07.104452Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9507
+      },
+      {
+        "sequence": 251,
+        "timestamp": "2026-08-28T20:40:13.154950Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9484
+      },
+      {
+        "sequence": 252,
+        "timestamp": "2026-08-28T20:40:55.442864Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9473
+      },
+      {
+        "sequence": 253,
+        "timestamp": "2026-08-28T20:41:13.614447Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9744
+      },
+      {
+        "sequence": 254,
+        "timestamp": "2026-08-28T20:41:49.765109Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9429
+      },
+      {
+        "sequence": 255,
+        "timestamp": "2026-08-28T20:42:07.786627Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9456
+      },
+      {
+        "sequence": 256,
+        "timestamp": "2026-08-28T20:42:31.926184Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9593
+      },
+      {
+        "sequence": 257,
+        "timestamp": "2026-08-28T20:42:37.944202Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9125
+      },
+      {
+        "sequence": 258,
+        "timestamp": "2026-08-28T20:42:50.043931Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9377
+      },
+      {
+        "sequence": 259,
+        "timestamp": "2026-08-28T20:43:38.395118Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9439
+      },
+      {
+        "sequence": 260,
+        "timestamp": "2026-08-28T20:43:44.453834Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.923
+      },
+      {
+        "sequence": 261,
+        "timestamp": "2026-08-28T20:44:08.688522Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9327
+      },
+      {
+        "sequence": 262,
+        "timestamp": "2026-08-28T20:45:03.035118Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9303
+      },
+      {
+        "sequence": 263,
+        "timestamp": "2026-08-28T20:45:15.166002Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9567
+      },
+      {
+        "sequence": 264,
+        "timestamp": "2026-08-28T20:45:33.295166Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9141
+      },
+      {
+        "sequence": 265,
+        "timestamp": "2026-08-28T20:45:45.362235Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9498
+      },
+      {
+        "sequence": 266,
+        "timestamp": "2026-08-28T20:45:57.428746Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.948
+      },
+      {
+        "sequence": 267,
+        "timestamp": "2026-08-28T20:46:09.498533Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9564
+      },
+      {
+        "sequence": 268,
+        "timestamp": "2026-08-28T20:46:33.616934Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9476
+      },
+      {
+        "sequence": 269,
+        "timestamp": "2026-08-28T20:47:22.062306Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9768
+      },
+      {
+        "sequence": 270,
+        "timestamp": "2026-08-28T20:48:16.476479Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9495
+      },
+      {
+        "sequence": 271,
+        "timestamp": "2026-08-28T20:48:28.590662Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9593
+      },
+      {
+        "sequence": 272,
+        "timestamp": "2026-08-28T20:48:40.603445Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9893
+      },
+      {
+        "sequence": 273,
+        "timestamp": "2026-08-28T20:48:58.631024Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9277
+      },
+      {
+        "sequence": 274,
+        "timestamp": "2026-08-28T20:49:04.641708Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9406
+      },
+      {
+        "sequence": 275,
+        "timestamp": "2026-08-28T20:49:22.667892Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9818
+      },
+      {
+        "sequence": 276,
+        "timestamp": "2026-08-28T20:50:22.815693Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9889
+      },
+      {
+        "sequence": 277,
+        "timestamp": "2026-08-28T20:50:28.826944Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9368
+      },
+      {
+        "sequence": 278,
+        "timestamp": "2026-08-28T20:50:47.004970Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9828
+      },
+      {
+        "sequence": 279,
+        "timestamp": "2026-08-28T20:50:53.062440Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9127
+      },
+      {
+        "sequence": 280,
+        "timestamp": "2026-08-28T20:50:59.123846Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9568
+      },
+      {
+        "sequence": 281,
+        "timestamp": "2026-08-28T20:51:41.510324Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9673
+      },
+      {
+        "sequence": 282,
+        "timestamp": "2026-08-28T20:51:53.634121Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.978
+      },
+      {
+        "sequence": 283,
+        "timestamp": "2026-08-28T20:51:59.695723Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9213
+      },
+      {
+        "sequence": 284,
+        "timestamp": "2026-08-28T20:52:11.810780Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9818
+      },
+      {
+        "sequence": 285,
+        "timestamp": "2026-08-28T20:52:17.872801Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9465
+      },
+      {
+        "sequence": 286,
+        "timestamp": "2026-08-28T20:52:23.928696Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9139
+      },
+      {
+        "sequence": 287,
+        "timestamp": "2026-08-28T20:52:36.043936Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9451
+      },
+      {
+        "sequence": 288,
+        "timestamp": "2026-08-28T20:52:42.050080Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9686
+      },
+      {
+        "sequence": 289,
+        "timestamp": "2026-08-28T20:53:30.392590Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9401
+      },
+      {
+        "sequence": 290,
+        "timestamp": "2026-08-28T20:53:36.454356Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9692
+      },
+      {
+        "sequence": 291,
+        "timestamp": "2026-08-28T20:54:06.771808Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9276
+      },
+      {
+        "sequence": 292,
+        "timestamp": "2026-08-28T20:54:24.957257Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9735
+      },
+      {
+        "sequence": 293,
+        "timestamp": "2026-08-28T20:54:43.149527Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.983
+      },
+      {
+        "sequence": 294,
+        "timestamp": "2026-08-28T20:55:07.347074Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9783
+      },
+      {
+        "sequence": 295,
+        "timestamp": "2026-08-28T20:55:13.360471Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9637
+      },
+      {
+        "sequence": 296,
+        "timestamp": "2026-08-28T20:55:31.541517Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9212
+      },
+      {
+        "sequence": 297,
+        "timestamp": "2026-08-28T20:56:01.833791Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9865
+      },
+      {
+        "sequence": 298,
+        "timestamp": "2026-08-28T20:56:44.177556Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9115
+      },
+      {
+        "sequence": 299,
+        "timestamp": "2026-08-28T20:56:50.239846Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9584
+      },
+      {
+        "sequence": 300,
+        "timestamp": "2026-08-28T20:56:56.299509Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.932
+      },
+      {
+        "sequence": 301,
+        "timestamp": "2026-08-28T20:57:08.412327Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9129
+      },
+      {
+        "sequence": 302,
+        "timestamp": "2026-08-28T20:57:20.528489Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9298
+      },
+      {
+        "sequence": 303,
+        "timestamp": "2026-08-28T20:57:56.854463Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9765
+      },
+      {
+        "sequence": 304,
+        "timestamp": "2026-08-28T20:58:08.971898Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9816
+      },
+      {
+        "sequence": 305,
+        "timestamp": "2026-08-28T20:58:34.600173Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9819
+      },
+      {
+        "sequence": 306,
+        "timestamp": "2026-08-28T20:59:10.947392Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.983
+      },
+      {
+        "sequence": 307,
+        "timestamp": "2026-08-28T20:59:17.016572Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9683
+      },
+      {
+        "sequence": 308,
+        "timestamp": "2026-08-28T20:59:35.159626Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9255
+      },
+      {
+        "sequence": 309,
+        "timestamp": "2026-08-28T20:59:53.279408Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9736
+      },
+      {
+        "sequence": 310,
+        "timestamp": "2026-08-28T21:00:05.391670Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9103
+      },
+      {
+        "sequence": 311,
+        "timestamp": "2026-08-28T21:00:29.545800Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9208
+      },
+      {
+        "sequence": 312,
+        "timestamp": "2026-08-28T21:01:05.863218Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9888
+      },
+      {
+        "sequence": 313,
+        "timestamp": "2026-08-28T21:01:29.995384Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9846
+      },
+      {
+        "sequence": 314,
+        "timestamp": "2026-08-28T21:01:48.129215Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9828
+      },
+      {
+        "sequence": 315,
+        "timestamp": "2026-08-28T21:02:12.263938Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9147
+      },
+      {
+        "sequence": 316,
+        "timestamp": "2026-08-28T21:02:24.330467Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9503
+      },
+      {
+        "sequence": 317,
+        "timestamp": "2026-08-28T21:02:48.492269Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9307
+      },
+      {
+        "sequence": 318,
+        "timestamp": "2026-08-28T21:04:13.156820Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9438
+      },
+      {
+        "sequence": 319,
+        "timestamp": "2026-08-28T21:04:19.213312Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9547
+      },
+      {
+        "sequence": 320,
+        "timestamp": "2026-08-28T21:04:55.504292Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9773
+      },
+      {
+        "sequence": 321,
+        "timestamp": "2026-08-28T21:05:19.744326Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9818
+      },
+      {
+        "sequence": 322,
+        "timestamp": "2026-08-28T21:05:37.927892Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9829
+      },
+      {
+        "sequence": 323,
+        "timestamp": "2026-08-28T21:05:43.974940Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9271
+      },
+      {
+        "sequence": 324,
+        "timestamp": "2026-08-28T21:06:02.119009Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9815
+      },
+      {
+        "sequence": 325,
+        "timestamp": "2026-08-28T21:06:14.139089Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9305
+      },
+      {
+        "sequence": 326,
+        "timestamp": "2026-08-28T21:06:20.147365Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9521
+      },
+      {
+        "sequence": 327,
+        "timestamp": "2026-08-28T21:06:38.341928Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9429
+      },
+      {
+        "sequence": 328,
+        "timestamp": "2026-08-28T21:06:50.451338Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9715
+      },
+      {
+        "sequence": 329,
+        "timestamp": "2026-08-28T21:07:32.773939Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9803
+      },
+      {
+        "sequence": 330,
+        "timestamp": "2026-08-28T21:07:56.969909Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9752
+      },
+      {
+        "sequence": 331,
+        "timestamp": "2026-08-28T21:08:09.092299Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9764
+      },
+      {
+        "sequence": 332,
+        "timestamp": "2026-08-28T21:08:15.151116Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9322
+      },
+      {
+        "sequence": 333,
+        "timestamp": "2026-08-28T21:08:27.177030Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9437
+      },
+      {
+        "sequence": 334,
+        "timestamp": "2026-08-28T21:08:57.433110Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.988
+      },
+      {
+        "sequence": 335,
+        "timestamp": "2026-08-28T21:09:39.728259Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9456
+      },
+      {
+        "sequence": 336,
+        "timestamp": "2026-08-28T21:09:57.882363Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9873
+      },
+      {
+        "sequence": 337,
+        "timestamp": "2026-08-28T21:10:34.089416Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.958
+      },
+      {
+        "sequence": 338,
+        "timestamp": "2026-08-28T21:10:52.262973Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9704
+      },
+      {
+        "sequence": 339,
+        "timestamp": "2026-08-28T21:11:22.471029Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9721
+      },
+      {
+        "sequence": 340,
+        "timestamp": "2026-08-28T21:12:04.899445Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9889
+      },
+      {
+        "sequence": 341,
+        "timestamp": "2026-08-28T21:12:47.269923Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9319
+      },
+      {
+        "sequence": 342,
+        "timestamp": "2026-08-28T21:14:05.959702Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9267
+      },
+      {
+        "sequence": 343,
+        "timestamp": "2026-08-28T21:15:00.485872Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.947
+      },
+      {
+        "sequence": 344,
+        "timestamp": "2026-08-28T21:15:36.781710Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.957
+      },
+      {
+        "sequence": 345,
+        "timestamp": "2026-08-28T21:16:06.981116Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9592
+      },
+      {
+        "sequence": 346,
+        "timestamp": "2026-08-28T21:16:13.030993Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9363
+      },
+      {
+        "sequence": 347,
+        "timestamp": "2026-08-28T21:16:31.199505Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9728
+      },
+      {
+        "sequence": 348,
+        "timestamp": "2026-08-28T21:16:55.306805Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9213
+      },
+      {
+        "sequence": 349,
+        "timestamp": "2026-08-28T21:17:25.560813Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9446
+      },
+      {
+        "sequence": 350,
+        "timestamp": "2026-08-28T21:17:37.627902Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.972
+      },
+      {
+        "sequence": 351,
+        "timestamp": "2026-08-28T21:17:55.837717Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9146
+      },
+      {
+        "sequence": 352,
+        "timestamp": "2026-08-28T21:18:19.994823Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9383
+      },
+      {
+        "sequence": 353,
+        "timestamp": "2026-08-28T21:20:45.224404Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9545
+      },
+      {
+        "sequence": 354,
+        "timestamp": "2026-08-28T21:21:15.522808Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9454
+      },
+      {
+        "sequence": 355,
+        "timestamp": "2026-08-28T21:21:21.580448Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9475
+      },
+      {
+        "sequence": 356,
+        "timestamp": "2026-08-28T21:21:39.701355Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9647
+      },
+      {
+        "sequence": 357,
+        "timestamp": "2026-08-28T21:22:09.975402Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9595
+      },
+      {
+        "sequence": 358,
+        "timestamp": "2026-08-28T21:22:16.043425Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9221
+      },
+      {
+        "sequence": 359,
+        "timestamp": "2026-08-28T21:22:34.173019Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9698
+      },
+      {
+        "sequence": 360,
+        "timestamp": "2026-08-28T21:22:40.211705Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9741
+      },
+      {
+        "sequence": 361,
+        "timestamp": "2026-08-28T21:23:16.512274Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9269
+      },
+      {
+        "sequence": 362,
+        "timestamp": "2026-08-28T21:23:34.633517Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9413
+      },
+      {
+        "sequence": 363,
+        "timestamp": "2026-08-28T21:23:40.685202Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9679
+      },
+      {
+        "sequence": 364,
+        "timestamp": "2026-08-28T21:23:52.764479Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9178
+      },
+      {
+        "sequence": 365,
+        "timestamp": "2026-08-28T21:24:59.280271Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9578
+      },
+      {
+        "sequence": 366,
+        "timestamp": "2026-08-28T21:25:05.342271Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.912
+      },
+      {
+        "sequence": 367,
+        "timestamp": "2026-08-28T21:25:23.480269Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9173
+      },
+      {
+        "sequence": 368,
+        "timestamp": "2026-08-28T21:25:29.541979Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9475
+      },
+      {
+        "sequence": 369,
+        "timestamp": "2026-08-28T21:25:35.566329Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9787
+      },
+      {
+        "sequence": 370,
+        "timestamp": "2026-08-28T21:26:36.106370Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9262
+      },
+      {
+        "sequence": 371,
+        "timestamp": "2026-08-28T21:26:42.166932Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9428
+      },
+      {
+        "sequence": 372,
+        "timestamp": "2026-08-28T21:28:06.775038Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9654
+      },
+      {
+        "sequence": 373,
+        "timestamp": "2026-08-28T21:28:18.839986Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9303
+      },
+      {
+        "sequence": 374,
+        "timestamp": "2026-08-28T21:29:13.099172Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.926
+      },
+      {
+        "sequence": 375,
+        "timestamp": "2026-08-28T21:29:31.137232Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9328
+      },
+      {
+        "sequence": 376,
+        "timestamp": "2026-08-28T21:29:55.169777Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9391
+      },
+      {
+        "sequence": 377,
+        "timestamp": "2026-08-28T21:30:01.180226Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9608
+      },
+      {
+        "sequence": 378,
+        "timestamp": "2026-08-28T21:30:31.281567Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9798
+      },
+      {
+        "sequence": 379,
+        "timestamp": "2026-08-28T21:30:43.305382Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9694
+      },
+      {
+        "sequence": 380,
+        "timestamp": "2026-08-28T21:30:55.332362Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9684
+      },
+      {
+        "sequence": 381,
+        "timestamp": "2026-08-28T21:31:07.376429Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9868
+      },
+      {
+        "sequence": 382,
+        "timestamp": "2026-08-28T21:31:49.671340Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9879
+      },
+      {
+        "sequence": 383,
+        "timestamp": "2026-08-28T21:32:07.823999Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9368
+      },
+      {
+        "sequence": 384,
+        "timestamp": "2026-08-28T21:32:19.914824Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9299
+      },
+      {
+        "sequence": 385,
+        "timestamp": "2026-08-28T21:32:44.085127Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9386
+      },
+      {
+        "sequence": 386,
+        "timestamp": "2026-08-28T21:33:02.270048Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9324
+      },
+      {
+        "sequence": 387,
+        "timestamp": "2026-08-28T21:33:26.437905Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9288
+      },
+      {
+        "sequence": 388,
+        "timestamp": "2026-08-28T21:33:32.485040Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9541
+      },
+      {
+        "sequence": 389,
+        "timestamp": "2026-08-28T21:34:08.757071Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9665
+      },
+      {
+        "sequence": 390,
+        "timestamp": "2026-08-28T21:34:26.820111Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9383
+      },
+      {
+        "sequence": 391,
+        "timestamp": "2026-08-28T21:34:32.831462Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9107
+      },
+      {
+        "sequence": 392,
+        "timestamp": "2026-08-28T21:34:56.975077Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9615
+      },
+      {
+        "sequence": 393,
+        "timestamp": "2026-08-28T21:35:09.053679Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9521
+      },
+      {
+        "sequence": 394,
+        "timestamp": "2026-08-28T21:35:57.463008Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.959
+      },
+      {
+        "sequence": 395,
+        "timestamp": "2026-08-28T21:36:27.720075Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9708
+      },
+      {
+        "sequence": 396,
+        "timestamp": "2026-08-28T21:36:57.975446Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.966
+      },
+      {
+        "sequence": 397,
+        "timestamp": "2026-08-28T21:37:22.072371Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9119
+      },
+      {
+        "sequence": 398,
+        "timestamp": "2026-08-28T21:37:52.157617Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.922
+      },
+      {
+        "sequence": 399,
+        "timestamp": "2026-08-28T21:37:58.168268Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9639
+      },
+      {
+        "sequence": 400,
+        "timestamp": "2026-08-28T21:38:04.180502Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9745
+      },
+      {
+        "sequence": 401,
+        "timestamp": "2026-08-28T21:38:34.399290Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9153
+      },
+      {
+        "sequence": 402,
+        "timestamp": "2026-08-28T21:38:40.461234Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9338
+      },
+      {
+        "sequence": 403,
+        "timestamp": "2026-08-28T21:38:46.474174Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9307
+      },
+      {
+        "sequence": 404,
+        "timestamp": "2026-08-28T21:39:10.528837Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9583
+      },
+      {
+        "sequence": 405,
+        "timestamp": "2026-08-28T21:39:28.626485Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9621
+      },
+      {
+        "sequence": 406,
+        "timestamp": "2026-08-28T21:39:34.644663Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9895
+      },
+      {
+        "sequence": 407,
+        "timestamp": "2026-08-28T21:39:58.765592Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9501
+      },
+      {
+        "sequence": 408,
+        "timestamp": "2026-08-28T21:40:41.067915Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9746
+      },
+      {
+        "sequence": 409,
+        "timestamp": "2026-08-28T21:40:53.187797Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9898
+      },
+      {
+        "sequence": 410,
+        "timestamp": "2026-08-28T21:41:23.260732Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9721
+      },
+      {
+        "sequence": 411,
+        "timestamp": "2026-08-28T21:41:35.286919Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9404
+      },
+      {
+        "sequence": 412,
+        "timestamp": "2026-08-28T21:43:05.816433Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9454
+      },
+      {
+        "sequence": 413,
+        "timestamp": "2026-08-28T21:44:12.558767Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9886
+      },
+      {
+        "sequence": 414,
+        "timestamp": "2026-08-28T21:44:18.624242Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9649
+      },
+      {
+        "sequence": 415,
+        "timestamp": "2026-08-28T21:44:54.850348Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9345
+      },
+      {
+        "sequence": 416,
+        "timestamp": "2026-08-29T06:39:50.531511Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9667
+      },
+      {
+        "sequence": 417,
+        "timestamp": "2026-08-29T06:40:14.549676Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9483
+      },
+      {
+        "sequence": 418,
+        "timestamp": "2026-08-29T06:40:38.571411Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.978
+      },
+      {
+        "sequence": 419,
+        "timestamp": "2026-08-29T06:41:56.648669Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9148
+      },
+      {
+        "sequence": 420,
+        "timestamp": "2026-08-29T06:42:08.661250Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9879
+      },
+      {
+        "sequence": 421,
+        "timestamp": "2026-08-29T06:42:14.668926Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9544
+      },
+      {
+        "sequence": 422,
+        "timestamp": "2026-08-29T06:44:08.759428Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9652
+      },
+      {
+        "sequence": 423,
+        "timestamp": "2026-08-29T06:44:14.765025Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.926
+      },
+      {
+        "sequence": 424,
+        "timestamp": "2026-08-29T06:44:20.769397Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9887
+      },
+      {
+        "sequence": 425,
+        "timestamp": "2026-08-29T06:44:38.787267Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9536
+      },
+      {
+        "sequence": 426,
+        "timestamp": "2026-08-29T06:45:32.827848Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9118
+      },
+      {
+        "sequence": 427,
+        "timestamp": "2026-08-29T06:45:56.847678Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9388
+      },
+      {
+        "sequence": 428,
+        "timestamp": "2026-08-29T06:46:08.858768Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9505
+      },
+      {
+        "sequence": 429,
+        "timestamp": "2026-08-29T06:46:44.893994Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9804
+      },
+      {
+        "sequence": 430,
+        "timestamp": "2026-08-29T06:47:14.946747Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9415
+      },
+      {
+        "sequence": 431,
+        "timestamp": "2026-08-29T06:47:20.950879Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.946
+      },
+      {
+        "sequence": 432,
+        "timestamp": "2026-08-29T06:47:26.957165Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9435
+      },
+      {
+        "sequence": 433,
+        "timestamp": "2026-08-29T06:47:50.976249Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9839
+      },
+      {
+        "sequence": 434,
+        "timestamp": "2026-08-29T06:48:02.990223Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9631
+      },
+      {
+        "sequence": 435,
+        "timestamp": "2026-08-29T06:48:27.008809Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9283
+      },
+      {
+        "sequence": 436,
+        "timestamp": "2026-08-29T06:48:51.029939Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9391
+      },
+      {
+        "sequence": 437,
+        "timestamp": "2026-08-29T06:49:15.055385Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9394
+      },
+      {
+        "sequence": 438,
+        "timestamp": "2026-08-29T06:49:27.068758Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9786
+      },
+      {
+        "sequence": 439,
+        "timestamp": "2026-08-29T06:49:45.086479Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9441
+      },
+      {
+        "sequence": 440,
+        "timestamp": "2026-08-29T06:50:21.120520Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9735
+      },
+      {
+        "sequence": 441,
+        "timestamp": "2026-08-29T06:50:33.131846Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9656
+      },
+      {
+        "sequence": 442,
+        "timestamp": "2026-08-29T06:50:48.726460Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9568
+      },
+      {
+        "sequence": 443,
+        "timestamp": "2026-08-29T06:51:00.739889Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9654
+      },
+      {
+        "sequence": 444,
+        "timestamp": "2026-08-29T06:51:18.761577Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9232
+      },
+      {
+        "sequence": 445,
+        "timestamp": "2026-08-29T06:51:36.781408Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9425
+      },
+      {
+        "sequence": 446,
+        "timestamp": "2026-08-29T06:51:42.788087Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9611
+      },
+      {
+        "sequence": 447,
+        "timestamp": "2026-08-29T06:52:18.835244Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9897
+      },
+      {
+        "sequence": 448,
+        "timestamp": "2026-08-29T06:52:36.854375Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9115
+      },
+      {
+        "sequence": 449,
+        "timestamp": "2026-08-29T06:53:06.897279Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9525
+      },
+      {
+        "sequence": 450,
+        "timestamp": "2026-08-29T06:53:18.905652Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9773
+      },
+      {
+        "sequence": 451,
+        "timestamp": "2026-08-29T06:53:42.944584Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9157
+      },
+      {
+        "sequence": 452,
+        "timestamp": "2026-08-29T06:54:24.997960Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9569
+      },
+      {
+        "sequence": 453,
+        "timestamp": "2026-08-29T06:54:31.004201Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9748
+      },
+      {
+        "sequence": 454,
+        "timestamp": "2026-08-29T06:55:01.051404Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9165
+      },
+      {
+        "sequence": 455,
+        "timestamp": "2026-08-29T06:55:49.101447Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9727
+      },
+      {
+        "sequence": 456,
+        "timestamp": "2026-08-29T06:56:07.117078Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.927
+      },
+      {
+        "sequence": 457,
+        "timestamp": "2026-08-29T06:56:13.122629Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9623
+      },
+      {
+        "sequence": 458,
+        "timestamp": "2026-08-29T06:56:19.128368Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9722
+      },
+      {
+        "sequence": 459,
+        "timestamp": "2026-08-29T06:56:37.152043Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9502
+      },
+      {
+        "sequence": 460,
+        "timestamp": "2026-08-29T06:57:37.203678Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.926
+      },
+      {
+        "sequence": 461,
+        "timestamp": "2026-08-29T06:58:07.244990Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9415
+      },
+      {
+        "sequence": 462,
+        "timestamp": "2026-08-29T06:59:01.301769Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9434
+      },
+      {
+        "sequence": 463,
+        "timestamp": "2026-08-29T06:59:13.314530Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9662
+      },
+      {
+        "sequence": 464,
+        "timestamp": "2026-08-29T06:59:25.341397Z",
+        "camera_id": "HOME-LIVE-006",
+        "location": {
+          "latitude": 21.52,
+          "longitude": 70.46,
+          "district": "Junagadh",
+          "address": null
+        },
+        "confidence": 0.9101
+      },
+      {
+        "sequence": 465,
+        "timestamp": "2026-08-29T06:59:37.356147Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9277
+      },
+      {
+        "sequence": 466,
+        "timestamp": "2026-08-29T06:59:49.367540Z",
+        "camera_id": "HOME-LIVE-012",
+        "location": {
+          "latitude": 23.1665,
+          "longitude": 72.5823,
+          "district": "Gandhinagar",
+          "address": null
+        },
+        "confidence": 0.9194
+      },
+      {
+        "sequence": 467,
+        "timestamp": "2026-08-29T07:00:01.378265Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9861
+      },
+      {
+        "sequence": 468,
+        "timestamp": "2026-08-29T07:00:13.392646Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9307
+      },
+      {
+        "sequence": 469,
+        "timestamp": "2026-08-29T07:01:25.495255Z",
+        "camera_id": "HOME-LIVE-004",
+        "location": {
+          "latitude": 23.0061,
+          "longitude": 72.571,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9673
+      },
+      {
+        "sequence": 470,
+        "timestamp": "2026-08-29T07:01:37.507469Z",
+        "camera_id": "HOME-LIVE-017",
+        "location": {
+          "latitude": 22.3039,
+          "longitude": 70.8022,
+          "district": "Rajkot",
+          "address": null
+        },
+        "confidence": 0.9479
+      },
+      {
+        "sequence": 471,
+        "timestamp": "2026-08-29T07:01:55.520373Z",
+        "camera_id": "HOME-LIVE-001",
+        "location": {
+          "latitude": 23.0225,
+          "longitude": 72.5714,
+          "district": "Ahmedabad",
+          "address": null
+        },
+        "confidence": 0.9317
+      }
+    ]
+  },
+  "capabilities_demonstrated": [
+    "\u2705 50 cameras onboarded from multiple departments",
+    "\u2705 RTSP TCP streaming from heterogeneous cameras",
+    "\u2705 ANPR (YOLOv8n + PaddleOCR) real-time plate recognition",
+    "\u2705 Vehicle movement route reconstruction and trajectory correlation",
+    "\u2705 Watchlist cross-referencing (VAHAN + eGujCop)",
+    "\u2705 Real-time alert generation on watchlist match",
+    "\u2705 GIS map with PostGIS coverage analysis",
+    "\u2705 Gap analysis for uncovered zones",
+    "\u2705 VMS Federation across Hikvision ISAPI & Dahua DSS",
+    "\u2705 OpenTelemetry distributed tracing and Prometheus metrics",
+    "\u2705 Kafka CloudEvents event bus",
+    "\u2705 RBAC + OPA policy enforcement",
+    "\u2705 Hybrid Gateway reverse proxy and cross-model orchestration"
+  ]
+}

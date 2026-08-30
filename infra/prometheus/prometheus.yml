@@ -1,0 +1,56 @@
+# Prometheus Configuration for Gujarat Sentinel
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+  scrape_timeout: 8s
+
+scrape_configs:
+  - job_name: "sentinel-hybrid-gateway"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["hybrid-gateway:8000"]
+        labels:
+          model: "hybrid-gateway"
+          tier: "gateway"
+
+  - job_name: "sentinel-model1"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["model1:8001"]
+        labels:
+          model: "model1"
+          tier: "registry_gis"
+
+  - job_name: "sentinel-model2"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["model2:8002"]
+        labels:
+          model: "model2"
+          tier: "anpr_viewer"
+
+  - job_name: "sentinel-model3"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["model3:8003"]
+        labels:
+          model: "model3"
+          tier: "vms_federation"
+
+  - job_name: "sentinel-model4"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["model4:8004"]
+        labels:
+          model: "model4"
+          tier: "central_vms"
+
+  - job_name: "sentinel-otel-collector"
+    static_configs:
+      - targets: ["otel-collector:8889"]
+        labels:
+          tier: "telemetry"
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

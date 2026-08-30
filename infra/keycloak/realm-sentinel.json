@@ -1,0 +1,144 @@
+{
+  "realm": "sentinel",
+  "enabled": true,
+  "displayName": "Gujarat Sentinel Identity & Access Management",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "POLICE_ADMIN",
+        "description": "State police administrator with full access to all models and camera control"
+      },
+      {
+        "name": "OPERATOR",
+        "description": "Control room operator with viewing, PTZ control, and alert acknowledgement"
+      },
+      {
+        "name": "VIEWER",
+        "description": "Read-only access to GIS registry and live stream viewer"
+      },
+      {
+        "name": "AUDITOR",
+        "description": "Access to audit logs, compliance reports, and system telemetry"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "sentinel-api",
+      "name": "Sentinel Hybrid API Gateway",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "sentinel_client_secret_2026",
+      "bearerOnly": false,
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "redirectUris": [
+        "http://localhost:8000/*",
+        "http://localhost:3000/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "email"
+      ]
+    },
+    {
+      "clientId": "sentinel-frontend",
+      "name": "Sentinel Unified Command Center UI",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:8000/*"
+      ],
+      "webOrigins": [
+        "*"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "superadmin",
+      "enabled": true,
+      "email": "admin@police.gujarat.gov.in",
+      "firstName": "State",
+      "lastName": "Administrator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sentinel@2026!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "POLICE_ADMIN"
+      ],
+      "attributes": {
+        "department": ["HOME"],
+        "district": ["Gandhinagar"],
+        "badge_id": ["GJ-HQ-001"]
+      }
+    },
+    {
+      "username": "ahm_operator",
+      "enabled": true,
+      "email": "operator.ahm@police.gujarat.gov.in",
+      "firstName": "Ahmedabad",
+      "lastName": "Operator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Operator@2026!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "OPERATOR"
+      ],
+      "attributes": {
+        "department": ["HOME"],
+        "district": ["Ahmedabad"],
+        "badge_id": ["GJ-AHM-102"]
+      }
+    },
+    {
+      "username": "surat_viewer",
+      "enabled": true,
+      "email": "viewer.surat@traffic.gujarat.gov.in",
+      "firstName": "Surat",
+      "lastName": "Viewer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Viewer@2026!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "VIEWER"
+      ],
+      "attributes": {
+        "department": ["ROADS_BUILDINGS"],
+        "district": ["Surat"],
+        "badge_id": ["GJ-SRT-204"]
+      }
+    }
+  ]
+}

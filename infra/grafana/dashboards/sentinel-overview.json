@@ -1,0 +1,381 @@
+{
+  "annotations": { "list": [] },
+  "description": "Gujarat Sentinel — Real-time AI Model Telemetry, Camera Health, Kafka Throughput & APB Alerts",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    { "title": "ANPR Deep-Dive", "url": "/d/sentinel-anpr", "type": "dashboards", "targetBlank": false },
+    { "title": "Incident Intelligence", "url": "/d/sentinel-incidents", "type": "dashboards", "targetBlank": false }
+  ],
+  "liveNow": true,
+  "refresh": "10s",
+  "tags": ["sentinel", "soc", "overview"],
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "Asia/Kolkata",
+  "title": "🛡️ Gujarat Sentinel — SOC Command Overview",
+  "uid": "sentinel-overview",
+  "version": 1,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "🔴 Platform Health — 4 AI Models + Gateway",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "text": "OFFLINE", "color": "red" }, "1": { "text": "ONLINE", "color": "green" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_and_name" },
+      "title": "Model 1 — Registry/GIS",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "up{job=\"sentinel-model1\"}", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "text": "OFFLINE", "color": "red" }, "1": { "text": "ONLINE", "color": "green" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "value_and_name" },
+      "title": "Model 2 — ANPR/YOLOv8",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "up{job=\"sentinel-model2\"}", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "text": "OFFLINE", "color": "red" }, "1": { "text": "ONLINE", "color": "green" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "value_and_name" },
+      "title": "Model 3 — VMS Federation",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "up{job=\"sentinel-model3\"}", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "text": "OFFLINE", "color": "red" }, "1": { "text": "ONLINE", "color": "green" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 4,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "value_and_name" },
+      "title": "Model 4 — Trajectory/Kafka",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "up{job=\"sentinel-model4\"}", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "text": "OFFLINE", "color": "red" }, "1": { "text": "ONLINE", "color": "green" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "id": 5,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "value_and_name" },
+      "title": "Hybrid Gateway",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "up{job=\"sentinel-hybrid-gateway\"}", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 50 }, { "color": "red", "value": 100 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 6,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "center" },
+      "title": "Active APB Alerts",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_apb_alerts_active_total", "instant": true, "refId": "A" }]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 200,
+      "title": "📊 AI Inference Latency & Throughput",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 15, "showPoints": "never", "spanNulls": true },
+          "unit": "ms",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 30 }, { "color": "red", "value": 100 }] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "model1_p99" }, "properties": [{ "id": "color", "value": { "fixedColor": "#38bdf8", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "model2_p99" }, "properties": [{ "id": "color", "value": { "fixedColor": "#10b981", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "model3_p99" }, "properties": [{ "id": "color", "value": { "fixedColor": "#f59e0b", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "model4_p99" }, "properties": [{ "id": "color", "value": { "fixedColor": "#8b5cf6", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 6 },
+      "id": 10,
+      "options": { "tooltip": { "mode": "multi", "sort": "asc" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "last"] } },
+      "title": "AI Inference Latency P99 — All 4 Models (ms)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"sentinel-model1\"}[2m])) * 1000", "legendFormat": "Model 1 — GIS/Registry P99", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"sentinel-model2\"}[2m])) * 1000", "legendFormat": "Model 2 — ANPR/YOLOv8 P99", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"sentinel-model3\"}[2m])) * 1000", "legendFormat": "Model 3 — VMS Federation P99", "refId": "C" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"sentinel-model4\"}[2m])) * 1000", "legendFormat": "Model 4 — Trajectory P99", "refId": "D" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "reqps",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }, { "color": "green", "value": 100 }] },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+      "id": 11,
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "title": "Request Throughput — Req/s per Model",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum(rate(http_requests_total{job=\"sentinel-model1\"}[1m]))", "legendFormat": "Model 1", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum(rate(http_requests_total{job=\"sentinel-model2\"}[1m]))", "legendFormat": "Model 2", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum(rate(http_requests_total{job=\"sentinel-model3\"}[1m]))", "legendFormat": "Model 3", "refId": "C" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum(rate(http_requests_total{job=\"sentinel-model4\"}[1m]))", "legendFormat": "Model 4", "refId": "D" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 300,
+      "title": "🚗 ANPR Detection Pipeline — Real-Time",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 20, "showPoints": "never" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 20,
+      "title": "ANPR Detections / Minute — Kafka Ingest Rate",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(sentinel_anpr_detections_total[1m]) * 60", "legendFormat": "Detections/min", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(sentinel_watchlist_hits_total[1m]) * 60", "legendFormat": "Watchlist Hits/min", "refId": "B" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" },
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 0.95 }, { "color": "green", "value": 0.98 }] }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 21,
+      "title": "ANPR OCR Accuracy — YOLOv8n + PaddleOCR Confidence",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_anpr_confidence_avg", "legendFormat": "Avg Confidence Score", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_anpr_plate_accuracy_ratio", "legendFormat": "Plate Match Accuracy", "refId": "B" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 400,
+      "title": "📡 Kafka Event Bus Throughput",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 15, "showPoints": "never" },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "anpr.detections" }, "properties": [{ "id": "color", "value": { "fixedColor": "#38bdf8", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "alerts.critical" }, "properties": [{ "id": "color", "value": { "fixedColor": "#ef4444", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "trajectory.events" }, "properties": [{ "id": "color", "value": { "fixedColor": "#8b5cf6", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 24 },
+      "id": 30,
+      "title": "Kafka Topic Throughput — Messages/sec",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(kafka_topic_messages_total{topic=\"anpr.detections\"}[1m])", "legendFormat": "anpr.detections", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(kafka_topic_messages_total{topic=\"alerts.critical\"}[1m])", "legendFormat": "alerts.critical", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(kafka_topic_messages_total{topic=\"trajectory.events\"}[1m])", "legendFormat": "trajectory.events", "refId": "C" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(kafka_topic_messages_total{topic=\"vms.heartbeats\"}[1m])", "legendFormat": "vms.heartbeats", "refId": "D" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 10000 }, { "color": "red", "value": 50000 }] }
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+      "id": 31,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "center" },
+      "title": "Kafka Consumer Lag",
+      "type": "stat",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum(kafka_consumer_group_lag{group=~\"sentinel.*\"})", "instant": true, "refId": "A" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "id": 500,
+      "title": "📹 Camera Stream Health — 30 Live Feeds",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 15 }, { "color": "green", "value": 25 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 33 },
+      "id": 40,
+      "options": { "colorMode": "background", "graphMode": "area" },
+      "title": "Active Camera Feeds",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_active_streams_total", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 5 }, { "color": "red", "value": 10 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 33 },
+      "id": 41,
+      "options": { "colorMode": "background", "graphMode": "area" },
+      "title": "Stream Reconnects (1h)",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "increase(sentinel_stream_reconnects_total[1h])", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "s",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 2 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 33 },
+      "id": 42,
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "title": "Avg Glass-to-Glass Latency",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "avg(sentinel_stream_e2e_latency_seconds)", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "Mbps",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 500 }, { "color": "red", "value": 800 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 33 },
+      "id": 43,
+      "options": { "colorMode": "background", "graphMode": "area" },
+      "title": "Total Ingest Bandwidth",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum(sentinel_stream_bitrate_mbps)", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 1.5, "fillOpacity": 10, "showPoints": "never" },
+          "unit": "Mbps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 37 },
+      "id": 44,
+      "title": "Per-Camera Bitrate — Live (Last 30 Minutes)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_stream_bitrate_mbps", "legendFormat": "{{camera_name}} ({{district}})", "refId": "A" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+[tool.poetry]
+name = "sentinel-model1"
+version = "1.0.0"
+description = "Gujarat Sentinel — Model 1: Centralised CCTV Registry & GIS Platform"
+authors = ["Sentinel Platform Team <sentinel.hackathon@gujarat.gov.in>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+# ── Web Framework
+fastapi = "^0.115.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+python-multipart = "^0.0.12"
+
+# ── Database
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
+asyncpg = "^0.30.0"
+alembic = "^1.14.0"
+geoalchemy2 = "^0.17.0"       # PostGIS geometry types for SQLAlchemy
+
+# ── Data Validation
+pydantic = "^2.10.0"
+pydantic-settings = "^2.6.0"
+email-validator = "^2.2.0"
+
+# ── Caching
+redis = {extras = ["hiredis"], version = "^5.2.0"}
+
+# ── Messaging (Kafka)
+aiokafka = "^0.11.0"
+cloudevents = "^1.11.0"
+
+# ── Security / Auth
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+cryptography = "^43.0.0"
+httpx = "^0.28.0"             # OIDC JWKS fetching + OPA client
+
+# ── Observability
+opentelemetry-sdk = "^1.29.0"
+opentelemetry-instrumentation-fastapi = "^0.50b0"
+opentelemetry-instrumentation-sqlalchemy = "^0.50b0"
+opentelemetry-instrumentation-redis = "^0.50b0"
+opentelemetry-exporter-otlp-proto-grpc = "^1.29.0"
+prometheus-client = "^0.21.0"
+prometheus-fastapi-instrumentator = "^7.0.0"
+structlog = "^24.4.0"         # Structured logging (JSON)
+
+# ── Data
+orjson = "^3.10.0"            # Fast JSON serialiser
+
+# ── Utilities
+anyio = "^4.7.0"
+tenacity = "^9.0.0"           # Retry logic for external calls
+shapely = "^2.0.6"            # Geometry operations (gap analysis)
+h3 = "^3.7.7"                 # H3 hexagonal indexing (heatmap)
+pyproj = "^3.7.0"             # Coordinate projection
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^6.0.0"
+httpx = "^0.28.0"
+factory-boy = "^3.3.1"
+faker = "^33.0.0"
+schemathesis = "^3.39.0"      # OpenAPI contract testing
+testcontainers = {extras = ["postgres", "redis"], version = "^4.8.0"}
+ruff = "^0.8.0"
+mypy = "^1.13.0"
+black = "^24.10.0"
+isort = "^5.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing --cov-fail-under=80"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+select = ["E", "F", "I", "N", "UP", "ANN", "S", "B", "A", "C4", "T20"]
+ignore = ["ANN101", "ANN102", "S101"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100

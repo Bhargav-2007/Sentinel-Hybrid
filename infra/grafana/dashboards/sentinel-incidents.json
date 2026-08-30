@@ -1,0 +1,169 @@
+{
+  "annotations": { "list": [] },
+  "description": "Gujarat Sentinel — APB Threat Triage, Hotlist Hit Intelligence, Police Officer Response Times & Section 65B Audit Records",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    { "title": "SOC Overview", "url": "/d/sentinel-overview", "type": "dashboards", "targetBlank": false },
+    { "title": "ANPR Vision", "url": "/d/sentinel-anpr", "type": "dashboards", "targetBlank": false }
+  ],
+  "liveNow": true,
+  "refresh": "5s",
+  "tags": ["sentinel", "incidents", "apb", "hotlist"],
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "Asia/Kolkata",
+  "title": "🚨 Gujarat Sentinel — APB Incident Intelligence & Response",
+  "uid": "sentinel-incidents",
+  "version": 1,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "🎯 Incident Triage Top-Level Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 5 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "center" },
+      "title": "Critical APBs (Active)",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_incidents_active{severity=\"CRITICAL\"}", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 10 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "center" },
+      "title": "High Priority Alerts",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_incidents_active{severity=\"HIGH\"}", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "s",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 60 }, { "color": "red", "value": 180 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center" },
+      "title": "Mean Time to Ack (MTTA)",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "avg(sentinel_incident_mtta_seconds)", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "m",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 15 }, { "color": "red", "value": 30 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 4,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center" },
+      "title": "Mean Time to Resolve (MTTR)",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "avg(sentinel_incident_mttr_minutes)", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }, { "color": "green", "value": 20 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "id": 5,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center" },
+      "title": "PCR Units En Route",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_pcr_dispatches_active", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 3 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 6,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center" },
+      "title": "Active Break-Glass Sessions",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_break_glass_active_sessions", "instant": true, "refId": "A" }]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 200,
+      "title": "📋 Incident Category Breakdown & Life-Cycle Flow",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 6 },
+      "id": 10,
+      "title": "Hotlist / APB Violation Categories",
+      "type": "piechart",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum by (violation_type) (sentinel_incidents_total)", "legendFormat": "{{violation_type}}", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 20 },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 6 },
+      "id": 11,
+      "title": "Hourly Incident Trend — Ingestion vs Resolution Rate",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(sentinel_incidents_created_total[5m]) * 3600", "legendFormat": "New Incidents / Hr", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(sentinel_incidents_resolved_total[5m]) * 3600", "legendFormat": "Resolved Incidents / Hr", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(sentinel_pcr_dispatches_total[5m]) * 3600", "legendFormat": "PCR Dispatches / Hr", "refId": "C" }
+      ]
+    }
+  ]
+}

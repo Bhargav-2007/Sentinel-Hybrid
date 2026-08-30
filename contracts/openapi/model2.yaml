@@ -1,0 +1,741 @@
+openapi: "3.1.0"
+info:
+  title: "Sentinel Model 2 — Unified Viewing & ANPR Analytics API"
+  description: |
+    Unified CCTV viewing platform connecting directly to departmental RTSP streams
+    with ANPR-based metadata generation, real-time watchlist matching, and
+    searchable vehicle movement records.
+
+    **Key capabilities:**
+    - Live RTSP stream catalogue from Sentinel grid (`/api/ingest` compatible)
+    - ANPR (Automatic Number Plate Recognition) via PaddleOCR
+    - Vehicle detection via YOLOv8n (CPU)
+    - Real-time watchlist cross-referencing
+    - Event tagging and searchable movement history (OpenSearch)
+    - HLS relay for browser playback
+  version: "1.0.0"
+
+servers:
+  - url: "http://localhost:8002"
+    description: "Local development"
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: streams
+    description: RTSP stream management
+  - name: anpr
+    description: ANPR detections and plate search
+  - name: watchlist
+    description: Watchlist management
+  - name: events
+    description: Event search and tagging
+  - name: alerts
+    description: Real-time alerts
+
+paths:
+  /api/v1/streams:
+    get:
+      operationId: listStreams
+      tags: [streams]
+      summary: List all available camera streams
+      description: |
+        Returns the stream catalogue, compatible with the Sentinel `/api/ingest` format.
+        Includes RTSP, WebRTC (WHEP), and HLS endpoints for each camera.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [live, offline, connecting, error]
+        - name: department_id
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Stream catalogue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StreamCatalogueResponse" }
+
+  /api/v1/streams/{stream_id}:
+    parameters:
+      - name: stream_id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      operationId: getStream
+      tags: [streams]
+      summary: Get stream details and connection URLs
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StreamDetail" }
+          description: Stream detail
+
+  /api/v1/streams/{stream_id}/connect:
+    parameters:
+      - name: stream_id
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      operationId: connectStream
+      tags: [streams]
+      summary: Activate RTSP consumer for a stream
+      description: Starts the RTSP TCP consumer with analytics pipeline
+      responses:
+        "200":
+          description: Consumer started
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StreamConnectResponse" }
+
+  /api/v1/streams/{stream_id}/disconnect:
+    parameters:
+      - name: stream_id
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      operationId: disconnectStream
+      tags: [streams]
+      summary: Stop RTSP consumer for a stream
+      responses:
+        "200":
+          description: Consumer stopped
+
+  /api/v1/streams/ingest:
+    get:
+      operationId: getIngestCatalogue
+      tags: [streams]
+      summary: "Sentinel-compatible /api/ingest endpoint"
+      description: |
+        Returns stream catalogue in the same format as the Sentinel
+        live grid at https://live.corp8.cloud/api/ingest.
+        Use this to point RTSP clients at our simulator streams.
+      security: []
+      responses:
+        "200":
+          description: Ingest catalogue (Sentinel format)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IngestCatalogue" }
+
+  # ── ANPR ──────────────────────────────────────────────────────────────────
+  /api/v1/anpr/detections:
+    get:
+      operationId: listDetections
+      tags: [anpr]
+      summary: List ANPR detections with filtering
+      parameters:
+        - name: plate_number
+          in: query
+          schema: { type: string }
+          description: Partial plate number search
+        - name: camera_id
+          in: query
+          schema: { type: string }
+        - name: from_time
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to_time
+          in: query
+          schema: { type: string, format: date-time }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 50, maximum: 500 }
+        - name: min_confidence
+          in: query
+          schema: { type: number, default: 0.75 }
+      responses:
+        "200":
+          description: ANPR detection list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DetectionListResponse" }
+
+  /api/v1/anpr/search:
+    get:
+      operationId: searchByPlate
+      tags: [anpr]
+      summary: Search vehicle movement history by plate number
+      description: Returns all detections for a plate, sorted by timestamp (route reconstruction)
+      parameters:
+        - name: plate_number
+          in: query
+          required: true
+          schema: { type: string }
+        - name: from_time
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to_time
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        "200":
+          description: Vehicle movement history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VehicleMovementHistory" }
+
+  /api/v1/anpr/detections/{detection_id}:
+    parameters:
+      - name: detection_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: getDetection
+      tags: [anpr]
+      summary: Get single detection with frame snapshot
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DetectionDetail" }
+          description: Detection detail with snapshot URL
+
+  # ── Watchlist ─────────────────────────────────────────────────────────────
+  /api/v1/watchlist:
+    get:
+      operationId: listWatchlist
+      tags: [watchlist]
+      summary: List watchlist entries
+      parameters:
+        - name: type
+          in: query
+          schema: { $ref: "#/components/schemas/WatchlistType" }
+        - name: active
+          in: query
+          schema: { type: boolean, default: true }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WatchlistListResponse" }
+          description: Watchlist
+
+    post:
+      operationId: addToWatchlist
+      tags: [watchlist]
+      summary: Add entry to watchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WatchlistCreate" }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WatchlistEntry" }
+          description: Created entry
+
+  /api/v1/watchlist/{entry_id}:
+    parameters:
+      - name: entry_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      operationId: removeFromWatchlist
+      tags: [watchlist]
+      summary: Remove entry from watchlist
+      responses:
+        "204":
+          description: Removed
+
+  /api/v1/watchlist/alerts:
+    get:
+      operationId: listWatchlistAlerts
+      tags: [watchlist, alerts]
+      summary: List watchlist match alerts
+      parameters:
+        - name: acknowledged
+          in: query
+          schema: { type: boolean }
+        - name: from_time
+          in: query
+          schema: { type: string, format: date-time }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AlertListResponse" }
+          description: Alert list
+
+  /api/v1/watchlist/alerts/{alert_id}/acknowledge:
+    parameters:
+      - name: alert_id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: acknowledgeAlert
+      tags: [watchlist, alerts]
+      summary: Acknowledge a watchlist alert
+      responses:
+        "200":
+          description: Alert acknowledged
+
+  # ── Events ────────────────────────────────────────────────────────────────
+  /api/v1/events:
+    get:
+      operationId: searchEvents
+      tags: [events]
+      summary: Search tagged events (OpenSearch-backed)
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Full-text query
+        - name: event_type
+          in: query
+          schema: { $ref: "#/components/schemas/EventType" }
+        - name: camera_id
+          in: query
+          schema: { type: string }
+        - name: from_time
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to_time
+          in: query
+          schema: { type: string, format: date-time }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EventListResponse" }
+          description: Event search results
+
+  /health:
+    get:
+      operationId: healthCheck
+      tags: []
+      summary: Liveness probe
+      security: []
+      responses:
+        "200":
+          description: Healthy
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    StreamStatus:
+      type: string
+      enum: [live, offline, connecting, reconnecting, error]
+
+    WatchlistType:
+      type: string
+      enum: [stolen_vehicle, wanted_person, missing_person, blacklisted_vehicle, suspect]
+
+    EventType:
+      type: string
+      enum: [vehicle_detected, anpr_read, person_detected, crowd_detected, intrusion, anomaly, watchlist_hit]
+
+    StreamDetail:
+      type: object
+      required: [id, camera_id, status, rtsp_url, hls_url]
+      properties:
+        id:
+          type: string
+        camera_id:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: "#/components/schemas/StreamStatus"
+        rtsp_url:
+          type: string
+          format: uri
+          description: "RTSP TCP stream URL (requires rtsp_transport=tcp)"
+        hls_url:
+          type: string
+          format: uri
+          description: HLS playlist URL (browser compatible)
+        webrtc_url:
+          type: string
+          format: uri
+          description: "WebRTC WHEP URL (low latency browser)"
+        codec:
+          type: string
+        resolution:
+          type: string
+        frame_rate:
+          type: number
+          description: Declared frame rate (use PTS for timing, not this value)
+        bitrate_kbps:
+          type: integer
+        location:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+            district: { type: string }
+        analytics_active:
+          type: boolean
+          description: Whether ANPR/detection pipeline is running for this stream
+        last_frame_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    StreamCatalogueResponse:
+      type: object
+      properties:
+        streams:
+          type: array
+          items: { $ref: "#/components/schemas/StreamDetail" }
+        total:
+          type: integer
+        active_count:
+          type: integer
+
+    IngestCatalogue:
+      type: array
+      description: "Sentinel /api/ingest compatible format"
+      items:
+        type: object
+        required: [id, rtsp_url, hls_url, webrtc_url]
+        properties:
+          id:
+            type: string
+          location:
+            type: object
+          codec:
+            type: string
+          live:
+            type: boolean
+          resolution:
+            type: string
+          frame_rate:
+            type: number
+          bitrate_kbps:
+            type: integer
+          rtsp_url:
+            type: string
+          hls_url:
+            type: string
+          webrtc_url:
+            type: string
+
+    StreamConnectResponse:
+      type: object
+      properties:
+        stream_id:
+          type: string
+        status:
+          $ref: "#/components/schemas/StreamStatus"
+        analytics_pipeline:
+          type: boolean
+        message:
+          type: string
+
+    ANPRDetection:
+      type: object
+      required: [id, camera_id, plate_number, confidence, timestamp]
+      properties:
+        id:
+          type: string
+          format: uuid
+        camera_id:
+          type: string
+        stream_id:
+          type: string
+        plate_number:
+          type: string
+          description: Recognised plate (standardised format)
+        confidence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        timestamp:
+          type: string
+          format: date-time
+          description: Detection timestamp from PTS (not arrival time)
+        pts_ms:
+          type: integer
+          description: Raw stream PTS milliseconds
+        bounding_box:
+          type: object
+          properties:
+            x: { type: integer }
+            y: { type: integer }
+            width: { type: integer }
+            height: { type: integer }
+        vehicle_type:
+          type: string
+          enum: [car, truck, bus, motorcycle, auto_rickshaw, other, unknown]
+        vehicle_color:
+          type: string
+          nullable: true
+        location:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+            district: { type: string }
+        snapshot_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL to cropped plate image snapshot
+        watchlist_hit:
+          type: boolean
+          default: false
+        alert_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    DetectionListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ANPRDetection" }
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+
+    DetectionDetail:
+      allOf:
+        - $ref: "#/components/schemas/ANPRDetection"
+        - type: object
+          properties:
+            vahan_data:
+              type: object
+              nullable: true
+              description: Vehicle data from VAHAN database (if available)
+            nearby_cameras:
+              type: array
+              items:
+                type: object
+                properties:
+                  camera_id: { type: string }
+                  distance_meters: { type: number }
+
+    VehicleMovementHistory:
+      type: object
+      required: [plate_number, detections]
+      properties:
+        plate_number:
+          type: string
+        detections:
+          type: array
+          items: { $ref: "#/components/schemas/ANPRDetection" }
+        total_detections:
+          type: integer
+        first_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+        route_geojson:
+          $ref: "#/components/schemas/GeoJSONLineString"
+          nullable: true
+        vahan_data:
+          type: object
+          nullable: true
+          description: Vehicle registration data from VAHAN
+
+    GeoJSONLineString:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [LineString]
+        coordinates:
+          type: array
+          items:
+            type: array
+            items: { type: number }
+
+    WatchlistCreate:
+      type: object
+      required: [type, identifier]
+      properties:
+        type:
+          $ref: "#/components/schemas/WatchlistType"
+        identifier:
+          type: string
+          description: Plate number, person name, or other identifier
+        description:
+          type: string
+        case_number:
+          type: string
+          description: Police case/FIR number
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          default: medium
+        source_db:
+          type: string
+          enum: [vahan, sarthi, egujcop, afis, nafis, manual]
+          default: manual
+        source_id:
+          type: string
+          description: ID in the source database
+        metadata:
+          type: object
+          additionalProperties: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    WatchlistEntry:
+      allOf:
+        - $ref: "#/components/schemas/WatchlistCreate"
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            active:
+              type: boolean
+            hit_count:
+              type: integer
+            last_hit_at:
+              type: string
+              format: date-time
+              nullable: true
+            created_at:
+              type: string
+              format: date-time
+            created_by:
+              type: string
+
+    WatchlistListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/WatchlistEntry" }
+        total:
+          type: integer
+
+    WatchlistAlert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        watchlist_entry_id:
+          type: string
+          format: uuid
+        detection_id:
+          type: string
+          format: uuid
+        camera_id:
+          type: string
+        plate_number:
+          type: string
+        alert_type:
+          $ref: "#/components/schemas/WatchlistType"
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        triggered_at:
+          type: string
+          format: date-time
+        acknowledged:
+          type: boolean
+        acknowledged_by:
+          type: string
+          nullable: true
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
+        location:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+            district: { type: string }
+        snapshot_url:
+          type: string
+          format: uri
+          nullable: true
+
+    AlertListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/WatchlistAlert" }
+        total:
+          type: integer
+        unacknowledged_count:
+          type: integer
+
+    EventEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        event_type:
+          $ref: "#/components/schemas/EventType"
+        camera_id:
+          type: string
+        stream_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true
+        tags:
+          type: array
+          items: { type: string }
+
+    EventListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/EventEntry" }
+        total:
+          type: integer
+        took_ms:
+          type: integer
+          description: OpenSearch query time in milliseconds

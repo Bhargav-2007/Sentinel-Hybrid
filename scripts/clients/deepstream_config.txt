@@ -1,0 +1,47 @@
+# ==============================================================================
+# Sentinel Camera Grid — NVIDIA DeepStream Pipeline Configuration
+# ==============================================================================
+# Rule: Use nvurisrcbin / uridecodebin and set select-rtp-protocol=4 (TCP)
+# Handles mixed H.264 / H.265 natively on nvv4l2decoder without CPU demuxing.
+# ==============================================================================
+
+[application]
+enable-perf-measurement=1
+perf-measurement-interval-sec=5
+
+[tiled-display]
+enable=1
+rows=2
+columns=2
+width=1920
+height=1080
+gpu-id=0
+
+[source0]
+enable=1
+# Type 4 = RTSP
+type=4
+uri=rtsp://live.corp8.cloud:8554/stream/1
+num-sources=1
+gpu-id=0
+latency=200
+# select-rtp-protocol=4 forces TCP transport
+select-rtp-protocol=4
+drop-frame-interval=0
+
+[source1]
+enable=1
+type=4
+uri=rtsp://live.corp8.cloud:8554/stream/2
+num-sources=1
+gpu-id=0
+latency=200
+select-rtp-protocol=4
+drop-frame-interval=0
+
+[sink0]
+enable=1
+# Type 2 = EGL sink (display) / Type 1 = FakeSink
+type=2
+sync=0
+gpu-id=0

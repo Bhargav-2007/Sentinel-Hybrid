@@ -1,0 +1,68 @@
+{{- if .Values.model1.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "sentinel.fullname" . }}-model1
+  labels:
+    {{- include "sentinel.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "sentinel.fullname" . }}-model1
+  minReplicas: {{ .Values.model1.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.model1.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.model1.autoscaling.targetCPUUtilizationPercentage }}
+---
+{{- end }}
+{{- if .Values.model2.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "sentinel.fullname" . }}-model2
+  labels:
+    {{- include "sentinel.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "sentinel.fullname" . }}-model2
+  minReplicas: {{ .Values.model2.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.model2.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.model2.autoscaling.targetCPUUtilizationPercentage }}
+---
+{{- end }}
+{{- if .Values.gateway.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "sentinel.fullname" . }}-gateway
+  labels:
+    {{- include "sentinel.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "sentinel.fullname" . }}-gateway
+  minReplicas: {{ .Values.gateway.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.gateway.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.gateway.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

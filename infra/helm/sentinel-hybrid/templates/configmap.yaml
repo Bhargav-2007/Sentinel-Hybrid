@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sentinel.fullname" . }}-config
+  labels:
+    {{- include "sentinel.labels" . | nindent 4 }}
+data:
+  ENVIRONMENT: {{ .Values.global.environment | quote }}
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.externalServices.kafka.brokers | quote }}
+  OPENSEARCH_URL: {{ .Values.externalServices.opensearch.url | quote }}
+  S3_ENDPOINT: {{ .Values.externalServices.minio.endpoint | quote }}
+  S3_BUCKET_SNAPSHOTS: {{ .Values.externalServices.minio.bucketSnapshots | quote }}
+  S3_BUCKET_CLIPS: {{ .Values.externalServices.minio.bucketClips | quote }}
+  OPA_URL: {{ .Values.externalServices.opa.url | quote }}
+  OIDC_ISSUER: {{ .Values.externalServices.keycloak.issuerUrl | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.externalServices.otelCollector.endpoint | quote }}
+  MODEL1_URL: "http://{{ include "sentinel.fullname" . }}-model1:8001"
+  MODEL2_URL: "http://{{ include "sentinel.fullname" . }}-model2:8002"
+  MODEL3_URL: "http://{{ include "sentinel.fullname" . }}-model3:8003"
+  MODEL4_URL: "http://{{ include "sentinel.fullname" . }}-model4:8004"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "sentinel.fullname" . }}-secrets
+  labels:
+    {{- include "sentinel.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "sentinel_secure_pass_2026"
+  REDIS_PASSWORD: "redis_secure_pass"
+  S3_SECRET_KEY: "minio_secret_key"

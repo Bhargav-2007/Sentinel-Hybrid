@@ -1,0 +1,180 @@
+{
+  "annotations": { "list": [] },
+  "description": "Gujarat Sentinel — Deep-dive ANPR Telemetry, YOLOv8 Object Detection, OCR Confidence & Vehicle Recognition",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    { "title": "SOC Overview", "url": "/d/sentinel-overview", "type": "dashboards", "targetBlank": false },
+    { "title": "Incident Intelligence", "url": "/d/sentinel-incidents", "type": "dashboards", "targetBlank": false }
+  ],
+  "liveNow": true,
+  "refresh": "5s",
+  "tags": ["sentinel", "anpr", "yolov8", "ocr"],
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "Asia/Kolkata",
+  "title": "🔍 Gujarat Sentinel — ANPR & AI Vision Deep-Dive",
+  "uid": "sentinel-anpr",
+  "version": 1,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "⚡ Real-Time ANPR Pipeline Key Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }, { "color": "green", "value": 1000 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "center" },
+      "title": "Total Plates Scanned Today",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_anpr_detections_total", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 0.90 }, { "color": "green", "value": 0.98 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center" },
+      "title": "Mean Character OCR Accuracy",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_anpr_ocr_accuracy_mean", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "fps",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 18 }, { "color": "green", "value": 24 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "center" },
+      "title": "Mean Ingestion FPS / Channel",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "avg(sentinel_camera_fps)", "instant": true, "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 20 }, { "color": "red", "value": 50 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "id": 4,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "center" },
+      "title": "Active Watchlist Intercepts",
+      "type": "stat",
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sentinel_watchlist_matches_active", "instant": true, "refId": "A" }]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 200,
+      "title": "🧠 Model 2 (YOLOv8n + PaddleOCR) Neural Inference Breakdown",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 15, "showPoints": "never" },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 6 },
+      "id": 10,
+      "title": "YOLO Detection vs OCR Recognition Latency (ms)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(sentinel_yolo_inference_time_ms_sum[1m]) / rate(sentinel_yolo_inference_time_ms_count[1m])", "legendFormat": "YOLOv8 Vehicle Localization", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(sentinel_paddleocr_inference_time_ms_sum[1m]) / rate(sentinel_paddleocr_inference_time_ms_count[1m])", "legendFormat": "PaddleOCR Character Extraction", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "rate(sentinel_vahan_cache_lookup_time_ms_sum[1m]) / rate(sentinel_vahan_cache_lookup_time_ms_count[1m])", "legendFormat": "VAHAN 4.0 Redis Cache Lookup", "refId": "C" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+      "id": 11,
+      "title": "Vehicle Classification Distribution",
+      "type": "piechart",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum by (vehicle_type) (sentinel_detected_vehicles_total)", "legendFormat": "{{vehicle_type}}", "refId": "A" }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 300,
+      "title": "🚦 District-wise Scan Density & Speed Anomaly Tracking",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 20 },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 20,
+      "title": "District ANPR Detection Volume / Hour",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "sum by (district) (rate(sentinel_anpr_detections_total[5m]) * 3600)", "legendFormat": "{{district}}", "refId": "A" }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 15 },
+          "unit": "kmh"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 21,
+      "title": "Estimated Corridor Speeds (PTS Delta Calculation)",
+      "type": "timeseries",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "sentinel-prometheus" }, "expr": "avg by (corridor) (sentinel_vehicle_speed_kmh)", "legendFormat": "{{corridor}} Corridor", "refId": "A" }
+      ]
+    }
+  ]
+}

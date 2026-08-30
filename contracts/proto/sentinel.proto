@@ -1,0 +1,372 @@
+syntax = "proto3";
+
+package sentinel.v1;
+
+option go_package = "github.com/gujarat-sentinel/sentinel-hybrid/gen/proto/v1;sentinelv1";
+option java_package = "in.gujarat.sentinel.proto.v1";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// ─── Camera ─────────────────────────────────────────────────────────────────
+
+// CameraMetadata represents a camera's complete metadata record.
+// Used for service-to-service communication via gRPC.
+message CameraMetadata {
+  string id = 1;              // Internal UUID
+  string camera_id = 2;       // Department-assigned ID (e.g., HP-AHM-001)
+  string name = 3;
+  string department_id = 4;
+  GeoPoint location = 5;
+  CameraStatus status = 6;
+  CameraType camera_type = 7;
+  StreamProtocol protocol = 8;
+  VideoCodec codec = 9;
+  string resolution = 10;     // e.g., "1920x1080"
+  int32 frame_rate = 11;
+  string rtsp_url = 12;       // Encrypted in transit
+  string vendor = 13;
+  string model_number = 14;
+  string district = 15;
+  StorageType storage_type = 16;
+  int32 retention_days = 17;
+  bool is_public_domain = 18;
+  google.protobuf.Timestamp install_date = 19;
+  google.protobuf.Timestamp amc_expiry_date = 20;
+  google.protobuf.Timestamp created_at = 21;
+  google.protobuf.Timestamp updated_at = 22;
+  repeated string tags = 23;
+  google.protobuf.Struct metadata = 24;
+}
+
+message GeoPoint {
+  double latitude = 1;
+  double longitude = 2;
+  double altitude_meters = 3;
+  string address = 4;
+  string district = 5;
+  string taluka = 6;
+  string pincode = 7;
+}
+
+message CameraHealthStatus {
+  string camera_id = 1;
+  bool is_reachable = 2;
+  int64 latency_ms = 3;
+  bool stream_active = 4;
+  google.protobuf.Timestamp last_checked_at = 5;
+  string check_method = 6;
+  string error_message = 7;
+}
+
+enum CameraStatus {
+  CAMERA_STATUS_UNSPECIFIED = 0;
+  CAMERA_STATUS_ONLINE = 1;
+  CAMERA_STATUS_OFFLINE = 2;
+  CAMERA_STATUS_DEGRADED = 3;
+  CAMERA_STATUS_MAINTENANCE = 4;
+  CAMERA_STATUS_DECOMMISSIONED = 5;
+  CAMERA_STATUS_UNKNOWN = 6;
+}
+
+enum CameraType {
+  CAMERA_TYPE_UNSPECIFIED = 0;
+  CAMERA_TYPE_DOME = 1;
+  CAMERA_TYPE_BULLET = 2;
+  CAMERA_TYPE_PTZ = 3;
+  CAMERA_TYPE_FISHEYE = 4;
+  CAMERA_TYPE_THERMAL = 5;
+  CAMERA_TYPE_BOX = 6;
+  CAMERA_TYPE_ANALOGUE_IP = 7;
+}
+
+enum StreamProtocol {
+  STREAM_PROTOCOL_UNSPECIFIED = 0;
+  STREAM_PROTOCOL_RTSP = 1;
+  STREAM_PROTOCOL_ONVIF = 2;
+  STREAM_PROTOCOL_SDK = 3;
+  STREAM_PROTOCOL_HLS = 4;
+  STREAM_PROTOCOL_WEBRTC = 5;
+  STREAM_PROTOCOL_RTMP = 6;
+}
+
+enum VideoCodec {
+  VIDEO_CODEC_UNSPECIFIED = 0;
+  VIDEO_CODEC_H264 = 1;
+  VIDEO_CODEC_H265 = 2;
+  VIDEO_CODEC_MJPEG = 3;
+  VIDEO_CODEC_MPEG4 = 4;
+  VIDEO_CODEC_AV1 = 5;
+}
+
+enum StorageType {
+  STORAGE_TYPE_UNSPECIFIED = 0;
+  STORAGE_TYPE_CLOUD = 1;
+  STORAGE_TYPE_LOCAL_NVR = 2;
+  STORAGE_TYPE_EDGE = 3;
+  STORAGE_TYPE_NONE = 4;
+}
+
+// ─── Detection Events ───────────────────────────────────────────────────────
+
+// DetectionEvent is the canonical event for all AI detections.
+// Published to Kafka as CloudEvent, used by gRPC between services.
+message DetectionEvent {
+  string event_id = 1;            // CloudEvent UUID
+  string source = 2;              // e.g., "sentinel/model2/anpr"
+  google.protobuf.Timestamp event_time = 3;
+  DetectionType detection_type = 4;
+  string camera_id = 5;
+  string stream_id = 6;
+  GeoPoint location = 7;
+  int64 pts_ms = 8;               // Stream PTS timestamp (not wall clock)
+
+  oneof payload {
+    ANPRPayload anpr = 10;
+    PersonPayload person = 11;
+    VehiclePayload vehicle = 12;
+    AnomalyPayload anomaly = 13;
+    CrowdPayload crowd = 14;
+  }
+
+  float confidence = 20;
+  BoundingBox bounding_box = 21;
+  string snapshot_url = 22;       // S3/MinIO URL to frame crop
+  bool watchlist_hit = 23;
+  string alert_id = 24;           // Set if watchlist match triggered alert
+  google.protobuf.Struct raw_metadata = 25;
+}
+
+message BoundingBox {
+  int32 x = 1;
+  int32 y = 2;
+  int32 width = 3;
+  int32 height = 4;
+  int32 frame_width = 5;
+  int32 frame_height = 6;
+}
+
+message ANPRPayload {
+  string plate_number = 1;        // Standardised plate (e.g., GJ-01-AB-1234)
+  string raw_text = 2;            // Raw OCR output before normalisation
+  string state_code = 3;          // e.g., "GJ"
+  VehicleType vehicle_type = 4;
+  string vehicle_color = 5;
+  string vehicle_make = 6;
+  VahanRecord vahan_data = 7;     // Enriched from VAHAN (may be null)
+}
+
+message PersonPayload {
+  string person_id = 1;           // Track ID within session
+  float age_estimate = 2;
+  string gender_estimate = 3;
+  repeated string attributes = 4; // e.g., ["wearing_helmet", "carrying_bag"]
+  FRSMatch frs_match = 5;         // Face recognition result (optional)
+}
+
+message VehiclePayload {
+  string track_id = 1;
+  VehicleType vehicle_type = 2;
+  string color = 3;
+  string direction = 4;           // NORTH | SOUTH | EAST | WEST
+  float speed_kmh = 5;            // Estimated speed (requires calibration)
+}
+
+message AnomalyPayload {
+  string anomaly_type = 1;        // e.g., "abandoned_object", "loitering", "wrong_way"
+  float severity = 2;
+  string description = 3;
+}
+
+message CrowdPayload {
+  int32 estimated_count = 1;
+  float density = 2;              // persons per m²
+  string alert_level = 3;         // normal | caution | critical
+}
+
+message VahanRecord {
+  string registration_number = 1;
+  string owner_name = 2;
+  string vehicle_class = 3;
+  string fuel_type = 4;
+  string manufacturer = 5;
+  string model = 6;
+  string color = 7;
+  string registration_date = 8;
+  string fitness_expiry = 9;
+  bool is_stolen = 10;
+  bool is_blacklisted = 11;
+}
+
+message FRSMatch {
+  string matched_id = 1;
+  string matched_name = 2;
+  float similarity = 3;
+  string source_db = 4;           // nafis | afis | egujcop | manual
+}
+
+enum DetectionType {
+  DETECTION_TYPE_UNSPECIFIED = 0;
+  DETECTION_TYPE_ANPR = 1;
+  DETECTION_TYPE_PERSON = 2;
+  DETECTION_TYPE_VEHICLE = 3;
+  DETECTION_TYPE_ANOMALY = 4;
+  DETECTION_TYPE_CROWD = 5;
+  DETECTION_TYPE_INTRUSION = 6;
+}
+
+enum VehicleType {
+  VEHICLE_TYPE_UNSPECIFIED = 0;
+  VEHICLE_TYPE_CAR = 1;
+  VEHICLE_TYPE_TRUCK = 2;
+  VEHICLE_TYPE_BUS = 3;
+  VEHICLE_TYPE_MOTORCYCLE = 4;
+  VEHICLE_TYPE_AUTO_RICKSHAW = 5;
+  VEHICLE_TYPE_OTHER = 6;
+}
+
+// ─── Alert ──────────────────────────────────────────────────────────────────
+
+message AlertEvent {
+  string alert_id = 1;
+  string alert_type = 2;          // watchlist_hit | anomaly | threshold | system
+  AlertSeverity severity = 3;
+  string title = 4;
+  string description = 5;
+  string camera_id = 6;
+  GeoPoint location = 7;
+  string detection_event_id = 8;
+  string watchlist_entry_id = 9;
+  google.protobuf.Timestamp triggered_at = 10;
+  bool acknowledged = 11;
+  string acknowledged_by = 12;
+  google.protobuf.Timestamp acknowledged_at = 13;
+  google.protobuf.Struct payload = 14;
+}
+
+enum AlertSeverity {
+  ALERT_SEVERITY_UNSPECIFIED = 0;
+  ALERT_SEVERITY_LOW = 1;
+  ALERT_SEVERITY_MEDIUM = 2;
+  ALERT_SEVERITY_HIGH = 3;
+  ALERT_SEVERITY_CRITICAL = 4;
+}
+
+// ─── Vehicle Tracking ────────────────────────────────────────────────────────
+
+message VehicleTrack {
+  string track_id = 1;
+  string plate_number = 2;
+  repeated TrackPoint waypoints = 3;
+  google.protobuf.Timestamp first_seen_at = 4;
+  google.protobuf.Timestamp last_seen_at = 5;
+  int32 total_sightings = 6;
+  float total_distance_km = 7;
+  repeated string district_trajectory = 8;
+}
+
+message TrackPoint {
+  string detection_event_id = 1;
+  string camera_id = 2;
+  GeoPoint location = 3;
+  google.protobuf.Timestamp observed_at = 4;
+  int64 pts_ms = 5;
+  float confidence = 6;
+  string snapshot_url = 7;
+}
+
+// ─── Camera Registry Service (gRPC) ─────────────────────────────────────────
+
+service CameraRegistryService {
+  // GetCamera fetches camera metadata by internal UUID
+  rpc GetCamera(GetCameraRequest) returns (CameraMetadata);
+
+  // ListCameras returns a stream of camera metadata for batch operations
+  rpc ListCameras(ListCamerasRequest) returns (stream CameraMetadata);
+
+  // UpdateCameraStatus updates the live operational status
+  rpc UpdateCameraStatus(UpdateCameraStatusRequest) returns (CameraMetadata);
+
+  // GetCameraHealth returns the latest health check
+  rpc GetCameraHealth(GetCameraRequest) returns (CameraHealthStatus);
+}
+
+message GetCameraRequest {
+  string id = 1;      // UUID
+}
+
+message ListCamerasRequest {
+  string department_id = 1;
+  CameraStatus status = 2;
+  string district = 3;
+  int32 page_size = 4;
+  string page_token = 5;
+}
+
+message UpdateCameraStatusRequest {
+  string id = 1;
+  CameraStatus status = 2;
+  string reason = 3;
+}
+
+// ─── Detection Service (gRPC) ────────────────────────────────────────────────
+
+service DetectionService {
+  // PublishDetection stores a detection event and triggers downstream processing
+  rpc PublishDetection(DetectionEvent) returns (DetectionAck);
+
+  // StreamDetections subscribes to real-time detections
+  rpc StreamDetections(StreamDetectionsRequest) returns (stream DetectionEvent);
+
+  // SearchDetections queries historical detections
+  rpc SearchDetections(SearchDetectionsRequest) returns (SearchDetectionsResponse);
+}
+
+message DetectionAck {
+  string event_id = 1;
+  bool watchlist_matched = 2;
+  string alert_id = 3;
+}
+
+message StreamDetectionsRequest {
+  repeated string camera_ids = 1;
+  repeated DetectionType types = 2;
+}
+
+message SearchDetectionsRequest {
+  string plate_number = 1;
+  string camera_id = 2;
+  google.protobuf.Timestamp from_time = 3;
+  google.protobuf.Timestamp to_time = 4;
+  float min_confidence = 5;
+  int32 page_size = 6;
+  string page_token = 7;
+}
+
+message SearchDetectionsResponse {
+  repeated DetectionEvent events = 1;
+  int64 total = 2;
+  string next_page_token = 3;
+}
+
+// ─── Vehicle Tracking Service (gRPC) ─────────────────────────────────────────
+
+service VehicleTrackingService {
+  // GetVehicleRoute returns the full movement history for a plate
+  rpc GetVehicleRoute(GetVehicleRouteRequest) returns (VehicleTrack);
+
+  // StreamVehicleAlerts pushes real-time alerts for tracked vehicles
+  rpc StreamVehicleAlerts(StreamVehicleAlertsRequest) returns (stream AlertEvent);
+}
+
+message GetVehicleRouteRequest {
+  string plate_number = 1;
+  google.protobuf.Timestamp from_time = 2;
+  google.protobuf.Timestamp to_time = 3;
+}
+
+message StreamVehicleAlertsRequest {
+  repeated string plate_numbers = 1;    // empty = all
+  AlertSeverity min_severity = 2;
+}

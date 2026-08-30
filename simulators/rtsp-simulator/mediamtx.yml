@@ -1,0 +1,35 @@
+###############################################
+# MediaMTX configuration for Sentinel Simulator
+# https://github.com/bluenviron/mediamtx
+###############################################
+
+# RTSP server
+rtsp: yes
+rtspAddress: :8554
+
+# WebRTC WHEP/WHIP
+webrtc: yes
+webrtcAddress: :8889
+
+# HLS
+hls: yes
+hlsAddress: :8888
+hlsAlwaysRemux: yes
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+
+# API
+api: yes
+apiAddress: :9997
+
+# Logging
+logLevel: info
+logDestinations: [stdout]
+
+# Paths — accept any stream pushed to /stream/{id}
+paths:
+  all:
+  "~^stream/(.+)$":
+    source: publisher

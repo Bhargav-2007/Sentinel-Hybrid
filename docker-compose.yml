@@ -1,0 +1,721 @@
+# =============================================================================
+# Gujarat Sentinel — Hybrid CCTV Platform
+# Full Development Stack Docker Compose
+#
+# Services:
+#   Infrastructure: postgres, redis, kafka, zookeeper, opensearch,
+#                   keycloak, opa, otel-collector, prometheus, grafana,
+#                   traefik, minio, kafka-ui
+#   Simulators:     rtsp-simulator, mock-external-apis, mock-vms-a, mock-vms-b
+#   Platform:       model1, model2, model3, model4, hybrid-gateway
+#
+# Usage:
+#   cp .env.example .env
+#   docker compose up -d
+#   make demo    ← for hackathon scenario
+# =============================================================================
+
+name: sentinel-hybrid
+
+networks:
+  sentinel-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  postgres-data:
+  redis-data:
+  kafka-data:
+  zookeeper-data:
+  opensearch-data:
+  keycloak-data:
+  minio-data:
+  grafana-data:
+  prometheus-data:
+  otel-data:
+
+# =============================================================================
+# INFRASTRUCTURE SERVICES
+# =============================================================================
+
+services:
+
+  # ── PostgreSQL + PostGIS ────────────────────────────────────────────────────
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: sentinel-postgres
+    environment:
+      POSTGRES_DB: sentinel
+      POSTGRES_USER: ${POSTGRES_USER:-sentinel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}
+      # Create all model databases on startup
+      POSTGRES_MULTIPLE_DATABASES: >
+        sentinel_model1,sentinel_model2,sentinel_model3,sentinel_model4,sentinel_hybrid
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/01-init-dbs.sh
+      - ./infra/postgres/init-postgis.sql:/docker-entrypoint-initdb.d/02-postgis.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - sentinel-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sentinel} -d sentinel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c work_mem=16MB
+      -c maintenance_work_mem=128MB
+      -c effective_cache_size=1GB
+      -c wal_level=replica
+      -c log_min_duration_statement=1000
+
+  # ── Redis ───────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.4-alpine
+    container_name: sentinel-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_secure_pass} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - sentinel-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_secure_pass}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Zookeeper (Kafka dependency) ─────────────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.0
+    container_name: sentinel-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: WARN
+      ZOOKEEPER_4LW_COMMANDS_WHITELIST: "*"
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cub", "zk-ready", "localhost:2181", "5"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Apache Kafka ─────────────────────────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: sentinel-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_RETENTION_HOURS: 168          # 7 days
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 10                # Partitions per topic
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    ports:
+      - "29092:29092"  # External access
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Kafka Topic Initializer ───────────────────────────────────────────────────
+  kafka-init:
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: sentinel-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: >
+      bash -c "
+        echo 'Creating Sentinel Kafka topics...'
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092
+          --replication-factor 1 --partitions 10 --topic sentinel.camera.events
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092
+          --replication-factor 1 --partitions 20 --topic sentinel.detection.events
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092
+          --replication-factor 1 --partitions 10 --topic sentinel.alert.events
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092
+          --replication-factor 1 --partitions 10 --topic sentinel.tracking.events
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092
+          --replication-factor 1 --partitions 5 --topic sentinel.audit.events
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092
+          --replication-factor 1 --partitions 20 --topic sentinel.health.events
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092
+          --replication-factor 1 --partitions 10 --topic sentinel.vms.federation
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092
+          --replication-factor 1 --partitions 10 --topic sentinel.watchlist.alerts
+        echo 'Kafka topics created!'
+      "
+    networks:
+      - sentinel-net
+    restart: "no"
+
+  # ── Kafka UI (for development visibility) ─────────────────────────────────────
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: sentinel-kafka-ui
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: sentinel-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8082:8080"
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+
+  # ── OpenSearch ────────────────────────────────────────────────────────────────
+  opensearch:
+    image: opensearchproject/opensearch:2.17.0
+    container_name: sentinel-opensearch
+    environment:
+      - cluster.name=sentinel-cluster
+      - node.name=sentinel-node-1
+      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD:-Sentinel_Strong_Pass_2026!}
+      - DISABLE_SECURITY_PLUGIN=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - sentinel-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'status'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # ── OpenSearch Dashboards ─────────────────────────────────────────────────────
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.17.0
+    container_name: sentinel-opensearch-dashboards
+    depends_on:
+      - opensearch
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+    ports:
+      - "5601:5601"
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+
+  # ── Keycloak (OIDC Identity Provider) ────────────────────────────────────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    container_name: sentinel-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/sentinel
+      KC_DB_USERNAME: ${POSTGRES_USER:-sentinel}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin_password}
+      KC_HOSTNAME: localhost
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./infra/keycloak/realm-sentinel.json:/opt/keycloak/data/import/realm-sentinel.json
+    ports:
+      - "8080:8080"
+    networks:
+      - sentinel-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8080/health/ready | grep -q '\"status\":\"UP\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 8
+      start_period: 60s
+    restart: unless-stopped
+
+  # ── OPA (Open Policy Agent) ───────────────────────────────────────────────────
+  opa:
+    image: openpolicyagent/opa:0.69.0
+    container_name: sentinel-opa
+    command: run --server --log-format json --log-level error /policies
+    volumes:
+      - ./infra/opa/policies:/policies:ro
+    ports:
+      - "8181:8181"
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8181/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── MinIO (S3-compatible object storage) ──────────────────────────────────────
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    container_name: sentinel-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minio_access_key}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minio_secret_key}
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"  # S3 API
+      - "9005:9001"  # Console (host port 9005 avoids collision with mock-vms-a)
+    networks:
+      - sentinel-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── OpenTelemetry Collector ────────────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.112.0
+    container_name: sentinel-otel-collector
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./infra/otel/otel-collector-config.yaml:/etc/otel/config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # OTel metrics
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+
+  # ── Prometheus ────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: sentinel-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--web.enable-lifecycle"
+      - "--storage.tsdb.retention.time=15d"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+
+  # ── Grafana ───────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: sentinel-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-grafana_admin_pass}
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_SECURITY_COOKIE_SECURE: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+      GF_USERS_DEFAULT_THEME: "dark"
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - sentinel-net
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # =============================================================================
+  # RTSP SIMULATOR — Synthetic Camera Streams
+  # Generates 50 synthetic RTSP streams with fake license plates and metadata
+  # =============================================================================
+
+  rtsp-simulator:
+    build:
+      context: ./simulators/rtsp-simulator
+      dockerfile: Dockerfile
+    container_name: sentinel-rtsp-simulator
+    environment:
+      CAMERA_COUNT: ${RTSP_SIM_CAMERA_COUNT:-50}
+      FRAME_RATE: ${RTSP_SIM_FRAME_RATE:-25}
+      RESOLUTION: ${RTSP_SIM_RESOLUTION:-1280x720}
+      RTSP_PORT: 8554
+      WEBRTC_PORT: 8889
+      HLS_PORT: 8888
+    ports:
+      - "8554:8554"   # RTSP
+      - "8889:8889"   # WebRTC WHEP
+      - "8886:8888"   # HLS (avoid conflict with OTel)
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8888/api/ingest | python3 -c 'import sys,json; d=json.load(sys.stdin); exit(0 if len(d)>0 else 1)'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # =============================================================================
+  # MOCK EXTERNAL APIS — VAHAN, SARTHI, eGujCop, AFIS, NAFIS
+  # =============================================================================
+
+  mock-external-apis:
+    build:
+      context: ./simulators/mock-external-apis
+      dockerfile: Dockerfile
+    container_name: sentinel-mock-apis
+    environment:
+      PORT: 8090
+      SEED: 42  # Deterministic random data
+    ports:
+      - "8090:8090"
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8090/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── Mock VMS A (Hikvision-style) ──────────────────────────────────────────────
+  mock-vms-a:
+    build:
+      context: ./simulators/mock-vms
+      dockerfile: Dockerfile
+    container_name: sentinel-mock-vms-a
+    environment:
+      VMS_NAME: "Hikvision VMS"
+      VMS_PORT: 9001
+      CAMERA_COUNT: 15
+      VENDOR: hikvision
+    ports:
+      - "9001:9001"
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+
+  # ── Mock VMS B (Dahua-style) ───────────────────────────────────────────────────
+  mock-vms-b:
+    build:
+      context: ./simulators/mock-vms
+      dockerfile: Dockerfile
+    container_name: sentinel-mock-vms-b
+    environment:
+      VMS_NAME: "Dahua VMS"
+      VMS_PORT: 9002
+      CAMERA_COUNT: 20
+      VENDOR: dahua
+    ports:
+      - "9002:9002"
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+
+  # =============================================================================
+  # PLATFORM SERVICES
+  # =============================================================================
+
+  # ── Model 1: CCTV Registry & GIS ─────────────────────────────────────────────
+  model1:
+    build:
+      context: ./backend-model1
+      dockerfile: Dockerfile
+    container_name: sentinel-model1
+    env_file: .env
+    environment:
+      MODEL1_DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-sentinel}:${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}@postgres:5432/sentinel_model1"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379/0"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KEYCLOAK_URL: http://keycloak:8080
+      OPA_URL: http://opa:8181
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      AUTH_DISABLED: "true"   # Disabled for hackathon demo
+      OPA_DISABLED: "true"
+    ports:
+      - "8001:8001"
+    networks:
+      - sentinel-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8001/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.model1.rule=PathPrefix(`/api/v1`) && Headers(`X-Model`, `1`)"
+      - "traefik.http.services.model1.loadbalancer.server.port=8001"
+
+  # ── Model 2: Unified Viewer & ANPR ────────────────────────────────────────────
+  model2:
+    build:
+      context: ./backend-model2
+      dockerfile: Dockerfile
+    container_name: sentinel-model2
+    env_file: .env
+    environment:
+      MODEL2_DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-sentinel}:${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}@postgres:5432/sentinel_model2"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379/1"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      OPENSEARCH_URL: http://opensearch:9200
+      # Live camera grid — always start from the catalogue, never hard-code endpoints
+      SENTINEL_INGEST_API: https://live.corp8.cloud/api/ingest
+      # RTSP host/port come from the catalogue rtsp_url field — these are fallbacks only
+      SENTINEL_RTSP_HOST: live.corp8.cloud
+      SENTINEL_RTSP_PORT: 8554
+      VAHAN_API_URL: http://mock-external-apis:8090/vahan
+      SARTHI_API_URL: http://mock-external-apis:8090/sarthi
+      EGUJCOP_API_URL: http://mock-external-apis:8090/egujcop
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minio_access_key}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minio_secret_key}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      AUTH_DISABLED: "true"
+    ports:
+      - "8002:8002"
+    networks:
+      - sentinel-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      mock-external-apis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8002/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Model 3: VMS Federation ─────────────────────────────────────────────────
+  model3:
+    build:
+      context: ./backend-model3
+      dockerfile: Dockerfile
+    container_name: sentinel-model3
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/sentinel_model3"
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sentinel}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secure_pass}
+      MOCK_VMS_A_URL: http://mock-vms-a:9001
+      MOCK_VMS_B_URL: http://mock-vms-b:9002
+      SERVER_PORT: 8003
+    ports:
+      - "8003:8003"
+    networks:
+      - sentinel-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8003/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Model 4: Central VMS & Vehicle Tracking ───────────────────────────────────
+  model4:
+    build:
+      context: ./backend-model4
+      dockerfile: Dockerfile
+    container_name: sentinel-model4
+    env_file: .env
+    environment:
+      MODEL4_DATABASE_URL: "postgres://${POSTGRES_USER:-sentinel}:${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}@postgres:5432/sentinel_model4"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379/2"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minio_access_key}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minio_secret_key}
+      MODEL2_URL: http://model2:8002
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    ports:
+      - "8004:8004"
+    networks:
+      - sentinel-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8004/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Hybrid Gateway & Reverse Proxy ──────────────────────────────────────────
+  hybrid-gateway:
+    build:
+      context: ./backend-hybrid
+      dockerfile: Dockerfile
+    container_name: sentinel-hybrid-gateway
+    env_file: .env
+    environment:
+      HYBRID_DATABASE_URL: "postgres://${POSTGRES_USER:-sentinel}:${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}@postgres:5432/sentinel_hybrid"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379/3"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MODEL1_URL: http://model1:8001
+      MODEL2_URL: http://model2:8002
+      MODEL3_URL: http://model3:8003
+      MODEL4_URL: http://model4:8004
+      KEYCLOAK_URL: http://keycloak:8080
+      OPA_URL: http://opa:8181
+    ports:
+      - "8000:8000"
+    networks:
+      - sentinel-net
+    depends_on:
+      model1:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Central Brain & Unified Platform Orchestrator (FastAPI) ─────────────────
+  orchestrator:
+    build:
+      context: ./backend-orchestrator
+      dockerfile: Dockerfile
+    container_name: sentinel-orchestrator
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: sentinel
+      POSTGRES_USER: ${POSTGRES_USER:-sentinel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-sentinel}:${POSTGRES_PASSWORD:-sentinel_secure_pass_2026}@postgres:5432/sentinel"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379/0"
+      MODEL1_URL: http://model1:8001/api/v1
+      MODEL2_URL: http://model2:8002/api/v1
+      MODEL3_URL: http://model3:8003/api/v1
+      MODEL4_URL: http://model4:8004/api/v1
+    ports:
+      - "8005:8000"
+    networks:
+      - sentinel-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── AI Computer Vision & ANPR Engine (YOLO11 + ByteTrack + PaddleOCR) ───────
+  ai-detection:
+    build:
+      context: ./ai-detection
+      dockerfile: Dockerfile
+    container_name: sentinel-ai-detection
+    env_file: .env
+    environment:
+      AI_DEVICE: auto
+      YOLO_MODEL_NAME: yolov8n.pt
+      OCR_ENGINE: paddleocr
+      CONFIDENCE_THRESHOLD: 0.35
+      PORT: 8006
+    ports:
+      - "8006:8006"
+    networks:
+      - sentinel-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8006/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+

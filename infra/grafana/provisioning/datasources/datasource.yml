@@ -1,0 +1,51 @@
+apiVersion: 1
+
+datasources:
+  # ── Primary: Prometheus Time-Series (AI Metrics, Latency, Throughput) ──
+  - name: Prometheus
+    type: prometheus
+    uid: sentinel-prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: sentinel-tempo
+      timeInterval: "10s"
+
+  # ── PostgreSQL: Incident, ANPR, Camera Registry Queries ──
+  - name: PostgreSQL-Sentinel
+    type: postgres
+    uid: sentinel-postgres
+    access: proxy
+    url: postgres:5432
+    database: sentinel_db
+    user: sentinel
+    secureJsonData:
+      password: ${POSTGRES_PASSWORD}
+    isDefault: false
+    editable: false
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 25
+      maxIdleConns: 10
+      connMaxLifetime: 14400
+      postgresVersion: 1600
+      timescaledb: false
+
+  # ── OpenSearch: ANPR Detection Log Search (optional) ──
+  - name: OpenSearch
+    type: opensearch
+    uid: sentinel-opensearch
+    access: proxy
+    url: http://opensearch:9200
+    isDefault: false
+    editable: true
+    jsonData:
+      version: 2.17.0
+      database: sentinel-anpr-detections
+      timeField: timestamp
+      maxConcurrentShardRequests: 5

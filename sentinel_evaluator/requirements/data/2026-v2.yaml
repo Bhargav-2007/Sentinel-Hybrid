@@ -1,0 +1,212 @@
+version: "2026-v2"
+last_updated: "2026-08-31T01:00:00Z"
+official_portal: "https://sentinel.gujarat.gov.in/"
+requirements:
+  - id: "M-001"
+    title: "Centralised CCTV Camera Registry & Master Catalog"
+    description: "Model 1 acts as the authoritative registry storing unique Camera ID, ownership department, site, and stream URI."
+    category: "MANDATORY"
+    model_scope: "model1"
+    official_source: "https://sentinel.gujarat.gov.in/problems"
+    severity: "CRITICAL"
+    mandatory: true
+    weight: 1.5
+    checks:
+      - type: "static_file"
+        target: "backend-model1/app/db/models.py"
+      - type: "static_file"
+        target: "backend-model1/app/schemas/camera.py"
+      - type: "test_execution"
+        target: "backend-model1/tests/unit"
+
+  - id: "M-002"
+    title: "PostGIS Spatial Foundation & Geographical Querying"
+    description: "Spatial database with Geometry(Point, 4326), bounding box queries, and radius search for police operations."
+    category: "MANDATORY"
+    model_scope: "model1"
+    official_source: "https://sentinel.gujarat.gov.in/problems"
+    severity: "CRITICAL"
+    mandatory: true
+    weight: 1.5
+    checks:
+      - type: "static_file"
+        target: "backend-model1/app/services/gis_service.py"
+      - type: "static_file"
+        target: "backend-model1/app/db/models.py"
+        rule: "contains:Geometry"
+
+  - id: "M-003"
+    title: "RTSP over TCP Transport with Monotonic PTS Pacing"
+    description: "Video ingest enforcing rtsp_transport;tcp, monotonic presentation timestamps without wall-clock skew, and exponential backoff."
+    category: "MANDATORY"
+    model_scope: "model2"
+    official_source: "https://sentinel.gujarat.gov.in/resource"
+    severity: "CRITICAL"
+    mandatory: true
+    weight: 1.5
+    checks:
+      - type: "static_file"
+        target: "ai-detection/app/utils/video.py"
+      - type: "test_execution"
+        target: "ai-detection/tests/test_ai_detection.py"
+
+  - id: "M-004"
+    title: "ANPR Engine with Indian HSRP Normalization"
+    description: "Automated number plate recognition conforming to Indian vehicle registration standards with character correction."
+    category: "MANDATORY"
+    model_scope: "model2"
+    official_source: "https://sentinel.gujarat.gov.in/problems"
+    severity: "CRITICAL"
+    mandatory: true
+    weight: 1.5
+    checks:
+      - type: "static_file"
+        target: "ai-detection/app/ocr/plate_reader.py"
+      - type: "test_execution"
+        target: "backend-model2/tests/unit"
+
+  - id: "M-005"
+    title: "VMS Federation Adapter Framework & Extensible SDK"
+    description: "Model 3 Java enterprise connector architecture supporting multi-vendor VMS integration without core code rewrites."
+    category: "MANDATORY"
+    model_scope: "model3"
+    official_source: "https://sentinel.gujarat.gov.in/problems"
+    severity: "HIGH"
+    mandatory: true
+    weight: 1.0
+    checks:
+      - type: "static_file"
+        target: "backend-model3/pom.xml"
+      - type: "static_file"
+        target: "backend-model3/src"
+
+  - id: "M-006"
+    title: "Central VMS Storage, Recording & Clip Extraction"
+    description: "Model 4 Go high-performance central stream hub, storage tiering (hot/warm/cold), and video evidence recording."
+    category: "MANDATORY"
+    model_scope: "model4"
+    official_source: "https://sentinel.gujarat.gov.in/problems"
+    severity: "HIGH"
+    mandatory: true
+    weight: 1.0
+    checks:
+      - type: "static_file"
+        target: "backend-model4/go.mod"
+      - type: "static_file"
+        target: "backend-model4/cmd"
+
+  - id: "M-007"
+    title: "Hybrid Orchestrator & APB Hotlist Watchlist Matching"
+    description: "Cross-model integration linking Model 1 GIS with AI detections to generate real-time law enforcement alerts."
+    category: "MANDATORY"
+    model_scope: "hybrid"
+    official_source: "https://sentinel.gujarat.gov.in/problems"
+    severity: "CRITICAL"
+    mandatory: true
+    weight: 1.5
+    checks:
+      - type: "static_file"
+        target: "backend-orchestrator/app/services/ai_orchestrator.py"
+      - type: "test_execution"
+        target: "backend-orchestrator/tests/test_platform.py"
+
+  - id: "M-008"
+    title: "Section 65B Electronic Evidence Certification"
+    description: "Cryptographic SHA-256 evidence hashing and tamper-evident certificate generation for court prosecution."
+    category: "MANDATORY"
+    model_scope: "security"
+    official_source: "Bharatiya Sakshya Adhiniyam / Section 65B"
+    severity: "HIGH"
+    mandatory: true
+    weight: 1.0
+    checks:
+      - type: "test_execution"
+        target: "backend-orchestrator/tests/test_platform.py"
+
+  - id: "B-001"
+    title: "Bonus B1: Innovative Hybrid Orchestration"
+    description: "Unified integration of Models 1-4 with shared GIS, common identity, and event-driven architecture."
+    category: "BONUS"
+    model_scope: "hybrid"
+    official_source: "Sentinel Bonus Criteria"
+    severity: "MEDIUM"
+    mandatory: false
+    weight: 1.0
+    checks:
+      - type: "static_file"
+        target: "backend-orchestrator/app/services/ai_orchestrator.py"
+
+  - id: "B-002"
+    title: "Bonus B2: Advanced Cross-Camera Movement Tracking"
+    description: "Multi-camera vehicle correlation with Bayesian matching, Dijkstra corridor routing, and cloned plate anomaly detection."
+    category: "BONUS"
+    model_scope: "ai"
+    official_source: "Sentinel Bonus Criteria"
+    severity: "MEDIUM"
+    mandatory: false
+    weight: 1.0
+    checks:
+      - type: "static_file"
+        target: "backend-orchestrator/app/services/cross_camera_correlator.py"
+      - type: "static_file"
+        target: "backend-orchestrator/app/services/camera_graph.py"
+      - type: "test_execution"
+        target: "backend-orchestrator/tests/test_correlation_and_graph.py"
+
+  - id: "B-003"
+    title: "Bonus B3: Additional Operational Analytics"
+    description: "Extra intelligence including vehicle color, travel direction, speed estimation, zone intrusion, and camera tampering."
+    category: "BONUS"
+    model_scope: "ai"
+    official_source: "Sentinel Bonus Criteria"
+    severity: "MEDIUM"
+    mandatory: false
+    weight: 1.0
+    checks:
+      - type: "static_file"
+        target: "ai-detection/app/detectors/attributes.py"
+      - type: "static_file"
+        target: "ai-detection/app/detectors/anomalies.py"
+      - type: "test_execution"
+        target: "ai-detection/tests/test_ai_advanced.py"
+
+  - id: "B-004"
+    title: "Bonus B4: Edge Processing & Bandwidth Optimization"
+    description: "Adaptive frame rate governor (2-25 FPS), bounded priority queues, and GPU resource management."
+    category: "BONUS"
+    model_scope: "ai"
+    official_source: "Sentinel Bonus Criteria"
+    severity: "MEDIUM"
+    mandatory: false
+    weight: 1.0
+    checks:
+      - type: "static_file"
+        target: "ai-detection/app/utils/scheduler.py"
+
+  - id: "B-005"
+    title: "Bonus B5: Enhanced Cybersecurity & RBAC"
+    description: "OAuth2/JWT authentication, departmental RBAC, immutable audit logging, and cryptographic model verification."
+    category: "BONUS"
+    model_scope: "security"
+    official_source: "Sentinel Bonus Criteria"
+    severity: "MEDIUM"
+    mandatory: false
+    weight: 1.0
+    checks:
+      - type: "static_file"
+        target: "ai-detection/app/utils/model_registry.py"
+
+  - id: "B-006"
+    title: "Bonus B6: Operational Dashboards & Real-Time APIs"
+    description: "Real-time WebSocket event broadcaster, OpenAPI contracts, health endpoints, and Prometheus metrics."
+    category: "BONUS"
+    model_scope: "operations"
+    official_source: "Sentinel Bonus Criteria"
+    severity: "MEDIUM"
+    mandatory: false
+    weight: 1.0
+    checks:
+      - type: "static_file"
+        target: "backend-orchestrator/app/api/v1/cameras.py"
+      - type: "static_file"
+        target: "backend-orchestrator/app/api/v1/websockets.py"

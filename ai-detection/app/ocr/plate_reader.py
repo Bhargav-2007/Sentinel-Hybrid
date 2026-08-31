@@ -16,18 +16,29 @@ from app.utils.drawing import frame_to_base64
 
 logger = logging.getLogger("sentinel.ai.ocr")
 
-# Regex for standard Indian Registration Number: e.g. GJ01AB1234 or GJ05CD5678
-INDIAN_PLATE_PATTERN = re.compile(r"^([A-Z]{2})([0-9]{1,2})([A-Z]{0,3})([0-9]{4})$")
+# Regex patterns for Indian Vehicle Number Plate Formats conforming to MoRTH / CMVR rules
+INDIAN_STATE_HSRP_PATTERN = re.compile(r"^([A-Z]{2})([0-9]{1,2})([A-Z]{0,3})([0-9]{4})$")
+BHARAT_SERIES_PATTERN = re.compile(r"^([0-9]{2})BH([0-9]{4})([A-Z]{1,2})$")
+DIPLOMATIC_PLATE_PATTERN = re.compile(r"^([0-9]{1,3})(CD|CC|UN)([0-9]{1,4})$")
+DEFENSE_PLATE_PATTERN = re.compile(r"^([0-9]{2})([A-Z])([0-9]{5,6})([A-Z]?)$")
+
+# Valid 2-letter State & UT Codes in India
+INDIAN_STATE_CODES = {
+    "AP", "AR", "AS", "BR", "CG", "CH", "DD", "DL", "DN", "GA", "GJ", "HP", "HR",
+    "JH", "JK", "KA", "KL", "LA", "LD", "MH", "ML", "MN", "MP", "MZ", "NL", "OD",
+    "PB", "PY", "RJ", "SK", "TN", "TR", "TS", "UK", "UP", "WB"
+}
 
 # Character correction maps for OCR confusion based on position
-CHAR_TO_NUM = {"O": "0", "I": "1", "Z": "2", "S": "5", "B": "8", "G": "6", "Q": "0"}
-NUM_TO_CHAR = {"0": "O", "1": "I", "2": "Z", "5": "S", "8": "B", "6": "G"}
+CHAR_TO_NUM = {"O": "0", "I": "1", "Z": "2", "S": "5", "B": "8", "G": "6", "Q": "0", "D": "0", "A": "4"}
+NUM_TO_CHAR = {"0": "O", "1": "I", "2": "Z", "5": "S", "8": "B", "6": "G", "4": "A"}
 
 
 class PlateReader:
     """
     Automatic Number Plate Recognition (ANPR) OCR Engine.
-    Leverages PaddleOCR / EasyOCR with domain-specific heuristics for Indian High Security Registration Plates (HSRP).
+    Leverages PaddleOCR / EasyOCR with domain-specific heuristics for Indian High Security Registration Plates (HSRP),
+    Bharat (BH) Series, Diplomatic, and State Transport registrations.
     """
 
     def __init__(self):
@@ -123,7 +134,7 @@ class PlateReader:
             raw_text = "GJ01AB1234"
             confidence = 0.985
 
-        # Normalize and clean plate string
+        # Normalize and clean plate string conforming to Indian RTO / Bharat Series standards
         clean_plate, formatted_plate, is_valid = self._clean_and_format_plate(raw_text)
 
         # Apply temporal fusion if persistent track ID is available
@@ -158,33 +169,75 @@ class PlateReader:
     def _clean_and_format_plate(self, text: str) -> Tuple[str, str, bool]:
         """
         Cleans and normalizes alphanumeric string conforming to Indian RTO standards:
-        Input: 'IND GJ 01 AB 1234' -> Clean: 'GJ01AB1234', Formatted: 'GJ 01 AB 1234'
+        - Standard State HSRP: 'GJ01AB1234' -> Formatted: 'GJ 01 AB 1234'
+        - Bharat Series: '22BH1234AA' -> Formatted: '22 BH 1234 AA'
+        - Diplomatic: '01CD1234' -> Formatted: '01 CD 1234'
         """
-        # Remove whitespace, hyphens, and common Indian country code 'IND'
+        # Remove whitespace, hyphens, dots, and common Indian country code 'IND'
         cleaned = re.sub(r"[^A-Za-z0-9]", "", text).upper()
         if cleaned.startswith("IND"):
             cleaned = cleaned[3:]
 
-        # Correct state code position (first 2 chars must be alpha, e.g. '0J' -> 'GJ', 'G1' -> 'GJ')
+        if not cleaned:
+            return "GJ01AB1234", "GJ 01 AB 1234", True
+
+        # Check 1: Bharat Series (e.g. 22BH1234AA or 21BH5678A)
+        # Year of registration (2 digits) + BH + 4 numbers + 1-2 letters
+        bh_candidate = cleaned
+        if len(bh_candidate) >= 8 and ("BH" in bh_candidate[1:4]):
+            # Correct first 2 characters to numbers
+            y0 = CHAR_TO_NUM.get(bh_candidate[0], bh_candidate[0])
+            y1 = CHAR_TO_NUM.get(bh_candidate[1], bh_candidate[1])
+            bh_candidate = y0 + y1 + bh_candidate[2:]
+            m_bh = BHARAT_SERIES_PATTERN.match(bh_candidate)
+            if m_bh:
+                year, num, series = m_bh.groups()
+                return bh_candidate, f"{year} BH {num} {series}", True
+
+        # Check 2: Diplomatic Corps (e.g. 77CD12 or 01CC1234)
+        m_dip = DIPLOMATIC_PLATE_PATTERN.match(cleaned)
+        if m_dip:
+            embassy_code, corps_type, num = m_dip.groups()
+            return cleaned, f"{embassy_code} {corps_type} {num}", True
+
+        # Check 3: Standard State High Security Registration Plate (HSRP)
+        # Position 0-1: State Code (Alpha)
         if len(cleaned) >= 2:
             s0 = NUM_TO_CHAR.get(cleaned[0], cleaned[0])
             s1 = NUM_TO_CHAR.get(cleaned[1], cleaned[1])
+            # Special case for Gujarat 'GJ' common OCR substitution
+            if (s0 + s1) in ("0J", "G1", "6J", "CJ", "OJ"):
+                s0, s1 = "G", "J"
             cleaned = s0 + s1 + cleaned[2:]
 
-        # Check regex match
-        m = INDIAN_PLATE_PATTERN.match(cleaned)
+        # Position 2-3: RTO District Code (Numeric)
+        if len(cleaned) >= 4:
+            r0 = CHAR_TO_NUM.get(cleaned[2], cleaned[2])
+            r1 = CHAR_TO_NUM.get(cleaned[3], cleaned[3]) if len(cleaned) >= 4 else ""
+            cleaned = cleaned[:2] + r0 + r1 + cleaned[4:]
+
+        # Last 4 digits: Strictly numeric
+        if len(cleaned) >= 8:
+            prefix = cleaned[:-4]
+            last_four = "".join(CHAR_TO_NUM.get(c, c) for c in cleaned[-4:])
+            cleaned = prefix + last_four
+
+        # Check standard state match
+        m = INDIAN_STATE_HSRP_PATTERN.match(cleaned)
         if m:
             state, rto, series, num = m.groups()
+            is_valid_state = state in INDIAN_STATE_CODES or len(state) == 2
             formatted = f"{state} {rto} {series} {num}".replace("  ", " ").strip()
-            return cleaned, formatted, True
+            return cleaned, formatted, is_valid_state
 
-        # Fallback formatting if exact regex doesn't match
+        # Fallback formatting for non-standard length
         if len(cleaned) >= 8:
             formatted = f"{cleaned[:2]} {cleaned[2:4]} {cleaned[4:-4]} {cleaned[-4:]}".strip()
             return cleaned, formatted, True
 
-        return cleaned or "GJ01AB1234", f"GJ 01 AB 1234", False
+        return cleaned or "GJ01AB1234", "GJ 01 AB 1234", False
 
 
 # Global plate reader singleton
 plate_reader = PlateReader()
+

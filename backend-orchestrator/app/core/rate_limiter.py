@@ -1,39 +1,69 @@
-"""Cybersecurity rate limiter middleware and sliding window enforcement."""
+"""
+Gujarat Sentinel — API Rate Limiting & Brute-Force Defense Middleware
+Applies token-bucket / sliding window rate limiting per IP address / officer token
+to protect against automated scrapers, brute force login attempts, and DDoS.
+"""
+
+from __future__ import annotations
 
 import time
-from typing import Dict, Tuple
+from collections import defaultdict
+from typing import Dict, List, Tuple
 from fastapi import Request, HTTPException, status
-from app.core.config import settings
-
-# In-memory sliding window store: { "client_id:route": [(timestamp)] }
-_rate_limit_records: Dict[str, list] = {}
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 
-def check_rate_limit(request: Request, max_requests: int = 60, window_seconds: int = 60) -> bool:
-    """
-    Enforces sliding-window rate limit based on client IP or authenticated officer token.
-    Raises HTTP 429 if the request threshold is exceeded.
-    """
-    now = time.time()
-    
-    # Identify client by IP and optional authorization header prefix
-    client_ip = request.client.host if request.client else "unknown_client"
-    auth_header = request.headers.get("Authorization", "")
-    client_key = f"{client_ip}:{auth_header[:16]}:{request.url.path}"
-    
-    timestamps = _rate_limit_records.setdefault(client_key, [])
-    
-    # Evict timestamps older than the sliding window
-    cutoff = now - window_seconds
-    valid_timestamps = [ts for ts in timestamps if ts > cutoff]
-    
-    if len(valid_timestamps) >= max_requests:
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Rate limit exceeded. Maximum {max_requests} requests allowed per {window_seconds} seconds.",
-            headers={"Retry-After": str(window_seconds)}
-        )
-        
-    valid_timestamps.append(now)
-    _rate_limit_records[client_key] = valid_timestamps
-    return True
+class SlidingWindowRateLimiter:
+    """Sliding window in-memory rate limiter per client IP."""
+
+    def __init__(self, requests_per_minute: int = 120, burst_limit: int = 40):
+        self.requests_per_minute = requests_per_minute
+        self.burst_limit = burst_limit
+        # Key: client_ip -> List of request timestamps
+        self._clients: Dict[str, List[float]] = defaultdict(list)
+
+    def is_allowed(self, client_ip: str) -> Tuple[bool, int]:
+        now = time.time()
+        window_start = now - 60.0
+
+        # Purge timestamps older than 60s
+        self._clients[client_ip] = [t for t in self._clients[client_ip] if t > window_start]
+
+        if len(self._clients[client_ip]) >= self.requests_per_minute:
+            retry_after = int(60.0 - (now - self._clients[client_ip][0]))
+            return False, max(1, retry_after)
+
+        self._clients[client_ip].append(now)
+        return True, 0
+
+
+# Global rate limiter instance
+rate_limiter = SlidingWindowRateLimiter(requests_per_minute=180, burst_limit=50)
+
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """FastAPI Middleware enforcing sliding window rate limits."""
+
+    async def dispatch(self, request: Request, call_next):
+        # Bypass rate limiting for local health probes and websocket handshakes
+        path = request.url.path
+        if path in ("/health", "/api/v1/health-matrix", "/docs", "/openapi.json", "/redoc") or path.startswith("/ws"):
+            return await call_next(request)
+
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        allowed, retry_after = rate_limiter.is_allowed(client_ip)
+
+        if not allowed:
+            return JSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content={
+                    "error": "RATE_LIMIT_EXCEEDED",
+                    "message": f"Too many requests from IP {client_ip}. Please retry after {retry_after} seconds.",
+                    "retry_after_seconds": retry_after,
+                },
+                headers={"Retry-After": str(retry_after)}
+            )
+
+        response = await call_next(request)
+        return response

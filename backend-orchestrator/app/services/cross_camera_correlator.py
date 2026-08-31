@@ -81,13 +81,40 @@ class CorrelationScore:
     explanation: str
 
 
+@dataclass
+class PersonSighting:
+    camera_id: str
+    camera_name: str
+    district: str
+    latitude: float
+    longitude: float
+    upper_clothing_color: str
+    lower_clothing_color: str
+    reid_signature: Optional[str]
+    timestamp: datetime
+    track_id: Optional[int] = None
+
+
+@dataclass
+class PersonCorrelationScore:
+    is_correlated: bool
+    association_confidence: float
+    upper_color_match: float
+    lower_color_match: float
+    spatiotemporal_plausibility: float
+    walking_speed_kmh: float
+    distance_meters: float
+    time_delta_seconds: float
+    explanation: str
+
+
 class CrossCameraCorrelator:
     """
-    Cross-Camera Vehicle Correlation Engine.
-    Correlates sightings of vehicles across physical camera nodes considering:
-    1. Plate text similarity (Levenshtein)
-    2. Vehicle body color and class agreement
-    3. Spatial-temporal travel feasibility (Haversine distance vs elapsed time)
+    Cross-Camera Correlation Engine for Vehicles and Persons.
+    Correlates sightings across physical camera nodes considering:
+    1. Plate text similarity (Levenshtein) & vehicle body color
+    2. Spatial-temporal travel feasibility (Haversine distance vs elapsed time)
+    3. Person upper/lower clothing appearance attributes and walking feasibility.
     """
 
     def __init__(
@@ -195,6 +222,62 @@ class CrossCameraCorrelator:
             explanation=explanation,
         )
 
+    def correlate_persons(
+        self,
+        sighting_a: PersonSighting,
+        sighting_b: PersonSighting,
+    ) -> PersonCorrelationScore:
+        """Correlates pedestrian sightings across camera checkpoints based on clothing and walking speed."""
+        # 1. Upper clothing color similarity
+        u1 = sighting_a.upper_clothing_color.upper()
+        u2 = sighting_b.upper_clothing_color.upper()
+        upper_match = 1.0 if u1 == u2 else (0.4 if {u1, u2} <= {"BLACK", "DARK", "GRAY"} else 0.1)
+
+        # 2. Lower clothing color similarity
+        l1 = sighting_a.lower_clothing_color.upper()
+        l2 = sighting_b.lower_clothing_color.upper()
+        lower_match = 1.0 if l1 == l2 else (0.4 if {l1, l2} <= {"BLUE", "BLACK", "DENIM"} else 0.1)
+
+        # 3. Spatiotemporal walking feasibility (normal human walking speed 3 - 8 km/h)
+        dist_km = haversine_distance_km(
+            sighting_a.latitude, sighting_a.longitude,
+            sighting_b.latitude, sighting_b.longitude
+        )
+        dist_meters = dist_km * 1000.0
+        dt_seconds = abs((sighting_b.timestamp - sighting_a.timestamp).total_seconds())
+        if dt_seconds < 1.0:
+            dt_seconds = 1.0
+
+        walking_speed_kmh = (dist_km / (dt_seconds / 3600.0))
+
+        if dist_meters < 300.0 and walking_speed_kmh <= 12.0:
+            st_plausibility = 0.95
+        elif dist_meters < 1000.0 and walking_speed_kmh <= 15.0:
+            st_plausibility = 0.80
+        elif walking_speed_kmh > 25.0:
+            st_plausibility = 0.10  # too fast for walking (unless transit)
+        else:
+            st_plausibility = 0.60
+
+        conf = round(0.40 * upper_match + 0.35 * lower_match + 0.25 * st_plausibility, 3)
+        is_corr = conf >= 0.70
+
+        return PersonCorrelationScore(
+            is_correlated=is_corr,
+            association_confidence=conf,
+            upper_color_match=round(upper_match, 2),
+            lower_color_match=round(lower_match, 2),
+            spatiotemporal_plausibility=round(st_plausibility, 2),
+            walking_speed_kmh=round(walking_speed_kmh, 1),
+            distance_meters=round(dist_meters, 1),
+            time_delta_seconds=round(dt_seconds, 1),
+            explanation=(
+                f"Pedestrian ReID Match ({conf:.0%}): Upper [{u1}], Lower [{l1}], "
+                f"Walked {dist_meters:.0f}m in {int(dt_seconds)}s ({walking_speed_kmh:.1f} km/h)."
+            ) if is_corr else f"Low pedestrian similarity ({conf:.0%})."
+        )
+
 
 # Global cross camera correlator singleton
 cross_camera_correlator = CrossCameraCorrelator()
+

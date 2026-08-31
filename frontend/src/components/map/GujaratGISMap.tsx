@@ -7,6 +7,7 @@ import { AlertIncident } from '../../types/alert';
 interface GujaratGISMapProps {
   cameras: Camera[];
   alerts?: AlertIncident[];
+  trajectoryPoints?: Array<{ latitude: number; longitude: number; speed_kmh?: number; timestamp?: string }>;
   onSelectCamera?: (camera: Camera) => void;
   selectedCameraId?: string;
   height?: string;
@@ -15,6 +16,7 @@ interface GujaratGISMapProps {
 export const GujaratGISMap: React.FC<GujaratGISMapProps> = ({
   cameras,
   alerts = [],
+  trajectoryPoints = [],
   onSelectCamera,
   selectedCameraId,
   height = '100%',
@@ -22,6 +24,7 @@ export const GujaratGISMap: React.FC<GujaratGISMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
+  const routeGroupRef = useRef<L.LayerGroup | null>(null);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -42,6 +45,7 @@ export const GujaratGISMap: React.FC<GujaratGISMapProps> = ({
       }).addTo(map);
 
       markersGroupRef.current = L.layerGroup().addTo(map);
+      routeGroupRef.current = L.layerGroup().addTo(map);
       mapInstanceRef.current = map;
     }
 
@@ -53,13 +57,15 @@ export const GujaratGISMap: React.FC<GujaratGISMapProps> = ({
     };
   }, []);
 
-  // Update camera and alert markers
+  // Update camera and alert markers + animated route polylines
   useEffect(() => {
     const map = mapInstanceRef.current;
     const group = markersGroupRef.current;
-    if (!map || !group) return;
+    const routeGroup = routeGroupRef.current;
+    if (!map || !group || !routeGroup) return;
 
     group.clearLayers();
+    routeGroup.clearLayers();
 
     // 1. Render Cameras
     cameras.forEach((cam) => {
@@ -121,7 +127,27 @@ export const GujaratGISMap: React.FC<GujaratGISMapProps> = ({
         alertMarker.addTo(group);
       }
     });
-  }, [cameras, alerts, selectedCameraId, onSelectCamera]);
+
+    // 3. Render Animated Highway Pursuit Polyline Route
+    // Default corridor route between SG Highway checkpoints if no explicit trajectory given
+    const sampleRoute = trajectoryPoints.length > 1 ? trajectoryPoints : [
+      { latitude: 23.0125, longitude: 72.5085 }, // Prahladnagar
+      { latitude: 23.0245, longitude: 72.5180 }, // ISKCON
+      { latitude: 23.0550, longitude: 72.5290 }, // Thaltej
+      { latitude: 23.0780, longitude: 72.5350 }, // Gota
+    ];
+
+    if (sampleRoute.length >= 2) {
+      const latLngs: L.LatLngExpression[] = sampleRoute.map((p) => [p.latitude, p.longitude]);
+      const polyline = L.polyline(latLngs, {
+        color: '#00E5FF',
+        weight: 3,
+        opacity: 0.75,
+        dashArray: '6, 8',
+      });
+      polyline.addTo(routeGroup);
+    }
+  }, [cameras, alerts, trajectoryPoints, selectedCameraId, onSelectCamera]);
 
   return (
     <div className="relative w-full rounded-xl overflow-hidden border border-slate-800 shadow-xl" style={{ height }}>
@@ -139,6 +165,10 @@ export const GujaratGISMap: React.FC<GujaratGISMapProps> = ({
         <div className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
           <span className="text-red-300 font-bold">APB Alert</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-4 h-0.5 border-t border-dashed border-cyan-400" />
+          <span className="text-cyan-300">Active Pursuit Route</span>
         </div>
       </div>
     </div>

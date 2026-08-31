@@ -4,15 +4,30 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
+from pydantic import BaseModel, Field, model_validator
+
+
 class BoundingBox(BaseModel):
     x1: float = Field(..., description="Top-left X coordinate")
     y1: float = Field(..., description="Top-left Y coordinate")
     x2: float = Field(..., description="Bottom-right X coordinate")
     y2: float = Field(..., description="Bottom-right Y coordinate")
-    width: float = Field(..., description="Bounding box width")
-    height: float = Field(..., description="Bounding box height")
-    center_x: float = Field(..., description="Center X coordinate")
-    center_y: float = Field(..., description="Center Y coordinate")
+    width: Optional[float] = Field(None, description="Bounding box width")
+    height: Optional[float] = Field(None, description="Bounding box height")
+    center_x: Optional[float] = Field(None, description="Center X coordinate")
+    center_y: Optional[float] = Field(None, description="Center Y coordinate")
+
+    @model_validator(mode="after")
+    def compute_spatial_properties(self) -> "BoundingBox":
+        if self.width is None:
+            self.width = max(0.0, self.x2 - self.x1)
+        if self.height is None:
+            self.height = max(0.0, self.y2 - self.y1)
+        if self.center_x is None:
+            self.center_x = (self.x1 + self.x2) / 2.0
+        if self.center_y is None:
+            self.center_y = (self.y1 + self.y2) / 2.0
+        return self
 
 
 class DetectedObject(BaseModel):

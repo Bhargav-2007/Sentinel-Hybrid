@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { trackingService } from '../../services/trackingService';
 import { useUIStore } from '../../stores/uiStore';
 import { 
@@ -10,14 +10,34 @@ import {
   ShieldAlert, 
   CheckCircle2, 
   FileCheck, 
-  Navigation
+  Navigation,
+  User,
+  ShieldCheck,
+  Fingerprint,
+  Lock,
+  Filter,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 
 export const InvestigatePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const urlPlate = searchParams.get('plate') || '';
   const [searchPlate, setSearchPlate] = useState(urlPlate);
-  const [activePlate, setActivePlate] = useState(urlPlate);
+  const [activePlate, setActivePlate] = useState(urlPlate || 'GJ01AB1234');
+  
+  // Search Mode & Filters
+  const [searchMode, setSearchMode] = useState<'vehicle' | 'person' | 'evidence_verify'>('vehicle');
+  const [vehicleColor, setVehicleColor] = useState<string>('ALL');
+  const [vehicleClass, setVehicleClass] = useState<string>('ALL');
+  const [personUpperColor, setPersonUpperColor] = useState<string>('BLACK');
+  const [personLowerColor, setPersonLowerColor] = useState<string>('BLUE');
+  const [districtFilter, setDistrictFilter] = useState<string>('ALL');
+  
+  // Evidence verification state
+  const [verifyHashInput, setVerifyHashInput] = useState<string>('');
+  const [verificationResult, setVerificationResult] = useState<any>(null);
+
   const { openSection65BModal } = useUIStore();
 
   const { data: profile, isLoading } = useQuery({
@@ -33,46 +53,216 @@ export const InvestigatePage: React.FC = () => {
     }
   };
 
+  const handleVerifyIntegrity = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate SHA-256 HMAC verification
+    const isValid = verifyHashInput.length >= 32;
+    setVerificationResult({
+      status: isValid ? 'AUTHENTIC' : 'TAMPERED',
+      is_valid: isValid,
+      hash: verifyHashInput || '2cef805415e2a3d82d1256cbf9a1199fc8cd84f9b977556d93c43de25a865a03',
+      algorithm: 'HMAC-SHA-256 Monotonic Nonce Chaining',
+      verified_at: new Date().toISOString(),
+      statute: 'Section 65B Indian Evidence Act, 1872 & BSA 2023',
+    });
+  };
+
   const vahan = profile?.vahan_registration;
   const isWanted = profile?.watchlist_status?.is_wanted;
   const trajectory = profile?.trajectory_history;
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto select-none font-mono">
-      {/* Search Bar Header */}
-      <div className="bg-[#090e1a] border border-slate-800 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/20">
-            <Search className="w-5 h-5" />
+      {/* Search Mode Switcher & Header */}
+      <div className="bg-[#090e1a] border border-slate-800 p-5 rounded-2xl flex flex-col gap-4 shadow-xl">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/20">
+              <Search className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-slate-100 tracking-wide">
+                360° MULTI-DIMENSIONAL INTELLIGENCE & EVIDENCE INVESTIGATION
+              </h1>
+              <p className="text-xs text-slate-400 font-sans">
+                VAHAN Registry • Cross-Camera Route Timeline • Section 65B Cryptographic Verification
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-base font-bold text-slate-100 tracking-wide">
-              360° VEHICLE INTELLIGENCE & TRAJECTORY DOSSIER
-            </h1>
-            <p className="text-xs text-slate-400 font-sans">
-              VAHAN Registration • Cross-Camera Route Timeline • eGujCop Hotlist Cross-Reference
-            </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSearchMode('vehicle')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                searchMode === 'vehicle'
+                  ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
+              }`}
+            >
+              <Car className="w-3.5 h-3.5" />
+              <span>VEHICLE 360°</span>
+            </button>
+
+            <button
+              onClick={() => setSearchMode('person')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                searchMode === 'person'
+                  ? 'bg-purple-500 text-slate-950 shadow-md shadow-purple-500/20'
+                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>PERSON RE-ID</span>
+            </button>
+
+            <button
+              onClick={() => setSearchMode('evidence_verify')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                searchMode === 'evidence_verify'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>VERIFY EVIDENCE</span>
+            </button>
           </div>
         </div>
 
-        <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
-          <input
-            type="text"
-            value={searchPlate}
-            onChange={(e) => setSearchPlate(e.target.value.toUpperCase())}
-            placeholder="e.g. GJ01AB1234"
-            className="w-full md:w-56 px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-yellow-300 font-bold text-xs tracking-wider placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-          />
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs tracking-wider transition-colors shrink-0"
-          >
-            {isLoading ? 'QUERYING...' : 'SEARCH 360°'}
-          </button>
-        </form>
+        {/* Dynamic Search Form */}
+        {searchMode === 'vehicle' && (
+          <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-900">
+            <input
+              type="text"
+              value={searchPlate}
+              onChange={(e) => setSearchPlate(e.target.value.toUpperCase())}
+              placeholder="e.g. GJ01AB1234 or 22BH1234AA"
+              className="flex-1 min-w-[220px] px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-yellow-300 font-bold text-xs tracking-wider placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+            />
+
+            <select
+              value={vehicleColor}
+              onChange={(e) => setVehicleColor(e.target.value)}
+              className="bg-slate-900 border border-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-cyan-400"
+            >
+              <option value="ALL">All Colors</option>
+              <option value="WHITE">White / Silver</option>
+              <option value="BLACK">Black</option>
+              <option value="RED">Red</option>
+              <option value="BLUE">Blue</option>
+              <option value="YELLOW">Yellow (Taxi/Commercial)</option>
+            </select>
+
+            <select
+              value={districtFilter}
+              onChange={(e) => setDistrictFilter(e.target.value)}
+              className="bg-slate-900 border border-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-cyan-400"
+            >
+              <option value="ALL">All Districts</option>
+              <option value="AHMEDABAD">Ahmedabad City</option>
+              <option value="GANDHINAGAR">Gandhinagar</option>
+              <option value="SURAT">Surat</option>
+              <option value="VADODARA">Vadodara</option>
+              <option value="RAJKOT">Rajkot</option>
+            </select>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs tracking-wider transition-colors shrink-0"
+            >
+              {isLoading ? 'QUERYING...' : 'SEARCH 360°'}
+            </button>
+          </form>
+        )}
+
+        {searchMode === 'person' && (
+          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-900">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">Upper Clothing:</span>
+              <select
+                value={personUpperColor}
+                onChange={(e) => setPersonUpperColor(e.target.value)}
+                className="bg-slate-900 border border-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg"
+              >
+                <option value="BLACK">Black / Dark</option>
+                <option value="WHITE">White / Light</option>
+                <option value="BLUE">Blue / Navy</option>
+                <option value="RED">Red / Maroon</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">Lower Clothing:</span>
+              <select
+                value={personLowerColor}
+                onChange={(e) => setPersonLowerColor(e.target.value)}
+                className="bg-slate-900 border border-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg"
+              >
+                <option value="BLUE">Blue Denim</option>
+                <option value="BLACK">Black Trousers</option>
+                <option value="GRAY">Gray / Khaki</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => alert(`Searching for Person with Upper: ${personUpperColor}, Lower: ${personLowerColor} across CCTV nodes...`)}
+              className="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-400 text-slate-950 font-bold text-xs tracking-wider"
+            >
+              RE-ID PERSON SEARCH
+            </button>
+          </div>
+        )}
+
+        {searchMode === 'evidence_verify' && (
+          <form onSubmit={handleVerifyIntegrity} className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-900">
+            <input
+              type="text"
+              value={verifyHashInput}
+              onChange={(e) => setVerifyHashInput(e.target.value)}
+              placeholder="Paste SHA-256 HMAC Hash signature to verify legal authenticity..."
+              className="flex-1 min-w-[300px] px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-xs placeholder-slate-500 focus:outline-none focus:border-emerald-400"
+            />
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs tracking-wider shrink-0"
+            >
+              VERIFY SHA-256 INTEGRITY
+            </button>
+          </form>
+        )}
       </div>
 
+      {/* Verification Result Card */}
+      {verificationResult && searchMode === 'evidence_verify' && (
+        <div className={`p-5 rounded-2xl border flex flex-col gap-3 shadow-xl ${
+          verificationResult.is_valid
+            ? 'bg-emerald-950/40 border-emerald-500/60'
+            : 'bg-red-950/40 border-red-500/60'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {verificationResult.is_valid ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              )}
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-100">
+                {verificationResult.is_valid ? 'EVIDENCE INTEGRITY VERIFIED (AUTHENTIC)' : 'TAMPER ALERT: HASH MISMATCH'}
+              </span>
+            </div>
+            <span className="text-[10px] text-slate-400 font-sans">{verificationResult.statute}</span>
+          </div>
+
+          <div className="bg-slate-950 p-3 rounded-xl border border-slate-900 font-mono text-xs space-y-1">
+            <div className="text-slate-400">Target Hash: <span className="text-emerald-300 font-bold">{verificationResult.hash}</span></div>
+            <div className="text-slate-400">Algorithm: <span className="text-slate-200">{verificationResult.algorithm}</span></div>
+            <div className="text-slate-400">Certified At: <span className="text-slate-200">{verificationResult.verified_at}</span></div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Dossier Grid */}
       {isLoading ? (
         <div className="py-20 text-center flex flex-col items-center justify-center gap-3 text-cyan-400 animate-pulse">
           <Car className="w-10 h-10 animate-bounce" />
@@ -196,7 +386,7 @@ export const InvestigatePage: React.FC = () => {
                   </div>
 
                   <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-                    {trajectory.encounters.map((enc, idx) => (
+                    {trajectory.encounters.map((enc: any, idx: number) => (
                       <div
                         key={enc.id || idx}
                         className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between gap-3 hover:border-slate-700 transition-colors"

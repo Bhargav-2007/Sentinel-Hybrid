@@ -13,13 +13,15 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 
-# Regex for standard Indian Registration Number: e.g. GJ01AB1234
+# Regex patterns for Indian Registration Numbers: Standard HSRP, Bharat (BH) Series, Diplomatic
 INDIAN_PLATE_PATTERN = re.compile(r"^([A-Z]{2})([0-9]{1,2})([A-Z]{0,3})([0-9]{4})$")
+BHARAT_SERIES_PATTERN = re.compile(r"^([0-9]{2})BH([0-9]{4})([A-Z]{1,2})$")
+DIPLOMATIC_PLATE_PATTERN = re.compile(r"^([0-9]{1,3})(CD|CC|UN)([0-9]{1,4})$")
 
 # Common OCR confusion character replacements conditioned on character position
 NUMERIC_CHARS = set("0123456789")
 ALPHA_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-CHAR_TO_NUM = {"O": "0", "I": "1", "Z": "2", "S": "5", "B": "8", "G": "6", "Q": "0", "D": "0"}
+CHAR_TO_NUM = {"O": "0", "I": "1", "Z": "2", "S": "5", "B": "8", "G": "6", "Q": "0", "D": "0", "A": "4"}
 NUM_TO_CHAR = {"0": "O", "1": "I", "2": "Z", "5": "S", "8": "B", "6": "G", "4": "A"}
 
 

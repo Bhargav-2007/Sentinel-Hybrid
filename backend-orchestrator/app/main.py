@@ -74,6 +74,8 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
+from app.core.rate_limiter import RateLimitMiddleware
+
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
@@ -82,6 +84,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate Limiting Middleware
+app.add_middleware(RateLimitMiddleware)
 
 
 @app.middleware("http")

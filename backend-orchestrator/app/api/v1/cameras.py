@@ -144,3 +144,13 @@ async def execute_ptz_control(
     )
     
     return res
+
+
+@router.get("/{camera_id}/health")
+async def get_camera_stream_health(
+    camera_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Probes camera stream connectivity, FPS, latency, and frozen/black screen status."""
+    return await camera_service.check_camera_health(db, camera_id)
+

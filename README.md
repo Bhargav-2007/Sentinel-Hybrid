@@ -67,31 +67,62 @@
 
 ---
 
-# 1. Overview
+# 1. Executive Summary & Live End-to-End Pipeline
 
-**Sentinel Hybrid** is a modular CCTV integration and intelligence platform designed around a hybrid interpretation of the Gujarat Sentinel CCTV integration challenge.
+**Gujarat Sentinel Hybrid** is a production-grade, distributed CCTV integration and intelligence platform engineered for the **Gujarat Police Innovation Challenge 2026**.
 
-The challenge describes four indicative CCTV integration models and explicitly permits participating companies to combine elements from multiple models or propose an innovative architecture, provided the solution addresses functional, interoperability, security, scalability, analytics, and implementation requirements.
-
-Sentinel Hybrid uses that flexibility to combine:
-
-```text
-Model 1
-Centralized CCTV Registry + GIS
-        +
-Model 2
-Unified Viewing + Metadata / ANPR Analytics
-        +
-Model 3
-VMS Federation + Middleware
-        +
-Model 4
-Central Vehicle Tracking + Evidence
-        +
-Hybrid Gateway / Orchestration
+```mermaid
+graph LR
+    CAM["📹 1. Live Camera Feed<br>(RTSP / ONVIF / ISAPI)"] --> DET["🔍 2. Edge Detection<br>(YOLO11n + ByteTrack)"]
+    DET --> ANPR["🔤 3. ANPR Engine<br>(Multi-Frame OCR Voting)"]
+    ANPR --> MATCH["🚨 4. Hotlist Matching<br>(eGujCop / VAHAN)"]
+    MATCH --> ALERT["⚡ 5. Threat Scoring<br>(0–100 Triage Tiers)"]
+    ALERT --> GIS["🗺️ 6. PostGIS GIS Map<br>(Live Camera Pulse)"]
+    GIS --> TRACK["🛣️ 7. Trajectory Pursuit<br>(Corridor Speed & ReID)"]
+    TRACK --> EVID["🛡️ 8. Legal Evidence<br>(Section 65B HMAC-SHA256)"]
 ```
 
-The result is a distributed platform in which existing CCTV and VMS infrastructure can remain operational while Sentinel provides a common integration, event, analytics and command-center layer.
+### ⚡ Instant One-Command Live Demonstration
+
+```bash
+# 1. Launch complete stack (Topological Dependency Tiers 0 -> 5)
+python scripts/run.py --start
+
+# 2. Run automated End-to-End Hackathon Scenario
+python scripts/demo/hackathon_scenario.py --full-report
+
+# 3. Access Command Center Web Dashboard
+# Open http://localhost:3001 in your browser
+```
+
+### 📚 Official Challenge Documentation Index
+- 📊 **[Requirements Traceability Matrix (RTM)](docs/REQUIREMENTS_TRACEABILITY_MATRIX.md)** — Complete mapping of all requirements to implemented source files and tests.
+- 🎤 **[Judge Presentation & Pitch Guide](docs/JUDGE_PRESENTATION_GUIDE.md)** — 30-second elevator pitch, 2-minute feature demo, and 5-minute technical deep dive.
+- 📐 **[Architecture Decision Records (ADRs)](docs/ARCHITECTURE_DECISION_RECORDS.md)** — Rationale for Edge Federation, Temporal OCR, and Section 65B HMAC.
+- 📈 **[AI Performance Benchmarks Report](reports/AI_PERFORMANCE_BENCHMARKS.md)** — Measured latency, FPS, precision, recall, and difficult condition tests.
+- 🚀 **[Multi-Camera Scalability Report](reports/CAMERA_SCALABILITY_REPORT.md)** — 10, 25, 50, and 100 camera stream benchmarks and 99.97% bandwidth savings model.
+
+---
+
+# 2. Platform Overview & Architectural Scope
+
+The challenge describes four indicative CCTV integration models and explicitly permits combining elements from multiple models into an innovative hybrid architecture:
+
+```text
+Model 1: Centralized CCTV Registry + PostGIS GIS Engine (:8001)
+   +
+Model 2: Unified Ingestion + ANPR (YOLOv8 + PaddleOCR) (:8002)
+   +
+Model 3: VMS Federation Middleware (Hikvision ISAPI / Dahua DSS / ONVIF) (:8003)
+   +
+Model 4: Central Trajectory Tracking + MinIO Evidence Vault (:8004)
+   +
+Central Brain Orchestrator (:8005) & Hybrid API Gateway (:8000)
+   +
+React Situational Awareness Video Wall (:3001)
+```
+
+The result is a distributed platform where existing CCTV/VMS estates remain operational while Sentinel provides a unified intelligence and command-center layer.
 
 ---
 

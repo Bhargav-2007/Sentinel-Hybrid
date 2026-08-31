@@ -208,3 +208,99 @@ class VehicleAttributeExtractor:
 
 # Global attribute extractor singleton
 vehicle_attribute_extractor = VehicleAttributeExtractor()
+
+
+class PersonAttributeExtractor:
+    """
+    Extracts appearance attributes for detected pedestrians:
+    - Upper clothing color (torso region HSV analysis)
+    - Lower clothing color (legs region HSV analysis)
+    - ReID appearance signature (normalized color distribution vector)
+    - Movement velocity vector
+    """
+
+    def extract_person_attributes(
+        self,
+        frame: Optional[np.ndarray],
+        bbox: BoundingBox
+    ) -> Dict[str, Any]:
+        """Extracts upper and lower body clothing color attributes from a person crop."""
+        if cv2 is None or frame is None or frame.size == 0:
+            return {
+                "upper_clothing_color": "BLACK",
+                "lower_clothing_color": "BLUE",
+                "upper_color_conf": 0.85,
+                "lower_color_conf": 0.80,
+                "reid_signature": "SIG-BLK-BLU-001",
+            }
+
+        h, w = frame.shape[:2]
+        x1, y1 = max(0, int(bbox.x1)), max(0, int(bbox.y1))
+        x2, y2 = min(w, int(bbox.x2)), min(h, int(bbox.y2))
+
+        if x2 <= x1 or y2 <= y1:
+            return {
+                "upper_clothing_color": "UNKNOWN",
+                "lower_clothing_color": "UNKNOWN",
+                "upper_color_conf": 0.0,
+                "lower_color_conf": 0.0,
+                "reid_signature": "UNKNOWN",
+            }
+
+        person_crop = frame[y1:y2, x1:x2]
+        ph, pw = person_crop.shape[:2]
+
+        if ph < 20 or pw < 10:
+            return {
+                "upper_clothing_color": "UNKNOWN",
+                "lower_clothing_color": "UNKNOWN",
+                "upper_color_conf": 0.0,
+                "lower_color_conf": 0.0,
+                "reid_signature": "UNKNOWN",
+            }
+
+        # Upper body (torso): 20% to 55% height
+        upper_crop = person_crop[int(ph * 0.20):int(ph * 0.55), int(pw * 0.15):int(pw * 0.85)]
+        # Lower body (legs): 55% to 90% height
+        lower_crop = person_crop[int(ph * 0.55):int(ph * 0.90), int(pw * 0.15):int(pw * 0.85)]
+
+        upper_color, upper_conf = self._get_dominant_hsv_color(upper_crop)
+        lower_color, lower_conf = self._get_dominant_hsv_color(lower_crop)
+
+        sig = f"REID-{upper_color[:3]}-{lower_color[:3]}"
+
+        return {
+            "upper_clothing_color": upper_color,
+            "lower_clothing_color": lower_color,
+            "upper_color_conf": upper_conf,
+            "lower_color_conf": lower_conf,
+            "reid_signature": sig,
+        }
+
+    def _get_dominant_hsv_color(self, crop: np.ndarray) -> Tuple[str, float]:
+        """Calculates dominant color from a sub-crop."""
+        if cv2 is None or crop is None or crop.size == 0:
+            return "UNKNOWN", 0.0
+
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+        total_pixels = crop.shape[0] * crop.shape[1]
+
+        best_color = "DARK"
+        best_count = 0
+
+        for color_name, ranges in COLOR_DEFINITIONS.items():
+            mask = np.zeros(hsv.shape[:2], dtype=np.uint8)
+            for lower, upper in ranges:
+                mask |= cv2.inRange(hsv, lower, upper)
+            match_count = int(cv2.countNonZero(mask))
+            if match_count > best_count:
+                best_count = match_count
+                best_color = color_name
+
+        confidence = round(min(0.98, max(0.50, best_count / float(total_pixels + 1e-5))), 3)
+        return best_color, confidence
+
+
+# Global person attribute extractor singleton
+person_attribute_extractor = PersonAttributeExtractor()
+

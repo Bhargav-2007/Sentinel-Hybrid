@@ -4,8 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cameraService } from '../../services/cameraService';
 import { alertService } from '../../services/alertService';
 import { useAlertStore } from '../../stores/alertStore';
+import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { Camera } from '../../types/camera';
+import { AlertIncident } from '../../types/alert';
 import { VideoPlayer } from '../../components/video/VideoPlayer';
 import { GujaratGISMap } from '../../components/map/GujaratGISMap';
 import { 
@@ -31,6 +33,7 @@ import {
 export const CommandDashboard: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user, officer } = useAuthStore();
   const { alerts, setAlerts } = useAlertStore();
   const { selectedDepartment, openSection65BModal } = useUIStore();
   const [selectedCam, setSelectedCam] = useState<Camera | null>(null);
@@ -52,10 +55,10 @@ export const CommandDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    if (initialAlerts.length > 0) {
+    if (initialAlerts.length > 0 && alerts.length === 0) {
       setAlerts(initialAlerts);
     }
-  }, [initialAlerts, setAlerts]);
+  }, [initialAlerts, alerts.length, setAlerts]);
 
   // Set default selected camera
   useEffect(() => {
@@ -68,20 +71,19 @@ export const CommandDashboard: React.FC = () => {
   const criticalAlerts = alerts.filter((a) => a.severity === 'CRITICAL').length;
   const activePursuits = alerts.filter((a) => a.status === 'INVESTIGATING').length;
 
-  // Demo Scenario Handler
+  // Tactical Demo Mode Scenario Dispatcher
   const triggerDemoScenario = (scenarioId: number) => {
     setDemoRunning(true);
     if (scenarioId === 1) {
-      setActiveDemoMessage('🚨 SCENARIO 1 EXECUTED: Wanted Vehicle GJ01AB1234 matched against eGujCop Hotlist at Prahladnagar Junction. APB Alert Dispatched!');
-      // Insert / push high priority alert
-      const newAlert = {
-        id: `INC-DEMO-${Date.now().toString().slice(-4)}`,
+      setActiveDemoMessage('🚨 SCENARIO 1 EXECUTED: Stolen Vehicle APB Alert Triggered! White Toyota Fortuner [GJ01AB1234] intercepted on SG Highway corridor (FIR-2026-CR-08942).');
+      const newAlert: AlertIncident = {
+        id: `INC-HOTLIST-${Date.now().toString().slice(-4)}`,
         incident_number: `APB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        alert_type: 'STOLEN_VEHICLE' as any,
+        alert_type: 'WATCHLIST_HIT' as any,
         severity: 'CRITICAL' as any,
         status: 'NEW' as any,
-        title: 'APB PURSUIT: Flagged Stolen Toyota Fortuner Sighted',
-        description: 'Target GJ01AB1234 matched with 98.5% confidence against eGujCop Hotlist FIR-2026-CR-08942.',
+        title: 'CRITICAL APB HOTLIST MATCH: Stolen Toyota Fortuner',
+        description: 'Target GJ01AB1234 matched against eGujCop Active Stolen Auto Database (FIR-2026-CR-08942 at Navrangpura PS). AI Threat Score: 98/100.',
         camera_id: '1',
         camera_name: 'SG Highway — Prahladnagar Junction',
         district: 'Ahmedabad City',
@@ -94,7 +96,9 @@ export const CommandDashboard: React.FC = () => {
         vehicle_color: 'White',
         confidence_score: 0.985,
         snapshot_url: '/snapshots/GJ01AB1234_demo.jpg',
+        section65b_hmac_hash: '2cef805415e2a3d82d1256cbf9a1199fc8cd84f9b977556d93c43de25a865a03',
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
       setAlerts([newAlert, ...alerts]);
     } else if (scenarioId === 2) {
@@ -102,7 +106,7 @@ export const CommandDashboard: React.FC = () => {
       navigate('/investigate?plate=GJ01AB1234');
     } else if (scenarioId === 3) {
       setActiveDemoMessage('⚠️ SCENARIO 3 EXECUTED: Suspicious Anomaly Detected: Wrong-Way Vehicle in BRTS Dedicated Corridor (Threat Score: 95/100).');
-      const anomalyAlert = {
+      const anomalyAlert: AlertIncident = {
         id: `INC-ANOM-${Date.now().toString().slice(-4)}`,
         incident_number: `ANOM-2026-${Math.floor(1000 + Math.random() * 9000)}`,
         alert_type: 'ZONE_INTRUSION' as any,
@@ -122,7 +126,9 @@ export const CommandDashboard: React.FC = () => {
         vehicle_color: 'Yellow',
         confidence_score: 0.962,
         snapshot_url: '/snapshots/wrongway_demo.jpg',
+        section65b_hmac_hash: '8f23ba0194bc028114ef018274ac918b01293847591028374829103948571029',
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
       setAlerts([anomalyAlert, ...alerts]);
     } else if (scenarioId === 4) {
@@ -408,25 +414,38 @@ export const CommandDashboard: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-900">
+                <div className="flex flex-wrap items-center justify-between gap-1.5 pt-2 border-t border-slate-900">
                   <span className="text-yellow-300 text-xs font-bold bg-yellow-950/60 px-2 py-0.5 rounded border border-yellow-500/30">
-                    {alt.detected_plate}
+                    {alt.detected_plate || 'APB TARGET'}
                   </span>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <button
-                      onClick={() => openSection65BModal(alt.id)}
-                      className="flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300 font-bold"
+                      onClick={() => navigate('/live-wall')}
+                      className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 text-[9px] font-bold border border-slate-800"
                     >
-                      <FileCheck className="w-3 h-3" />
-                      <span>SEC 65B</span>
+                      VIEW CAM
                     </button>
-
                     <button
-                      onClick={() => navigate(`/investigate?plate=${alt.detected_plate}`)}
-                      className="px-2 py-0.5 rounded bg-slate-900 hover:bg-cyan-500 hover:text-slate-950 border border-slate-700 text-slate-200 text-[10px] font-bold transition-colors"
+                      onClick={() => navigate('/gis')}
+                      className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 text-[9px] font-bold border border-slate-800"
                     >
-                      DOSSIER
+                      MAP
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAlerts(alerts.map((a) => a.id === alt.id ? { ...a, status: 'ACKNOWLEDGED' as any } : a));
+                        setActiveDemoMessage(`✓ Alert ${alt.incident_number} ACKNOWLEDGED by ${user?.badge_number || 'Officer'}. Recorded in audit log.`);
+                      }}
+                      className="px-2 py-1 rounded bg-slate-900 hover:bg-amber-500 hover:text-slate-950 text-amber-300 text-[9px] font-bold border border-amber-500/30 transition-colors"
+                    >
+                      ACKNOWLEDGE
+                    </button>
+                    <button
+                      onClick={() => navigate(`/cases`)}
+                      className="px-2 py-1 rounded bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[9px] font-bold transition-colors"
+                    >
+                      INVESTIGATE
                     </button>
                   </div>
                 </div>

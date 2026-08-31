@@ -42,6 +42,19 @@ class SlidingWindowRateLimiter:
 rate_limiter = SlidingWindowRateLimiter(requests_per_minute=180, burst_limit=50)
 
 
+def check_rate_limit(request: Request, max_requests: int = 15, window_seconds: int = 60) -> bool:
+    """Helper function to enforce rate limiting on specific sensitive routes like login."""
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    allowed, retry_after = rate_limiter.is_allowed(client_ip)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many requests from IP {client_ip}. Please retry after {retry_after} seconds.",
+            headers={"Retry-After": str(retry_after)}
+        )
+    return True
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """FastAPI Middleware enforcing sliding window rate limits."""
 
@@ -67,3 +80,4 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
         return response
+

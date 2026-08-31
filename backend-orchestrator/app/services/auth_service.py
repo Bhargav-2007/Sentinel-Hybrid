@@ -65,12 +65,34 @@ class AuthService:
         except Exception:
             pass
 
+        from app.core.permissions import get_permissions_for_role
+        from app.schemas.auth import UserContext
+
+        role_str = officer.role.value if hasattr(officer.role, "value") else str(officer.role)
+        custom_perms = getattr(officer, "custom_permissions", None) or []
+        permissions = get_permissions_for_role(role_str, custom_perms)
+        jurisdiction = getattr(officer, "jurisdiction", "Ahmedabad West Police Zone 1") or "Ahmedabad West Police Zone 1"
+
         token = create_access_token(
             subject=officer.id,
-            role=officer.role.value,
+            role=role_str,
             badge_number=officer.badge_number,
             district=officer.district,
             department=dept_name,
+        )
+
+        user_context = UserContext(
+            identity=officer.id,
+            officer_id=officer.officer_id,
+            badge_number=officer.badge_number,
+            full_name=officer.full_name,
+            role=role_str,
+            rank=officer.rank,
+            department=dept_name,
+            jurisdiction=jurisdiction,
+            district=officer.district,
+            station=officer.station,
+            permissions=permissions,
         )
 
         return TokenResponse(
@@ -79,9 +101,12 @@ class AuthService:
             expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             officer_id=officer.officer_id,
             badge_number=officer.badge_number,
-            role=officer.role,
+            role=role_str,
             district=officer.district,
             department=dept_name,
+            jurisdiction=jurisdiction,
+            permissions=permissions,
+            user=user_context,
         )
 
     async def initiate_break_glass(

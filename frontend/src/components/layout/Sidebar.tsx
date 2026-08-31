@@ -1,48 +1,104 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAlertStore } from '../../stores/alertStore';
+import { useAuthStore } from '../../stores/authStore';
 import { 
   LayoutDashboard, 
   Tv2, 
   ShieldAlert, 
-  Search, 
-  Camera, 
-  ListFilter, 
-  BarChart3, 
-  ShieldCheck, 
-  Activity
+  Car, 
+  UserSearch, 
+  Map, 
+  Briefcase, 
+  FileCheck2, 
+  Sliders, 
+  Activity,
+  Lock
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { unreadCount, alerts } = useAlertStore();
+  const { hasPermission, user } = useAuthStore();
 
   const activePursuits = alerts.filter((a) => a.status === 'INVESTIGATING').length;
 
-  const navItems = [
-    { to: '/', label: 'Situation Room', icon: LayoutDashboard },
-    { to: '/live-wall', label: 'Live Video Wall', icon: Tv2 },
-    { to: '/alerts', label: 'APB Alerts', icon: ShieldAlert, badge: unreadCount },
-    { to: '/investigate', label: '360° Search', icon: Search },
-    { to: '/cameras', label: 'VMS Cameras', icon: Camera },
-    { to: '/watchlists', label: 'Crime Watchlists', icon: ListFilter },
-    { to: '/analytics', label: 'Sizing & SRE', icon: BarChart3 },
-    { to: '/admin', label: 'Admin & Sec 65B', icon: ShieldCheck },
+  const allNavItems = [
+    { 
+      to: '/', 
+      label: 'Dashboard', 
+      icon: LayoutDashboard, 
+      permission: 'dashboard.overview' 
+    },
+    { 
+      to: '/live-wall', 
+      label: 'Live Monitoring', 
+      icon: Tv2, 
+      permission: 'camera.read' 
+    },
+    { 
+      to: '/alerts', 
+      label: 'Alerts', 
+      icon: ShieldAlert, 
+      badge: unreadCount, 
+      permission: 'alert.read' 
+    },
+    { 
+      to: '/vehicles', 
+      label: 'Vehicle Search', 
+      icon: Car, 
+      permission: 'vehicle.search' 
+    },
+    { 
+      to: '/persons', 
+      label: 'Person Search', 
+      icon: UserSearch, 
+      permission: 'person.search' 
+    },
+    { 
+      to: '/gis', 
+      label: 'GIS Map', 
+      icon: Map, 
+      permission: 'camera.read' 
+    },
+    { 
+      to: '/cases', 
+      label: 'Investigation / Cases', 
+      icon: Briefcase, 
+      permission: 'case.create' 
+    },
+    { 
+      to: '/evidence', 
+      label: 'Evidence', 
+      icon: FileCheck2, 
+      permission: 'evidence.read' 
+    },
+    { 
+      to: '/admin', 
+      label: 'Administration', 
+      icon: Sliders, 
+      permission: 'camera.manage' 
+    },
   ];
+
+  // Filter items based on user's granted permissions
+  const authorizedNavItems = allNavItems.filter((item) => hasPermission(item.permission));
 
   return (
     <aside className="w-64 bg-[#080d1a] border-r border-slate-800 flex flex-col justify-between p-3 select-none">
       {/* Navigation Links */}
       <nav className="space-y-1 font-mono">
-        <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-          COMMAND OPERATIONS
+        <div className="flex items-center justify-between px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <span>OPERATIONS</span>
+          <span className="text-[9px] text-cyan-400 font-sans">{user?.role || 'OPERATOR'}</span>
         </div>
 
-        {navItems.map((item) => {
+        {authorizedNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
               key={item.to}
               to={item.to}
+              end={item.to === '/'}
               className={({ isActive }) =>
                 `flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
@@ -52,7 +108,7 @@ export const Sidebar: React.FC = () => {
               }
             >
               <div className="flex items-center gap-3">
-                <Icon className="w-4 h-4 text-cyan-400" />
+                <Icon className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>{item.label}</span>
               </div>
 
@@ -66,7 +122,7 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* Bottom Dispatch Widget */}
+      {/* Bottom Dispatch / Jurisdiction Widget */}
       <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-xl font-mono text-xs space-y-2">
         <div className="flex items-center justify-between text-slate-300">
           <div className="flex items-center gap-1.5">
@@ -78,7 +134,7 @@ export const Sidebar: React.FC = () => {
           </span>
         </div>
         <p className="text-[10px] text-slate-400 leading-tight">
-          YOLO11 real-time vehicle correlation synchronized across 50 state checkpoints.
+          {user?.jurisdiction || 'Gujarat Police Unified Command Grid'} • Section 65B Certified
         </p>
       </div>
     </aside>

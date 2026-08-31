@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { alertService } from '../../services/alertService';
 import { useAlertStore } from '../../stores/alertStore';
@@ -12,10 +13,12 @@ import {
   FileCheck, 
   XCircle, 
   Radio, 
-  Clock
+  Clock,
+  Briefcase
 } from 'lucide-react';
 
 export const AlertsPage: React.FC = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { officer } = useAuthStore();
   const { selectedAlert, setSelectedAlert } = useAlertStore();
@@ -278,6 +281,14 @@ export const AlertsPage: React.FC = () => {
                     <span>FALSE POSITIVE</span>
                   </button>
                 </div>
+
+                <button
+                  onClick={() => navigate('/cases')}
+                  className="w-full py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  <span>INITIALIZE CASE DOSSIER (CASE-2026)</span>
+                </button>
               </div>
             </div>
           ) : (

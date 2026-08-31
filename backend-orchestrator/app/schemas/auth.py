@@ -22,16 +22,37 @@ class LoginRequest(BaseModel):
         return v
 
 
+from typing import Optional, List
+
+
+class UserContext(BaseModel):
+    """Complete intelligent user authorization context."""
+    identity: str = Field(..., description="Unique user identifier")
+    officer_id: str
+    badge_number: str
+    full_name: str
+    role: str
+    rank: str
+    department: str
+    jurisdiction: str
+    district: str
+    station: Optional[str] = None
+    permissions: List[str] = Field(default_factory=list)
+
+
 class TokenResponse(BaseModel):
-    """Secure JWT Token response schema."""
+    """Secure JWT Token response schema with intelligent user context."""
     access_token: str
     token_type: str = "bearer"
     expires_in: int
     officer_id: str
     badge_number: str
-    role: OfficerRole
+    role: str
     district: str
     department: Optional[str] = "Gujarat Police"
+    jurisdiction: Optional[str] = "Ahmedabad West Police Zone 1"
+    permissions: List[str] = Field(default_factory=list)
+    user: Optional[UserContext] = None
 
 
 class OfficerResponse(BaseModel):
@@ -45,11 +66,13 @@ class OfficerResponse(BaseModel):
     rank: str
     district: str
     station: Optional[str]
-    role: OfficerRole
+    jurisdiction: Optional[str] = "Ahmedabad West Police Zone 1"
+    role: str
     department_id: Optional[str]
     is_active: bool
     is_on_duty: bool
     last_login: Optional[datetime]
+    permissions: List[str] = Field(default_factory=list)
 
 
 class BreakGlassRequest(BaseModel):

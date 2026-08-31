@@ -93,3 +93,21 @@ Use **Leaflet** with dark-mode Carto tiles in the React frontend combined with *
 
 ### Consequences:
 - **Positive:** High performance, zero proprietary licensing fees, full offline capabilities.
+
+---
+
+## ADR 007: Fine-Grained RBAC Permissions & Case Lifecycle State Machine
+
+### Status: APPROVED & IMPLEMENTED
+### Context:
+Police personnel interact with surveillance systems according to distinct operational roles (**Operator**, **Investigator**, **Supervisor**, **Administrator**). Relying merely on client-side button hiding creates critical legal and security vulnerabilities. Furthermore, operational investigative work requires a formal state machine rather than ad-hoc alerts.
+
+### Decision:
+1. Implement a **Standardized RBAC Capability Matrix** (`backend-orchestrator/app/core/permissions.py`) enforced both via FastAPI dependency guards (`require_permission`) and dynamic React routing guards (`ProtectedRoute`).
+2. Implement a **Formal Case Investigation State Machine** (`backend-orchestrator/app/models/case.py`):
+   $$\text{ALERT} \longrightarrow \text{ACKNOWLEDGED} \longrightarrow \text{INVESTIGATION OPENED} \longrightarrow \text{CASE CREATED} \longrightarrow \text{EVIDENCE COLLECTED} \longrightarrow \text{REVIEW} \longrightarrow \text{RESOLVED / CLOSED}$$
+3. Bind every state transition with officer badge identifiers, timestamps, and Section 65B SHA-256 HMAC digital signatures.
+
+### Consequences:
+- **Positive:** True zero-trust backend authorization, strict adherence to police SOPs, and court-admissible chain of custody dossiers.
+- **Trade-off:** Requires permission checking on all protected endpoints.

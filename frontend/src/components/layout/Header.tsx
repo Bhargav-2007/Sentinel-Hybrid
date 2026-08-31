@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuthStore, ROLE_PRESETS } from '../../stores/authStore';
 import { useAlertStore } from '../../stores/alertStore';
 import { useUIStore } from '../../stores/uiStore';
 import { DepartmentCode } from '../../types/camera';
@@ -15,15 +15,18 @@ import {
   LogOut,
   Sliders,
   Maximize,
-  Minimize
+  Minimize,
+  User,
+  ChevronDown
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { officer, isBreakGlassActive, logout } = useAuthStore();
+  const { user, officer, isBreakGlassActive, switchRolePreset, logout } = useAuthStore();
   const { unreadCount, audioAlertEnabled, toggleAudioAlert, clearUnread } = useAlertStore();
   const { selectedDepartment, setSelectedDepartment, setCommandPaletteOpen } = useUIStore();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [clock, setClock] = useState(new Date().toLocaleTimeString('en-IN', { hour12: false }));
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -51,6 +54,13 @@ export const Header: React.FC = () => {
     { code: 'FOREST_WILDLIFE', label: 'Forest & Wildlife' },
   ];
 
+  const currentRole = user?.role || officer?.role || 'INVESTIGATOR';
+  const roleBadgeColor = 
+    currentRole === 'ADMIN' ? 'bg-red-950 text-red-300 border-red-500/50' :
+    currentRole === 'SUPERVISOR' ? 'bg-purple-950 text-purple-300 border-purple-500/50' :
+    currentRole === 'INVESTIGATOR' ? 'bg-cyan-950 text-cyan-300 border-cyan-500/50' :
+    'bg-emerald-950 text-emerald-300 border-emerald-500/50';
+
   return (
     <header className="h-16 bg-[#080d1a] border-b border-slate-800 px-4 lg:px-6 flex items-center justify-between z-30 select-none shadow-xl">
       {/* Brand & Department Filters */}
@@ -70,7 +80,7 @@ export const Header: React.FC = () => {
               </span>
             </div>
             <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-              State Police AI Surveillance Platform
+              Statewide Unified CCTV & Threat Intelligence
             </p>
           </div>
         </div>
@@ -111,19 +121,6 @@ export const Header: React.FC = () => {
           </div>
         )}
 
-        {/* Command Palette Hotkey Trigger */}
-        <button
-          onClick={() => setCommandPaletteOpen(true)}
-          className="hidden lg:flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:border-cyan-500/40 text-xs font-mono transition-colors"
-          title="Open Tactical Command Palette (Ctrl+K)"
-        >
-          <Search className="w-3.5 h-3.5" />
-          <span>COMMANDS</span>
-          <kbd className="bg-slate-950 px-1.5 py-0.5 rounded text-[10px] text-slate-300 border border-slate-800 font-bold">
-            Ctrl+K
-          </kbd>
-        </button>
-
         {/* Audio Alarm Toggle */}
         <button
           onClick={toggleAudioAlert}
@@ -146,23 +143,76 @@ export const Header: React.FC = () => {
           {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
         </button>
 
-        {/* Officer Profile & Badge */}
-        {officer && (
-          <div className="flex items-center gap-2.5 pl-2 border-l border-slate-800">
+        {/* Officer Profile, Role Badge & Switcher */}
+        <div className="relative">
+          <button
+            onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+            className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-all text-left"
+          >
             <div className="flex flex-col text-right">
-              <span className="text-xs font-bold text-slate-200">{officer.badge_number}</span>
-              <span className="text-[10px] text-cyan-400">{officer.role}</span>
+              <span className="text-xs font-bold text-slate-200">{user?.full_name || officer?.badge_number || 'Duty Officer'}</span>
+              <span className="text-[10px] text-slate-400 truncate max-w-[160px] font-sans">
+                {user?.jurisdiction || officer?.district || 'Ahmedabad City'}
+              </span>
             </div>
 
-            <button
-              onClick={logout}
-              className="p-2 rounded-lg bg-slate-900 hover:bg-red-950/60 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 transition-colors"
-              title="Logout Session"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+            <div className={`px-2 py-0.5 rounded text-[10px] font-bold border ${roleBadgeColor}`}>
+              {currentRole}
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          </button>
+
+          {/* Quick Role & Permission Dropdown */}
+          {roleDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-72 bg-[#090e1a] border border-slate-800 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 z-50 animate-fadeIn">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Active User Clearance</span>
+                <span className="text-[10px] text-cyan-400 font-mono">{user?.officer_id || officer?.officer_id}</span>
+              </div>
+
+              <div className="text-[10px] text-slate-400 font-sans space-y-0.5">
+                <div><strong>Rank:</strong> {user?.rank || officer?.rank}</div>
+                <div><strong>Dept:</strong> {user?.department || 'Gujarat Police'}</div>
+                <div><strong>Jurisdiction:</strong> {user?.jurisdiction || 'Statewide Command'}</div>
+              </div>
+
+              <div className="border-t border-slate-800/80 pt-2">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Quick Role Switch (Demo):</span>
+                <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+                  {(['OPERATOR', 'INVESTIGATOR', 'SUPERVISOR', 'ADMIN'] as const).map((rKey) => (
+                    <button
+                      key={rKey}
+                      onClick={() => {
+                        switchRolePreset(rKey);
+                        setRoleDropdownOpen(false);
+                      }}
+                      className={`px-2 py-1.5 rounded-lg text-[10px] font-bold text-center transition-all ${
+                        currentRole === rKey
+                          ? 'bg-cyan-500 text-slate-950 font-bold'
+                          : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                      }`}
+                    >
+                      {rKey}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-slate-800/80 pt-2 flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setRoleDropdownOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900/80 border border-red-500/40 text-red-300 text-xs font-bold transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>LOGOUT SESSION</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

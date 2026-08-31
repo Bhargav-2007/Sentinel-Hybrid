@@ -84,16 +84,51 @@ async def get_current_officer(
     return officer
 
 
+from app.core.permissions import has_permission, get_permissions_for_role
+
+
 def require_role(allowed_roles: List[OfficerRole]) -> Callable:
     """RBAC dependency decorator that restricts endpoints to specific police ranks/roles."""
     async def role_checker(current_officer: Officer = Depends(get_current_officer)) -> Officer:
-        if current_officer.role not in allowed_roles and current_officer.role != OfficerRole.ADMIN:
+        role_val = current_officer.role.value if hasattr(current_officer.role, "value") else str(current_officer.role)
+        allowed_vals = [r.value if hasattr(r, "value") else str(r) for r in allowed_roles]
+        if role_val not in allowed_vals and role_val != "ADMIN":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. Required role in {[r.value for r in allowed_roles]}. Current role: {current_officer.role.value}",
+                detail=f"Access denied. Required role in {allowed_vals}. Current role: {role_val}",
             )
         return current_officer
     return role_checker
+
+
+def require_permission(required_perm: str) -> Callable:
+    """Fine-grained RBAC dependency decorator checking exact permission capability."""
+    async def permission_checker(current_officer: Officer = Depends(get_current_officer)) -> Officer:
+        role_val = current_officer.role.value if hasattr(current_officer.role, "value") else str(current_officer.role)
+        custom_perms = getattr(current_officer, "custom_permissions", None) or []
+        if not has_permission(role_val, required_perm, custom_perms):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Missing required permission: '{required_perm}'. Granted permissions for role '{role_val}': {get_permissions_for_role(role_val, custom_perms)}",
+            )
+        return current_officer
+    return permission_checker
+
+
+def require_permissions(required_perms: List[str]) -> Callable:
+    """Checks if officer possesses any or all of the specified permissions."""
+    async def multi_permission_checker(current_officer: Officer = Depends(get_current_officer)) -> Officer:
+        role_val = current_officer.role.value if hasattr(current_officer.role, "value") else str(current_officer.role)
+        custom_perms = getattr(current_officer, "custom_permissions", None) or []
+        granted = get_permissions_for_role(role_val, custom_perms)
+        for req in required_perms:
+            if not has_permission(role_val, req, custom_perms):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Access denied. Missing required permission: '{req}'.",
+                )
+        return current_officer
+    return multi_permission_checker
 
 
 def get_client_ip(request: Request) -> str:

@@ -7,11 +7,17 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
+from sqlalchemy import Column, String, Boolean, DateTime, Enum, ForeignKey, JSON
+from sqlalchemy.orm import relationship
+from app.core.database import Base
+
+
 class OfficerRole(str, enum.Enum):
     ADMIN = "ADMIN"
     SUPERVISOR = "SUPERVISOR"
-    DUTY_OFFICER = "DUTY_OFFICER"
     INVESTIGATOR = "INVESTIGATOR"
+    OPERATOR = "OPERATOR"
+    DUTY_OFFICER = "DUTY_OFFICER"
     DISPATCHER = "DISPATCHER"
 
 
@@ -25,8 +31,10 @@ class Officer(Base):
     rank = Column(String(64), default="Sub-Inspector")
     district = Column(String(64), default="Ahmedabad City", index=True)
     station = Column(String(128), default="Navrangpura Police Station")
+    jurisdiction = Column(String(128), default="Ahmedabad West Police Zone 1")
     hashed_password = Column(String(256), nullable=False)
-    role = Column(Enum(OfficerRole), default=OfficerRole.DUTY_OFFICER, nullable=False)
+    role = Column(Enum(OfficerRole), default=OfficerRole.OPERATOR, nullable=False)
+    custom_permissions = Column(JSON, default=list, nullable=True)
     
     # Department association
     department_id = Column(String(64), ForeignKey("departments.id"), nullable=True)

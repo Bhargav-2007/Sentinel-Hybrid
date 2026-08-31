@@ -9,7 +9,8 @@ from app.schemas.alert import AlertResponse, AlertCreate, AlertFilter
 from app.models.alert import AlertSeverity, AlertStatus, AlertType
 from app.models.officer import Officer
 from app.services.alert_service import alert_service
-from app.api.deps import get_current_officer
+from app.core.permissions import Permission
+from app.api.deps import get_current_officer, require_permission
 
 router = APIRouter(prefix="/alerts", tags=["APB Threat Triage & Alerts"])
 
@@ -23,7 +24,8 @@ async def list_alerts(
     search: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    officer: Officer = Depends(require_permission(Permission.ALERT_READ)),
 ):
     """Queries APB alerts with multi-parameter filtering."""
     filters = AlertFilter(
@@ -41,7 +43,8 @@ async def list_alerts(
 @router.get("/{alert_id}", response_model=AlertResponse)
 async def get_alert_details(
     alert_id: str,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    officer: Officer = Depends(require_permission(Permission.ALERT_READ)),
 ):
     """Fetches details, legal FIR reference, and Section 65B HMAC stamp for an alert."""
     alert = await alert_service.get_alert_by_id(db, alert_id)
@@ -63,7 +66,7 @@ async def create_alert(
 async def acknowledge_alert(
     alert_id: str,
     notes: Optional[str] = Query(None),
-    officer: Officer = Depends(get_current_officer),
+    officer: Officer = Depends(require_permission(Permission.ALERT_ACKNOWLEDGE)),
     db: AsyncSession = Depends(get_db)
 ):
     """Duty officer acknowledges the APB alert and assigns it to current patrol shift."""
@@ -77,7 +80,7 @@ async def acknowledge_alert(
 async def investigate_alert(
     alert_id: str,
     notes: Optional[str] = Query(None),
-    officer: Officer = Depends(get_current_officer),
+    officer: Officer = Depends(require_permission(Permission.ALERT_READ)),
     db: AsyncSession = Depends(get_db)
 ):
     """Marks alert as under active investigation by dispatched PCR patrol unit."""

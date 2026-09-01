@@ -18,7 +18,7 @@ import httpx
 
 MODEL1_URL          = "http://localhost:8001"
 PRIMARY_CATALOGUE_URL = "https://cctv.corp8.cloud/cameras.json"
-LIVE_INGEST_API       = "https://live.corp8.cloud/api/ingest"
+LIVE_INGEST_API       = "https://cctv.corp8.cloud/cameras.json"
 DEFAULT_RTSP_IP       = "103.250.160.189"
 DEFAULT_HLS_BASE      = "https://cctv.corp8.cloud"
 

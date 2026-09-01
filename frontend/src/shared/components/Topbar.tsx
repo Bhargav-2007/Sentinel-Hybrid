@@ -50,6 +50,21 @@ export const Topbar: React.FC = () => {
 
       {/* Right Side Controls */}
       <div className="flex items-center gap-3">
+        {/* Command Palette Trigger */}
+        <button
+          onClick={() => {
+            const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
+            window.dispatchEvent(event);
+          }}
+          className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-300 font-mono text-xs transition-colors"
+          title="Open Command Palette (Ctrl+K)"
+        >
+          <span className="text-cyber-cyan font-bold">⌘ Quick Search</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-600 text-[10px] text-slate-400 font-bold">
+            Ctrl + K
+          </kbd>
+        </button>
+
         {/* System Pulse Indicator */}
         <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 font-mono text-xs text-slate-300">
           <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />

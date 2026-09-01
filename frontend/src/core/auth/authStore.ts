@@ -19,27 +19,25 @@ const getStoredUser = (): OfficerUser | null => {
   }
 };
 
-const defaultOfficer: OfficerUser = {
-  id: 'dev-off-01',
-  badge_number: 'GJ-POL-8842',
-  full_name: 'Inspector R.K. Jadeja',
-  role: 'INVESTIGATOR',
-  rank: 'Police Inspector (PI)',
-  station: 'Navrangpura Police Station',
-  district: 'Ahmedabad City',
-  email: 'rk.jadeja@gujaratpolice.gov.in',
-  is_active: true,
+const getStoredToken = (): string | null => {
+  try {
+    return localStorage.getItem('sentinel_access_token');
+  } catch {
+    return null;
+  }
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: getStoredUser() || defaultOfficer,
-  tokens: {
-    access_token: localStorage.getItem('sentinel_access_token') || 'sentinel-prod-token',
-    refresh_token: 'sentinel-refresh-token',
-    token_type: 'Bearer',
-    expires_in: 28800,
-  },
-  isAuthenticated: true,
+  user: getStoredUser(),
+  tokens: getStoredToken()
+    ? {
+        access_token: getStoredToken()!,
+        refresh_token: 'sentinel-refresh-token',
+        token_type: 'Bearer',
+        expires_in: 28800,
+      }
+    : null,
+  isAuthenticated: !!getStoredToken(),
 
   login: (user, tokens) => {
     localStorage.setItem('sentinel_user', JSON.stringify(user));

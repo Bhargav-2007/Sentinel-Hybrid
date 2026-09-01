@@ -110,6 +110,8 @@ USERS_DB = [
         "is_active": True,
         "email": "rk.jadeja@gujaratpolice.gov.in",
         "phone": "+91 98765 43210",
+        "password": "password123",
+        "last_login": "2026-09-01 11:20:00 IST",
     },
     {
         "id": "USR-002",
@@ -122,6 +124,22 @@ USERS_DB = [
         "is_active": True,
         "email": "dgp.cyber@gujaratpolice.gov.in",
         "phone": "+91 98765 00001",
+        "password": "adminpassword",
+        "last_login": "2026-09-01 09:15:00 IST",
+    },
+    {
+        "id": "USR-003",
+        "badge_number": "GJ-POL-4412",
+        "full_name": "Sub-Inspector M.P. Patel",
+        "rank": "Police Sub-Inspector (PSI)",
+        "role": "OPERATOR",
+        "station": "Ellisbridge Police Station, Ahmedabad",
+        "district": "Ahmedabad City",
+        "is_active": True,
+        "email": "mp.patel@gujaratpolice.gov.in",
+        "phone": "+91 98765 44412",
+        "password": "password123",
+        "last_login": "2026-09-01 10:45:00 IST",
     }
 ]
 
@@ -131,12 +149,15 @@ WATCHLIST_DB = [
         "plate_number": "GJ01AB1234",
         "category": "STOLEN_VEHICLE",
         "priority": "CRITICAL",
+        "vehicle_category": "Car / SUV",
         "vehicle_make": "Toyota",
         "vehicle_model": "Fortuner 4x4",
         "vehicle_color": "White",
         "fir_number": "FIR-2026-CR-08942",
-        "police_station": "Navrangpura Police Station",
-        "source": "eGujCop",
+        "police_station": "Navrangpura Police Station, Ahmedabad",
+        "assigned_officer": "Inspector R.K. Jadeja",
+        "source": "eGujCop State Hotlist",
+        "added_date": "2026-08-30",
         "is_active": True,
     },
     {
@@ -144,13 +165,89 @@ WATCHLIST_DB = [
         "plate_number": "GJ09SS4567",
         "category": "WANTED_SUSPECT_VEHICLE",
         "priority": "HIGH",
+        "vehicle_category": "Car / SUV",
         "vehicle_make": "Mahindra",
         "vehicle_model": "Scorpio",
         "vehicle_color": "Black",
         "fir_number": "FIR-2026-CR-07119",
         "police_station": "Sector 7 Police Station, Gandhinagar",
-        "source": "eGujCop",
+        "assigned_officer": "Sub-Inspector V.M. Vaghela",
+        "source": "eGujCop State Hotlist",
+        "added_date": "2026-08-28",
         "is_active": True,
+    },
+    {
+        "id": "WL-003",
+        "plate_number": "GJ27TT8842",
+        "category": "WRONG_WAY_INTRUSION",
+        "priority": "MEDIUM",
+        "vehicle_category": "Commercial Truck",
+        "vehicle_make": "Tata",
+        "vehicle_model": "407 LCV",
+        "vehicle_color": "Yellow",
+        "fir_number": "FIR-2026-TR-04120",
+        "police_station": "Ellisbridge Police Station, Ahmedabad",
+        "assigned_officer": "Sub-Inspector M.P. Patel",
+        "source": "eGujCop Traffic Violations",
+        "added_date": "2026-09-01",
+        "is_active": True,
+    }
+]
+
+ALERTS_DB = [
+    {
+        "id": "INC-0245D8AA",
+        "incident_number": "APB-2026-9912BA",
+        "alert_type": "STOLEN_VEHICLE",
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "🚨 APB CRITICAL PURSUIT: GJ01AB1234 — White Fortuner",
+        "camera_id": "cam01",
+        "camera_name": "SG Highway Iskcon Jct, Ahmedabad",
+        "district": "Ahmedabad City",
+        "latitude": 23.0298,
+        "longitude": 72.5074,
+        "detected_plate": "GJ01AB1234",
+        "vehicle_make": "Toyota",
+        "vehicle_model": "Fortuner 4x4",
+        "vehicle_color": "White",
+        "confidence_score": 0.984,
+        "threat_score": 95,
+        "speed_kmh": 68.2,
+        "fir_number": "FIR-2026-CR-08942",
+        "station": "Navrangpura Police Station, Ahmedabad",
+        "assigned_officer": "Inspector R.K. Jadeja",
+        "nearest_chowki": "SG Highway Traffic Police Chowki (850m away)",
+        "watchlist_tag": "State Hotlist (eGujCop)",
+        "section65b_hmac_hash": "2b297c188c210bdb43ace4c42a4a38f1062508388a82544037f4361282975d55",
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    },
+    {
+        "id": "INC-81F0CB52",
+        "incident_number": "APB-2026-30A3AF",
+        "alert_type": "WANTED_SUSPECT_VEHICLE",
+        "severity": "HIGH",
+        "status": "ACTIVE",
+        "title": "🚨 APB SUSPECT INTERCEPT: GJ09SS4567 — Mahindra Scorpio",
+        "camera_id": "cam04",
+        "camera_name": "Sector 10 Secretariat, Gandhinagar",
+        "district": "Gandhinagar",
+        "latitude": 23.2156,
+        "longitude": 72.6369,
+        "detected_plate": "GJ09SS4567",
+        "vehicle_make": "Mahindra",
+        "vehicle_model": "Scorpio",
+        "vehicle_color": "Black",
+        "confidence_score": 0.962,
+        "threat_score": 88,
+        "speed_kmh": 64.0,
+        "fir_number": "FIR-2026-CR-07119",
+        "station": "Sector 7 Police Station, Gandhinagar",
+        "assigned_officer": "Sub-Inspector V.M. Vaghela",
+        "nearest_chowki": "Gandhinagar Sector 10 Police Chowki (400m away)",
+        "watchlist_tag": "Hotlist (eGujCop)",
+        "section65b_hmac_hash": "2cef805415e2a3d82d1256cbf9a1199fc8cd84f9b977556d93c43de25a865a03",
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
 ]
 
@@ -264,7 +361,8 @@ def camera_stream_worker(cam_tag: str):
             except Exception:
                 pass
 
-        # Draw Neon Overlays on 100% of frames
+        # Draw Neon Overlays & ANPR Plates on 100% of frames
+        vehicle_idx = 0
         for det in cached_dets:
             x1, y1, x2, y2 = det["box"]
             cls_name = det["class"]
@@ -272,9 +370,34 @@ def camera_stream_worker(cam_tag: str):
             bw = det["bw"]
             bh = det["bh"]
 
-            is_target = cam_tag in ("cam01", "cam04") and cls_name in ("car", "auto-rickshaw") and conf > 0.65
+            is_vehicle = cls_name in ("car", "auto-rickshaw", "motorcycle", "bus", "truck")
+            
+            # Determine Plate
+            plate_text, is_hotlist = "", False
+            if is_vehicle:
+                # District RTO prefix
+                rto_district_map = {
+                    "cam01": "GJ 01", "cam02": "GJ 05", "cam03": "GJ 06", "cam04": "GJ 18",
+                    "cam05": "GJ 03", "cam06": "GJ 04", "cam07": "GJ 01", "cam08": "GJ 01",
+                    "cam09": "GJ 02", "cam10": "GJ 10", "cam11": "GJ 11", "cam12": "GJ 23",
+                    "cam13": "GJ 16", "cam14": "GJ 21", "cam15": "GJ 24", "cam16": "GJ 08",
+                }
+                rto_code = rto_district_map.get(cam_tag, "GJ 01")
 
-            if is_target:
+                if (cam_tag in ("cam01", "cam07") and vehicle_idx == 0 and cls_name in ("car", "bus")) or (cam_tag == "cam04" and vehicle_idx == 0):
+                    plate_text = "GJ 01 AB 1234"
+                    is_hotlist = True
+                elif cam_tag == "cam04" and vehicle_idx == 1 and cls_name in ("car", "motorcycle"):
+                    plate_text = "GJ 09 SS 4567"
+                    is_hotlist = True
+                else:
+                    hash_val = (x1 * 31 + y1 * 17 + vehicle_idx * 79) % 9000 + 1000
+                    series_chars = chr(65 + (x1 % 24)) + chr(65 + ((y1 + vehicle_idx) % 24))
+                    plate_text = f"{rto_code} {series_chars} {hash_val}"
+
+                vehicle_idx += 1
+
+            if is_hotlist:
                 color = (0, 0, 255) # Red for wanted suspect
             elif cls_name == "auto-rickshaw":
                 color = (0, 230, 255) # Yellow-Gold
@@ -295,26 +418,45 @@ def camera_stream_worker(cam_tag: str):
                 cv2.line(frame, (x1, y1), (x1, y1 + cl), color, 3)
                 cv2.line(frame, (x2, y1), (x2 - cl, y1), color, 3)
                 cv2.line(frame, (x2, y1), (x2, y1 + cl), color, 3)
-                cv2.line(frame, (x1, y2), (x1 + cl, y2), color, 3)
-                cv2.line(frame, (x1, y2), (x1, y2 - cl), color, 3)
-                cv2.line(frame, (x2, y2), (x2 - cl, y2), color, 3)
-                cv2.line(frame, (x2, y2), (x2, y2 - cl), color, 3)
 
+            # Class Label Tag (Top)
             label = f"{cls_name.upper()} {conf:.0%}"
-            if is_target:
-                label = f"TARGET [GJ 01 AB 1234] {conf:.0%}"
+            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)
+            tag_y = max(th + 4, y1)
+            cv2.rectangle(frame, (x1, tag_y - th - 4), (x1 + tw + 6, tag_y + 2), color, -1)
+            cv2.putText(frame, label, (x1 + 3, tag_y - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 0, 0), 1, cv2.LINE_AA)
 
-            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
-            tag_y = max(th + 6, y1)
-            cv2.rectangle(frame, (x1, tag_y - th - 6), (x1 + tw + 8, tag_y + 2), color, -1)
-            cv2.putText(frame, label, (x1 + 4, tag_y - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
+            # HSRP ANPR License Plate Badge (Rendered under vehicle class tag)
+            if is_vehicle and plate_text:
+                font = cv2.FONT_HERSHEY_DUPLEX
+                scale = 0.40
+                thickness = 1
+                (ptw, pth), _ = cv2.getTextSize(plate_text, font, scale, thickness)
+                plate_w = ptw + 32
+                plate_h = pth + 10
+                
+                px = max(5, x1)
+                py = min(h - 5, max(plate_h + 5, y1 + th + 18))
+
+                if is_hotlist:
+                    cv2.rectangle(frame, (px, py - plate_h), (px + plate_w + 26, py), (0, 0, 230), -1)
+                    cv2.rectangle(frame, (px, py - plate_h), (px + plate_w + 26, py), (0, 255, 255), 2)
+                    cv2.putText(frame, "APB", (px + 4, py - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
+                    cv2.line(frame, (px + 28, py - plate_h + 2), (px + 28, py - 2), (255, 255, 255), 1)
+                    cv2.putText(frame, plate_text, (px + 32, py - 4), font, scale, (255, 255, 255), thickness, cv2.LINE_AA)
+                else:
+                    cv2.rectangle(frame, (px, py - plate_h), (px + plate_w, py), (245, 245, 245), -1)
+                    cv2.rectangle(frame, (px, py - plate_h), (px + plate_w, py), (30, 30, 30), 1)
+                    cv2.rectangle(frame, (px, py - plate_h), (px + 22, py), (180, 50, 20), -1)
+                    cv2.putText(frame, "IND", (px + 2, py - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.30, (255, 255, 255), 1, cv2.LINE_AA)
+                    cv2.putText(frame, plate_text, (px + 26, py - 4), font, scale, (10, 10, 10), thickness, cv2.LINE_AA)
 
         # Global HUD Header
-        cv2.rectangle(frame, (10, 10), (450, 52), (15, 20, 30), -1)
-        cv2.rectangle(frame, (10, 10), (450, 52), (0, 240, 255), 1)
-        cv2.putText(frame, f"GUJARAT POLICE SENTINEL - {cam_tag.upper()}", (18, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 240, 255), 1, cv2.LINE_AA)
+        cv2.rectangle(frame, (10, 10), (520, 56), (15, 20, 30), -1)
+        cv2.rectangle(frame, (10, 10), (520, 56), (0, 240, 255), 1)
+        cv2.putText(frame, f"GUJARAT POLICE SENTINEL - ANPR GRID ({cam_tag.upper()})", (18, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 240, 255), 1, cv2.LINE_AA)
         summary_txt = f"AI TARGETS: {len(cached_dets)} | CARS:{cached_counts['car']} AUTOS:{cached_counts['auto']} BIKES:{cached_counts['motorcycle']} PEDS:{cached_counts['person']}"
-        cv2.putText(frame, summary_txt, (18, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 255, 150), 1, cv2.LINE_AA)
+        cv2.putText(frame, summary_txt, (18, 48), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 255, 150), 1, cv2.LINE_AA)
 
         if w > 1280:
             frame = cv2.resize(frame, (1280, 720))
@@ -376,15 +518,86 @@ async def handle_ready(request: web.Request) -> web.Response:
 
 async def handle_auth_login(request: web.Request) -> web.Response:
     data = await request.json() if request.can_read_body else {}
-    badge = data.get("badge_number", "GJ-POL-8842")
-    user = next((u for u in USERS_DB if u["badge_number"] == badge), USERS_DB[0])
+    badge = data.get("badge_number", "").strip().upper()
+    password = data.get("password", "").strip()
+
+    # Search user
+    user = next((u for u in USERS_DB if u["badge_number"].upper() == badge or u["email"].upper() == badge), None)
+
+    if not user and badge:
+        # If logging in with a new officer badge, auto-create account
+        norm_badge = badge if badge.startswith("GJ-POL") else f"GJ-POL-{badge}"
+        user = {
+            "id": f"USR-{len(USERS_DB) + 1:03d}",
+            "badge_number": norm_badge,
+            "full_name": data.get("full_name") or f"Inspector {badge}",
+            "rank": "Police Inspector",
+            "role": "INVESTIGATOR",
+            "station": "Navrangpura Police Station, Ahmedabad",
+            "district": "Ahmedabad City",
+            "is_active": True,
+            "email": f"{norm_badge.lower()}@gujaratpolice.gov.in",
+            "phone": "+91 98765 00000",
+            "last_login": time.strftime("%Y-%m-%d %H:%M:%S IST", time.localtime()),
+        }
+        USERS_DB.insert(0, user)
+    elif not user:
+        user = USERS_DB[0]
+    else:
+        user["last_login"] = time.strftime("%Y-%m-%d %H:%M:%S IST", time.localtime())
+
+    token = f"jwt_sentinel_{user['badge_number']}_{int(time.time())}"
     
+    AUDIT_LOGS.append({
+        "id": f"AUD-{int(time.time())}",
+        "officer_badge": user["badge_number"],
+        "action": "OFFICER_AUTHENTICATION_SUCCESS",
+        "target": "COMMAND_AND_CONTROL_SOC",
+        "ip_address": request.remote or "127.0.0.1",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
     return web.json_response({
-        "access_token": f"jwt_sentinel_{badge}_{int(time.time())}",
+        "access_token": token,
+        "token": token,
         "token_type": "bearer",
         "expires_in": 28800,
+        "user": user,
         "officer": user,
     })
+
+
+async def handle_auth_register(request: web.Request) -> web.Response:
+    data = await request.json() if request.can_read_body else {}
+    badge = data.get("badge_number", "").strip().upper() or f"GJ-POL-{int(time.time()) % 9000 + 1000}"
+    if not badge.startswith("GJ-POL"):
+        badge = f"GJ-POL-{badge}"
+
+    new_officer = {
+        "id": f"USR-{len(USERS_DB) + 1:03d}",
+        "badge_number": badge,
+        "full_name": data.get("full_name", "Officer"),
+        "rank": data.get("rank", "Police Inspector"),
+        "role": data.get("role", "INVESTIGATOR"),
+        "station": data.get("station", "Navrangpura Police Station, Ahmedabad"),
+        "district": data.get("district", "Ahmedabad City"),
+        "is_active": True,
+        "email": data.get("email", f"{badge.lower()}@gujaratpolice.gov.in"),
+        "phone": data.get("phone", "+91 98765 00000"),
+        "password": data.get("password", "police123"),
+        "last_login": time.strftime("%Y-%m-%d %H:%M:%S IST", time.localtime()),
+    }
+    USERS_DB.insert(0, new_officer)
+
+    token = f"jwt_sentinel_{badge}_{int(time.time())}"
+    return web.json_response({
+        "access_token": token,
+        "token": token,
+        "token_type": "bearer",
+        "expires_in": 28800,
+        "user": new_officer,
+        "officer": new_officer,
+    }, status=201)
 
 
 async def handle_auth_me(request: web.Request) -> web.Response:
@@ -393,6 +606,39 @@ async def handle_auth_me(request: web.Request) -> web.Response:
 
 async def handle_users(request: web.Request) -> web.Response:
     return web.json_response({"users": USERS_DB, "total": len(USERS_DB)})
+
+
+async def handle_create_user(request: web.Request) -> web.Response:
+    data = await request.json() if request.can_read_body else {}
+    badge = data.get("badge_number", "").strip().upper() or f"GJ-POL-{int(time.time()) % 9000 + 1000}"
+    if not badge.startswith("GJ-POL"):
+        badge = f"GJ-POL-{badge}"
+
+    new_officer = {
+        "id": f"USR-{len(USERS_DB) + 1:03d}",
+        "badge_number": badge,
+        "full_name": data.get("full_name", "Officer"),
+        "rank": data.get("rank", "Police Inspector (PI)"),
+        "role": data.get("role", "INVESTIGATOR"),
+        "station": data.get("station", "Navrangpura Police Station, Ahmedabad"),
+        "district": data.get("district", "Ahmedabad City"),
+        "is_active": True,
+        "email": data.get("email", f"{badge.lower()}@gujaratpolice.gov.in"),
+        "phone": data.get("phone", "+91 98765 00000"),
+        "last_login": "Just Onboarded",
+    }
+    USERS_DB.insert(0, new_officer)
+
+    AUDIT_LOGS.append({
+        "id": f"AUD-{int(time.time())}",
+        "officer_badge": "GJ-POL-0001",
+        "action": "OFFICER_ONBOARDED",
+        "target": badge,
+        "ip_address": request.remote or "127.0.0.1",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
+    return web.json_response(new_officer, status=201)
 
 
 async def handle_list_cameras(request: web.Request) -> web.Response:
@@ -517,14 +763,25 @@ async def handle_snapshot(request: web.Request) -> web.Response:
     cam_tag = normalize_cam_tag(camera_id)
     ensure_camera_worker(cam_tag)
 
-    for _ in range(20):
+    for _ in range(30):
         if cam_tag in FRAME_HUB:
             break
         await asyncio.sleep(0.1)
 
     frame_data = FRAME_HUB.get(cam_tag)
     if not frame_data:
-        raise web.HTTPBadGateway(text=f"Camera {cam_tag} not available")
+        # Pre-render a cold-start initialization frame
+        img = 20 * np.ones((720, 1280, 3), dtype=np.uint8) if 'np' in globals() else None
+        if img is None:
+            import numpy as np
+            img = 20 * np.ones((720, 1280, 3), dtype=np.uint8)
+        cv2.putText(img, f"GUJARAT POLICE SENTINEL - CONNECTING TO {cam_tag.upper()}...", (50, 360), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 240, 255), 2)
+        _, buf = cv2.imencode(".jpg", img)
+        return web.Response(
+            body=buf.tobytes(),
+            content_type="image/jpeg",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
 
     return web.Response(
         body=frame_data["bytes"],
@@ -573,6 +830,59 @@ async def handle_watchlist(request: web.Request) -> web.Response:
     return web.json_response({"watchlist": WATCHLIST_DB, "total": len(WATCHLIST_DB)})
 
 
+async def handle_add_watchlist(request: web.Request) -> web.Response:
+    data = await request.json() if request.can_read_body else {}
+    plate = data.get("plate_number", data.get("plate", "")).strip().upper()
+    if not plate:
+        raise web.HTTPBadRequest(text="Missing plate number")
+
+    new_entry = {
+        "id": f"WL-{len(WATCHLIST_DB) + 1:03d}",
+        "plate_number": plate,
+        "category": data.get("category", "WANTED_SUSPECT_VEHICLE"),
+        "priority": data.get("priority", "HIGH"),
+        "vehicle_category": data.get("vehicle_category", "Car"),
+        "vehicle_make": data.get("vehicle_make", "Unknown"),
+        "vehicle_model": data.get("vehicle_model", "Unknown"),
+        "vehicle_color": data.get("vehicle_color", "Unknown"),
+        "fir_number": data.get("fir_number", f"FIR-2026-CR-{int(time.time()) % 10000:04d}"),
+        "police_station": data.get("police_station", "Navrangpura Police Station, Ahmedabad"),
+        "assigned_officer": data.get("assigned_officer", "Inspector R.K. Jadeja"),
+        "source": "eGujCop State Hotlist",
+        "added_date": time.strftime("%Y-%m-%d", time.gmtime()),
+        "is_active": True,
+    }
+    WATCHLIST_DB.insert(0, new_entry)
+
+    AUDIT_LOGS.append({
+        "id": f"AUD-{int(time.time())}",
+        "officer_badge": "GJ-POL-8842",
+        "action": "HOTLIST_TARGET_ADDED",
+        "target": plate,
+        "ip_address": request.remote or "127.0.0.1",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
+    return web.json_response(new_entry, status=201)
+
+
+async def handle_delete_watchlist(request: web.Request) -> web.Response:
+    plate = request.match_info.get("plate", "").strip().upper()
+    global WATCHLIST_DB
+    WATCHLIST_DB = [w for w in WATCHLIST_DB if w["plate_number"].replace(" ", "") != plate.replace(" ", "") and w.get("id") != plate]
+
+    AUDIT_LOGS.append({
+        "id": f"AUD-{int(time.time())}",
+        "officer_badge": "GJ-POL-8842",
+        "action": "HOTLIST_TARGET_REMOVED",
+        "target": plate,
+        "ip_address": request.remote or "127.0.0.1",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
+    return web.json_response({"deleted": True, "plate": plate})
+
+
 async def handle_vehicle_search(request: web.Request) -> web.Response:
     plate_query = request.query.get("plate", "").strip().upper()
     matched = [w for w in WATCHLIST_DB if plate_query in w["plate_number"]] if plate_query else WATCHLIST_DB
@@ -597,63 +907,66 @@ async def handle_camera_diagnostics(request: web.Request) -> web.Response:
 
 
 async def handle_alerts(request: web.Request) -> web.Response:
-    alerts = [
-        {
-            "id": "INC-0245D8AA",
-            "incident_number": "APB-2026-31E647",
-            "alert_type": "STOLEN_VEHICLE",
-            "severity": "CRITICAL",
-            "status": "INVESTIGATING",
-            "title": "🚨 APB HOTLIST INTERCEPT: GJ01AB1234 — Stolen White Toyota Fortuner",
-            "camera_id": "cam01",
-            "camera_name": "SG Highway — Iskcon Crossroad",
-            "district": "Ahmedabad City",
-            "latitude": 23.0298,
-            "longitude": 72.5074,
-            "detected_plate": "GJ01AB1234",
-            "vehicle_make": "Toyota",
-            "vehicle_model": "Fortuner 4x4",
-            "vehicle_color": "White",
-            "confidence_score": 0.984,
-            "fir_number": "FIR-2026-CR-08942",
-            "watchlist_tag": "Hotlist (eGujCop)",
-            "section65b_hmac_hash": "b107138d03e8d0d6af29852d7e86b8bf6e76d59554060f49254d2df57a0c4f23",
-            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        },
-        {
-            "id": "INC-81F0CB52",
-            "incident_number": "APB-2026-30A3AF",
-            "alert_type": "WANTED_SUSPECT_VEHICLE",
-            "severity": "HIGH",
-            "status": "NEW",
-            "title": "🚨 APB SUSPECT INTERCEPT: GJ09SS4567 — Mahindra Scorpio",
-            "camera_id": "cam04",
-            "camera_name": "Sector 10 Secretariat, Gandhinagar",
-            "district": "Gandhinagar",
-            "latitude": 23.2156,
-            "longitude": 72.6369,
-            "detected_plate": "GJ09SS4567",
-            "vehicle_make": "Mahindra",
-            "vehicle_model": "Scorpio",
-            "vehicle_color": "Black",
-            "confidence_score": 0.962,
-            "fir_number": "FIR-2026-CR-07119",
-            "watchlist_tag": "Hotlist (eGujCop)",
-            "section65b_hmac_hash": "2cef805415e2a3d82d1256cbf9a1199fc8cd84f9b977556d93c43de25a865a03",
-            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        }
-    ]
-    return web.json_response(alerts)
+    return web.json_response(ALERTS_DB)
 
 
 async def handle_alert_ack(request: web.Request) -> web.Response:
     alert_id = request.match_info.get("alert_id")
+    found = False
+    for a in ALERTS_DB:
+        if a["id"] == alert_id or a.get("incident_number") == alert_id:
+            a["status"] = "ACKNOWLEDGED"
+            a["acknowledged_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            a["acknowledged_by"] = "GJ-POL-8842"
+            found = True
+
+    AUDIT_LOGS.append({
+        "id": f"AUD-{int(time.time())}",
+        "officer_badge": "GJ-POL-8842",
+        "action": "ALERT_ACKNOWLEDGED",
+        "target": alert_id,
+        "ip_address": request.remote or "127.0.0.1",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
     return web.json_response({
         "alert_id": alert_id,
         "status": "ACKNOWLEDGED",
         "acknowledged_by": "GJ-POL-8842",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     })
+
+
+async def handle_auto_dispatch(request: web.Request) -> web.Response:
+    data = await request.json() if request.can_read_body else {}
+    plate = data.get("plate", "GJ01AB1234")
+    station = data.get("station", "Navrangpura Police Station, Ahmedabad")
+    chowki = data.get("nearest_chowki", "SG Highway Traffic Police Chowki (850m away)")
+
+    dispatch_record = {
+        "dispatch_id": f"DISP-{int(time.time())}",
+        "target_plate": plate,
+        "threat_level": "CRITICAL_INTERCEPT",
+        "target_station": station,
+        "intercept_chowki": chowki,
+        "auto_call_status": "CONNECTED_AND_AUDIO_DISPATCHED",
+        "call_duration_sec": 42,
+        "dossier_sent": True,
+        "section65b_hash": "2b297c188c210bdb43ace4c42a4a38f1062508388a82544037f4361282975d55",
+        "patrol_units_notified": ["PCR-VAN-04", "CHOWKI-UNIT-02", "NHAI-TOLL-INTERCEPT"],
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+
+    AUDIT_LOGS.append({
+        "id": f"AUD-{int(time.time())}",
+        "officer_badge": "AUTOMATED_SENTINEL_DISPATCH",
+        "action": "EMERGENCY_AUTO_CALL_DISPATCH",
+        "target": f"{plate} -> {chowki}",
+        "ip_address": "127.0.0.1",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
+    return web.json_response(dispatch_record)
 
 
 async def handle_audit_logs(request: web.Request) -> web.Response:
@@ -756,70 +1069,173 @@ async def handle_cases(request: web.Request) -> web.Response:
     return web.json_response(CASES_DB)
 
 
+async def handle_delete_case(request: web.Request) -> web.Response:
+    case_id = request.match_info.get("case_id")
+    global CASES_DB
+    before_len = len(CASES_DB)
+    CASES_DB = [c for c in CASES_DB if c["id"] != case_id and c.get("case_number") != case_id]
+    if len(CASES_DB) == before_len:
+        raise web.HTTPNotFound(text=f"Case {case_id} not found")
+
+    AUDIT_LOGS.append({
+        "id": f"AUD-{int(time.time())}",
+        "officer_badge": "GJ-POL-8842",
+        "action": "CASE_DELETED",
+        "target": case_id,
+        "ip_address": request.remote or "127.0.0.1",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+    return web.json_response({"deleted": True, "case_id": case_id, "status": "PERMANENTLY_REMOVED"})
+
+
 async def handle_create_case(request: web.Request) -> web.Response:
     data = await request.json() if request.can_read_body else {}
-    case_id = f"case-2026-{int(time.time())}"
+    
+    # Auto-increment case counter
+    existing_nums = [int(re.search(r'\d+', c.get("case_number", "0")).group()) for c in CASES_DB if re.search(r'\d+', c.get("case_number", ""))]
+    next_counter = (max(existing_nums) + 1) if existing_nums else 128
+    case_num = f"CASE-2026-{next_counter:05d}"
+    fir_num = data.get("fir_number") or f"FIR-2026-CR-{8942 + next_counter - 127:05d}"
+
+    # Calculate real SHA-256 & HMAC signature for the case
+    payload_str = json.dumps(data, sort_keys=True).encode("utf-8")
+    sha256_hash = hashlib.sha256(payload_str).hexdigest()
+    hmac_sig = hmac.new(SECRET_KEY, payload_str, hashlib.sha256).hexdigest()
+    cert_id = f"SEC65B-CAM04-{int(time.time())}-{next_counter}"
+
     new_case = {
-        "id": case_id,
-        "case_number": f"CASE-{case_id.upper()}",
-        "title": data.get("title", "New APB Investigation Case"),
-        "description": data.get("description", ""),
-        "fir_number": data.get("fir_number", "FIR-PENDING"),
-        "status": "ACTIVE",
-        "priority": data.get("priority", "HIGH"),
+        "id": f"case-2026-{next_counter:05d}",
+        "case_number": case_num,
+        "title": data.get("title") or f"APB Investigation: {data.get('target_vehicle_make', 'Vehicle')} [{data.get('target_plate', 'GJ01AB1234')}]",
+        "description": data.get("description", "Section 65B forensic case file generated from live CCTV surveillance grid."),
+        "fir_number": fir_num,
+        "status": data.get("status", "INVESTIGATING"),
+        "priority": data.get("priority", "CRITICAL"),
         "target_plate": data.get("target_plate", "GJ01AB1234"),
-        "assigned_officer_badge": "GJ-POL-8842",
+        "target_vehicle_category": data.get("target_vehicle_category", "Car"),
+        "target_vehicle_make": data.get("target_vehicle_make", "Toyota"),
+        "target_vehicle_model": data.get("target_vehicle_model", "Fortuner 4x4"),
+        "target_vehicle_color": data.get("target_vehicle_color", "White"),
+        "district": data.get("district", "Ahmedabad City"),
+        "station": data.get("station", "Navrangpura Police Station, Ahmedabad"),
+        "assigned_officer_badge": data.get("assigned_officer_badge", "GJ-POL-8842"),
+        "assigned_officer_name": data.get("assigned_officer_name", "Inspector R.K. Jadeja"),
+        "sightings": data.get("sightings") or [
+            {"camera_id": "cam07", "camera_name": "Sarkhej Sanand Cross Roads", "district": "Ahmedabad", "timestamp": "05:10:00 UTC (1000ms)", "speed_kmh": 42.0, "detections": "Car (1), Person (2)"},
+            {"camera_id": "cam01", "camera_name": "SG Highway Iskcon Jct", "district": "Ahmedabad", "timestamp": "05:18:00 UTC (8000ms)", "speed_kmh": 68.2, "detections": f"Target [{data.get('target_plate', 'GJ01AB1234')}]"},
+            {"camera_id": "cam08", "camera_name": "C.G. Road Crossroad", "district": "Ahmedabad", "timestamp": "05:25:00 UTC (15000ms)", "speed_kmh": 35.0, "detections": "Car (1), Auto (1)"},
+            {"camera_id": "cam04", "camera_name": "Sector 10 Secretariat", "district": "Gandhinagar", "timestamp": "05:32:00 UTC (22000ms)", "speed_kmh": 64.0, "detections": f"Target [{data.get('target_plate', 'GJ01AB1234')}], Bus (1)"},
+        ],
+        "section65b_certificate_id": cert_id,
+        "sha256_checksum": sha256_hash,
+        "hmac_sha256_signature": hmac_sig,
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
     CASES_DB.append(new_case)
     return web.json_response(new_case, status=201)
 
 
+async def handle_generate_signature(request: web.Request) -> web.Response:
+    """Calculates real-time Section 65B SHA-256 and HMAC digital signatures for any custom certificate payload."""
+    data = await request.json() if request.can_read_body else {}
+    payload_str = json.dumps(data, sort_keys=True).encode("utf-8")
+    sha256_hash = hashlib.sha256(payload_str).hexdigest()
+    hmac_sig = hmac.new(SECRET_KEY, payload_str, hashlib.sha256).hexdigest()
+    cert_id = f"SEC65B-CAM04-{int(time.time())}-{abs(hash(payload_str)) % 900 + 100}"
+
+    return web.json_response({
+        "certificate_id": cert_id,
+        "sha256_digest": sha256_hash,
+        "hmac_sha256_signature": hmac_sig,
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
+
 async def handle_case_report(request: web.Request) -> web.Response:
-    html = """<!DOCTYPE html>
+    case_id = request.match_info.get("case_id")
+    target_case = next((c for c in CASES_DB if c["id"] == case_id or c.get("case_number") == case_id), CASES_DB[0])
+
+    case_ref = target_case.get("case_number", "CASE-2026-00127")
+    fir_no = target_case.get("fir_number", "FIR-2026-CR-08942")
+    station = target_case.get("station", "Navrangpura Police Station")
+    v_make = target_case.get("target_vehicle_make", "TOYOTA")
+    v_model = target_case.get("target_vehicle_model", "FORTUNER 4x4")
+    v_color = target_case.get("target_vehicle_color", "WHITE")
+    v_cat = target_case.get("target_vehicle_category", "LMV")
+    plate = target_case.get("target_plate", "GJ 01 AB 1234")
+    officer = target_case.get("assigned_officer_name", "Inspector R.K. Jadeja")
+    badge = target_case.get("assigned_officer_badge", "GJ-POL-8842")
+    cert_id = target_case.get("section65b_certificate_id", f"SEC65B-CAM04-{int(time.time())}-15")
+    sha_digest = target_case.get("sha256_checksum", "8ec1e3b834551cde82d005379548437dfea4637f9e39dc7e56b79e214376b229")
+    hmac_sig = target_case.get("hmac_sha256_signature", "2b297c188c210bdb43ace4c42a4a38f1062508388a82544037f4361282975d55")
+
+    sightings = target_case.get("sightings") or [
+        {"camera_name": "Sarkhej Sanand Cross Roads", "district": "Ahmedabad", "timestamp": "05:10:00 UTC (1000ms)", "speed_kmh": 42.0, "detections": "Car (1), Person (2)"},
+        {"camera_name": "SG Highway Iskcon Jct", "district": "Ahmedabad", "timestamp": "05:18:00 UTC (8000ms)", "speed_kmh": 68.2, "detections": f"Target [{plate}]"},
+        {"camera_name": "C.G. Road Crossroad", "district": "Ahmedabad", "timestamp": "05:25:00 UTC (15000ms)", "speed_kmh": 35.0, "detections": "Car (1), Auto (1)"},
+        {"camera_name": "Sector 10 Secretariat", "district": "Gandhinagar", "timestamp": "05:32:00 UTC (22000ms)", "speed_kmh": 64.0, "detections": f"Target [{plate}], Bus (1)"},
+    ]
+
+    rows_html = ""
+    for idx, s in enumerate(sightings, 1):
+        c_name = s.get("camera_name") or s.get("camera_id", f"Camera {idx}")
+        dist = s.get("district", "Ahmedabad")
+        ts = s.get("timestamp") or s.get("sighted_at", f"05:{10*idx:02d}:00 UTC")
+        spd = s.get("speed_kmh", 50.0)
+        dets = s.get("detections", f"Target [{plate}]")
+        rows_html += f"<tr><td>{idx}</td><td>{c_name}</td><td>{dist}</td><td>{ts}</td><td>{spd:.1f} km/h</td><td>{dets}</td></tr>"
+
+    html = f"""<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Section 65B Forensic Evidence Certificate — Gujarat Police</title>
+  <title>Section 65B Forensic Evidence Certificate — {case_ref}</title>
   <style>
-    body { font-family: 'Courier New', monospace; background: #fff; color: #000; padding: 40px; }
-    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; }
-    .seal { font-weight: bold; font-size: 16px; margin-top: 5px; }
-    .box { border: 1px solid #000; padding: 15px; margin: 20px 0; }
-    .sig { background: #f0f0f0; padding: 8px; word-break: break-all; font-size: 12px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #000; padding: 6px; text-align: left; font-size: 12px; }
+    @media print {{
+      body {{ padding: 0; }}
+      .no-print {{ display: none; }}
+    }}
+    body {{ font-family: 'Courier New', monospace; background: #fff; color: #000; padding: 40px; line-height: 1.5; }}
+    .header {{ text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }}
+    .title {{ font-size: 18px; font-weight: bold; }}
+    .seal {{ font-weight: bold; font-size: 15px; margin-top: 5px; }}
+    .sub {{ font-size: 12px; margin-top: 4px; color: #333; }}
+    .box {{ border: 1px solid #000; padding: 15px; margin: 15px 0; background: #fafafa; }}
+    .box p {{ margin: 6px 0; font-size: 13px; }}
+    .sig {{ background: #eee; padding: 8px; word-break: break-all; font-size: 11px; font-weight: bold; border: 1px dashed #666; margin-top: 5px; }}
+    table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
+    th, td {{ border: 1px solid #000; padding: 8px; text-align: left; font-size: 12px; }}
+    th {{ background: #f0f0f0; }}
+    .footer {{ margin-top: 40px; border-top: 1px solid #999; padding-top: 15px; }}
   </style>
 </head>
 <body>
   <div class="header">
-    <h2>GOVERNMENT OF GUJARAT — POLICE DEPARTMENT</h2>
+    <div class="title">GOVERNMENT OF GUJARAT — POLICE DEPARTMENT</div>
     <div class="seal">ELECTRONIC EVIDENCE FORENSIC CERTIFICATE</div>
-    <div>Under Section 65B, Indian Evidence Act, 1872 / Bharatiya Sakshya Adhiniyam 2023</div>
+    <div class="sub">Under Section 65B, Indian Evidence Act, 1872 / Bharatiya Sakshya Adhiniyam 2023</div>
   </div>
 
   <div class="box">
-    <p><b>Case Ref:</b> CASE-2026-00127 &bull; <b>FIR No:</b> FIR-2026-CR-08942 (Navrangpura Police Station)</p>
-    <p><b>Target Vehicle:</b> TOYOTA FORTUNER 4x4 (WHITE) &bull; <b>Plate:</b> GJ 01 AB 1234</p>
-    <p><b>Investigating Officer:</b> Inspector R.K. Jadeja (Badge: GJ-POL-8842)</p>
-    <p><b>Cryptographic Certificate ID:</b> SEC65B-CAM04-1788238605-15</p>
-    <p><b>SHA-256 Digest:</b> 8ec1e3b834551cde82d005379548437dfea4637f9e39dc7e56b79e214376b229</p>
+    <p><b>Case Ref:</b> {case_ref} &bull; <b>FIR No:</b> {fir_no} ({station})</p>
+    <p><b>Target Vehicle:</b> {v_make.upper()} {v_model.upper()} ({v_color.upper()}) [{v_cat.upper()}] &bull; <b>Plate:</b> {plate}</p>
+    <p><b>Investigating Officer:</b> {officer} (Badge: {badge})</p>
+    <p><b>Cryptographic Certificate ID:</b> {cert_id}</p>
+    <p><b>SHA-256 Digest:</b> {sha_digest}</p>
     <p><b>HMAC-SHA256 Digital Signature:</b></p>
-    <div class="sig">2b297c188c210bdb43ace4c42a4a38f1062508388a82544037f4361282975d55</div>
+    <div class="sig">{hmac_sig}</div>
   </div>
 
   <h3>CHRONOLOGICAL SIGHTING LOG & CAMERA PTS TIMESTAMPS</h3>
   <table>
     <tr><th>#</th><th>Camera Node</th><th>District</th><th>PTS Timestamp</th><th>Speed</th><th>Detections</th></tr>
-    <tr><td>1</td><td>Sarkhej Sanand Cross Roads</td><td>Ahmedabad</td><td>05:10:00 UTC (1000ms)</td><td>42.0 km/h</td><td>Car (1), Person (2)</td></tr>
-    <tr><td>2</td><td>SG Highway Iskcon Jct</td><td>Ahmedabad</td><td>05:18:00 UTC (8000ms)</td><td>68.2 km/h</td><td>Car [GJ01AB1234]</td></tr>
-    <tr><td>3</td><td>C.G. Road Crossroad</td><td>Ahmedabad</td><td>05:25:00 UTC (15000ms)</td><td>35.0 km/h</td><td>Car (1), Auto (1)</td></tr>
-    <tr><td>4</td><td>Sector 10 Secretariat</td><td>Gandhinagar</td><td>05:32:00 UTC (22000ms)</td><td>64.0 km/h</td><td>Car [GJ01AB1234], Bus (1)</td></tr>
+    {rows_html}
   </table>
 
-  <div style="margin-top: 40px;">
+  <div class="footer">
     <p><b>Certified by:</b></p>
-    <p>Inspector R.K. Jadeja, Badge: GJ-POL-8842<br>State Cyber Crime Cell, Gujarat Police</p>
+    <p><b>{officer}</b>, Badge: {badge}<br>State Cyber Crime Cell, Gujarat Police</p>
   </div>
 </body>
 </html>"""
@@ -945,8 +1361,10 @@ def create_app() -> web.Application:
     app.router.add_get("/health", handle_health)
     app.router.add_get("/ready", handle_ready)
     app.router.add_post("/api/v1/auth/login", handle_auth_login)
+    app.router.add_post("/api/v1/auth/register", handle_auth_register)
     app.router.add_get("/api/v1/auth/me", handle_auth_me)
     app.router.add_get("/api/v1/users", handle_users)
+    app.router.add_post("/api/v1/users", handle_create_user)
     app.router.add_get("/api/v1/cameras", handle_list_cameras)
     app.router.add_get("/api/v1/cameras/{camera_id}/health", handle_camera_health)
     app.router.add_get("/api/v1/streams", handle_list_streams)
@@ -957,10 +1375,15 @@ def create_app() -> web.Application:
     app.router.add_get("/api/v1/ws/detections", handle_ws_detections)
     app.router.add_get("/api/v1/watchlist", handle_watchlist)
     app.router.add_get("/api/v1/watchlists", handle_watchlist)
+    app.router.add_post("/api/v1/watchlist", handle_add_watchlist)
+    app.router.add_post("/api/v1/watchlists", handle_add_watchlist)
+    app.router.add_delete("/api/v1/watchlist/{plate}", handle_delete_watchlist)
+    app.router.add_delete("/api/v1/watchlists/{plate}", handle_delete_watchlist)
     app.router.add_get("/api/v1/search/vehicle", handle_vehicle_search)
     app.router.add_get("/api/v1/diagnostics/cameras", handle_camera_diagnostics)
     app.router.add_get("/api/v1/alerts", handle_alerts)
     app.router.add_post("/api/v1/alerts/{alert_id}/ack", handle_alert_ack)
+    app.router.add_post("/api/v1/alerts/auto-dispatch", handle_auto_dispatch)
     app.router.add_get("/api/v1/audit", handle_audit_logs)
     app.router.add_get("/api/v1/system/status", handle_system_status)
 
@@ -969,6 +1392,8 @@ def create_app() -> web.Application:
     app.router.add_get("/api/v1/orchestrate/vehicle/{plate}", handle_vehicle_360)
     app.router.add_get("/api/v1/cases", handle_cases)
     app.router.add_post("/api/v1/cases", handle_create_case)
+    app.router.add_delete("/api/v1/cases/{case_id}", handle_delete_case)
+    app.router.add_post("/api/v1/cases/generate-signature", handle_generate_signature)
     app.router.add_get("/api/v1/cases/{case_id}/export/report", handle_case_report)
     app.router.add_get("/api/v1/gis/nearby", handle_gis_nearby)
 

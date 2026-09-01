@@ -58,6 +58,12 @@ export const casesApi = {
     });
   },
 
+  deleteCase: async (caseId: string): Promise<{ deleted: boolean; case_id: string }> => {
+    return apiClient<{ deleted: boolean; case_id: string }>(`/api/v1/cases/${caseId}`, {
+      method: 'DELETE',
+    });
+  },
+
   exportReportUrl: (caseId: string) => `http://localhost:8000/api/v1/cases/${caseId}/export/report`,
   exportJsonUrl: (caseId: string) => `http://localhost:8000/api/v1/cases/${caseId}/export/json`,
   exportCsvUrl: (caseId: string) => `http://localhost:8000/api/v1/cases/${caseId}/export/csv`,

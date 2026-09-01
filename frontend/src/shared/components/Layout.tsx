@@ -1,10 +1,19 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
 import { Topbar } from './Topbar';
 import { Sidebar } from './Sidebar';
 import { ContextDrawer } from './ContextDrawer';
+import { CommandPalette } from './CommandPalette';
+import { EmergencyInterceptBanner } from './EmergencyInterceptBanner';
+import { useAuthStore } from '../../core/auth/authStore';
 
 export const Layout: React.FC = () => {
+  const { isAuthenticated } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-sentinel-950 text-slate-100 flex flex-col font-sans">
       <Topbar />
@@ -15,6 +24,8 @@ export const Layout: React.FC = () => {
         </main>
         <ContextDrawer />
       </div>
+      <CommandPalette />
+      <EmergencyInterceptBanner />
     </div>
   );
 };

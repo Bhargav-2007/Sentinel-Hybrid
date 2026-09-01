@@ -84,11 +84,11 @@ class Settings(BaseSettings):
     MODEL4_LOCAL_URL: str = "http://localhost:8004/api/v1"
 
     # ── Official Sentinel Sandbox Camera Integration ──
-    SENTINEL_SANDBOX_HOST: str = "live.corp8.cloud"
-    SENTINEL_RTSP_BASE: str = "rtsp://live.corp8.cloud:8554/stream"
-    SENTINEL_WHEP_BASE: str = "http://live.corp8.cloud:8889/stream"
-    SENTINEL_HLS_BASE: str = "https://live.corp8.cloud/live/stream"
-    SENTINEL_CATALOGUE_URL: str = "http://live.corp8.cloud/api/ingest"
+    SENTINEL_SANDBOX_HOST: str = "103.250.160.189"
+    SENTINEL_RTSP_BASE: str = "rtsp://103.250.160.189:8554/stream"
+    SENTINEL_WHEP_BASE: str = "http://103.250.160.189:8889/stream"
+    SENTINEL_HLS_BASE: str = "https://cctv.corp8.cloud"
+    SENTINEL_CATALOGUE_URL: str = "https://cctv.corp8.cloud/cameras.json"
     
     # ── Rate Limiting (Cybersecurity) ──
     RATE_LIMIT_PER_MINUTE: int = 120

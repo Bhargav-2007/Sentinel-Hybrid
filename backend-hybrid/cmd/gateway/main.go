@@ -149,6 +149,14 @@ func main() {
 	mountProxy("/api/v1/alerts", cfg.Orchestrator)
 	mountProxy("/api/v1/watchlists", cfg.Orchestrator)
 	mountProxy("/api/v1/auth", cfg.Orchestrator)
+	mountProxy("/api/v1/users", cfg.Orchestrator)
+	mountProxy("/api/v1/search", cfg.Orchestrator)
+	mountProxy("/api/v1/diagnostics", cfg.Orchestrator)
+	mountProxy("/api/v1/system", cfg.Orchestrator)
+	mountProxy("/api/v1/ai", cfg.Orchestrator)
+	mountProxy("/api/v1/cross-department", cfg.Orchestrator)
+	mountProxy("/api/v1/external-gateways", cfg.Orchestrator)
+	mountProxy("/api/v1/metrics/performance", cfg.Orchestrator)
 
 	// Model 2: Unified Viewer & ANPR
 	mountProxy("/api/v1/anpr", cfg.Model2)

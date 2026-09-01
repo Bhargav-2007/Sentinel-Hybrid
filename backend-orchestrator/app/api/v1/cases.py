@@ -107,3 +107,51 @@ async def attach_case_evidence(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Case {case_id} not found.")
     return case
+
+
+@router.get("/{case_id}/export/json")
+async def export_case_as_json(
+    case_id: str,
+    db: AsyncSession = Depends(get_db),
+    officer: Officer = Depends(get_current_officer),
+):
+    """Exports full case dossier and cryptographic chain-of-custody as structured JSON."""
+    case = await case_service.get_case_by_id(db, case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Case {case_id} not found.")
+    return case_service.export_case_json(case)
+
+
+@router.get("/{case_id}/export/csv")
+async def export_case_as_csv(
+    case_id: str,
+    db: AsyncSession = Depends(get_db),
+    officer: Officer = Depends(get_current_officer),
+):
+    """Exports all sightings and checkpoints for this case as CSV."""
+    from fastapi.responses import Response
+    case = await case_service.get_case_by_id(db, case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Case {case_id} not found.")
+    csv_data = case_service.export_case_csv(case)
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="case_{case.case_number}_sightings.csv"'}
+    )
+
+
+@router.get("/{case_id}/export/report")
+async def export_case_as_html_report(
+    case_id: str,
+    db: AsyncSession = Depends(get_db),
+    officer: Officer = Depends(get_current_officer),
+):
+    """Exports official, printable Section 65B Certified Forensic Legal Evidence Certificate (HTML/Print)."""
+    from fastapi.responses import HTMLResponse
+    case = await case_service.get_case_by_id(db, case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Case {case_id} not found.")
+    html_content = case_service.export_case_html_report(case)
+    return HTMLResponse(content=html_content)
+

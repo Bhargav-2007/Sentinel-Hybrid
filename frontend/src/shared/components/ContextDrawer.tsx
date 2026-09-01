@@ -1,206 +1,181 @@
 import React from 'react';
+import { X, ShieldAlert, Car, MapPin, Calendar, Clock, Download, PlusCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useContextDrawerStore } from '../../core/context/contextDrawerStore';
-import { 
-  X, 
-  Camera as CameraIcon, 
-  Car, 
-  ShieldAlert, 
-  Activity, 
-  ArrowRight, 
-  ExternalLink, 
-  Radio, 
-  CheckCircle2, 
-  FileCheck,
-  Search,
-  Tv2
-} from 'lucide-react';
+import { useUIStore } from '../../stores/uiStore';
+import { useAuthStore } from '../../core/auth/authStore';
+import { hasPermission, PERMISSIONS } from '../../core/auth/permissions';
+import { MapView } from './MapView';
 
 export const ContextDrawer: React.FC = () => {
+  const { isContextDrawerOpen, contextData, closeContextDrawer } = useUIStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
-  const { 
-    isOpen, 
-    type, 
-    selectedCamera, 
-    selectedAlert, 
-    selectedPlate, 
-    selectedIncidentId, 
-    closeDrawer,
-    openVehicleDrawer
-  } = useContextDrawerStore();
 
-  if (!isOpen) return null;
+  if (!isContextDrawerOpen || !contextData) return null;
+
+  const plate = contextData.plate || contextData.detection?.license_plate?.plate_number || 'GJ01AB1234';
+  const isWanted = plate === 'GJ01AB1234' || plate === 'GJ09SS4567';
+  const camName = contextData.camera?.name || contextData.detection?.camera_name || 'SG Highway Iskcon Jct';
+  const lat = contextData.camera?.location?.latitude || 23.0298;
+  const lng = contextData.camera?.location?.longitude || 72.5074;
+
+  const canExport = hasPermission(user?.role, PERMISSIONS.EXPORT_SECTION_65B_EVIDENCE);
+  const canCreateCase = hasPermission(user?.role, PERMISSIONS.CREATE_CASE);
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-96 bg-[#080d1a] border-l border-slate-800 shadow-2xl flex flex-col font-mono text-xs select-none animate-in slide-in-from-right duration-200">
+    <aside className="w-96 bg-sentinel-900/98 backdrop-blur border-l border-slate-800 flex flex-col justify-between h-[calc(100vh-4rem)] fixed right-0 top-16 z-40 shadow-2xl p-4 overflow-y-auto animate-in slide-in-from-right duration-200">
       {/* Header */}
-      <div className="h-14 border-b border-slate-800 px-4 flex items-center justify-between bg-slate-900/60">
-        <div className="flex items-center gap-2">
-          {type === 'CAMERA' && <CameraIcon className="w-4 h-4 text-cyan-400" />}
-          {type === 'VEHICLE' && <Car className="w-4 h-4 text-yellow-300" />}
-          {type === 'ALERT' && <ShieldAlert className="w-4 h-4 text-red-400" />}
-          {type === 'INCIDENT' && <Activity className="w-4 h-4 text-amber-400" />}
-          <span className="font-bold text-slate-100 uppercase tracking-wider">
-            {type} CONTEXT DOSSIER
-          </span>
+      <div>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <Car className="w-5 h-5 text-cyber-cyan" />
+            <h3 className="font-mono font-bold text-sm text-white">Target Context Panel</h3>
+          </div>
+          <button
+            onClick={closeContextDrawer}
+            className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <button 
-          onClick={closeDrawer}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+
+        {/* Plate & Criminal Threat Badge */}
+        <div className="mt-4 p-3 rounded bg-slate-950 border border-slate-800 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono text-slate-400">DETECTED LICENSE PLATE</span>
+            <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+              isWanted ? 'bg-cyber-crimson/20 border border-cyber-crimson text-cyber-crimson' : 'bg-emerald-950 text-emerald-400'
+            }`}>
+              {isWanted ? 'THREAT SCORE: 95/100' : 'CLEAN: 15/100'}
+            </span>
+          </div>
+
+          <div className="p-2 rounded bg-black border-2 border-slate-700 text-center font-mono font-extrabold text-xl text-yellow-400 tracking-widest shadow-inner">
+            {plate}
+          </div>
+
+          <div className="flex items-center justify-between text-xs font-mono text-slate-300 pt-1">
+            <span>OCR Confidence: <b className="text-emerald-400">98.4%</b></span>
+            <span>Type: <b className="text-cyber-cyan">Car (SUV)</b></span>
+          </div>
+        </div>
+
+        {/* eGujCop Criminal Record Status */}
+        <div className={`mt-3 p-3 rounded border ${
+          isWanted ? 'bg-red-950/40 border-cyber-crimson/60 text-red-200' : 'bg-slate-950/60 border-slate-800 text-slate-300'
+        }`}>
+          <div className="flex items-center gap-2 font-mono text-xs font-bold mb-1">
+            {isWanted ? <ShieldAlert className="w-4 h-4 text-cyber-crimson" /> : <ShieldCheck className="w-4 h-4 text-emerald-400" />}
+            <span>{isWanted ? 'eGujCop Stolen Vehicle Hotlist' : 'eGujCop CCTNS Record'}</span>
+          </div>
+
+          {isWanted ? (
+            <div className="text-[11px] font-mono space-y-1 mt-2 text-slate-300">
+              <p><b className="text-slate-400">FIR No:</b> FIR-2026-CR-08942</p>
+              <p><b className="text-slate-400">Station:</b> Navrangpura Police Station</p>
+              <p><b className="text-slate-400">Sections:</b> IPC 379, BNS Section 303 (Theft)</p>
+              <p><b className="text-slate-400">Investigator:</b> Inspector R.K. Jadeja (Badge GJ-POL-8842)</p>
+            </div>
+          ) : (
+            <p className="text-[11px] font-mono text-slate-400">No active warrants or FIR records found for this plate.</p>
+          )}
+        </div>
+
+        {/* VAHAN 4.0 Specifications */}
+        <div className="mt-3 p-3 rounded bg-slate-950 border border-slate-800 text-xs font-mono space-y-1.5">
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+            VAHAN 4.0 National Registry
+          </div>
+          <div className="flex justify-between text-slate-300">
+            <span className="text-slate-500">Owner:</span>
+            <span>State Registered Citizen</span>
+          </div>
+          <div className="flex justify-between text-slate-300">
+            <span className="text-slate-500">Make / Model:</span>
+            <span className="text-cyber-cyan">Toyota Fortuner 4x4</span>
+          </div>
+          <div className="flex justify-between text-slate-300">
+            <span className="text-slate-500">RTO Location:</span>
+            <span>RTO Ahmedabad (GJ-01)</span>
+          </div>
+          <div className="flex justify-between text-slate-300">
+            <span className="text-slate-500">Insurance:</span>
+            <span className="text-emerald-400">Valid upto 2027</span>
+          </div>
+        </div>
+
+        {/* Mini Radar Map */}
+        <div className="mt-3">
+          <div className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span>Sighting Location</span>
+            <span className="text-cyber-cyan">{camName}</span>
+          </div>
+          <div className="h-36 rounded overflow-hidden border border-slate-800">
+            <MapView
+              center={[lat, lng]}
+              zoom={13}
+              cameras={[
+                {
+                  camera_id: 'ACTIVE_TARGET',
+                  name: camName,
+                  department_id: 'POLICE',
+                  location: { latitude: lat, longitude: lng, district: 'Ahmedabad' },
+                  camera_type: 'bullet',
+                  protocol: 'rtsp',
+                  rtsp_url: '',
+                  vendor: 'Hikvision',
+                  codec: 'h264',
+                  resolution: '1920x1080',
+                  frame_rate: 25,
+                  status: 'ONLINE',
+                  is_public_domain: true,
+                  tags: [],
+                },
+              ]}
+              height="h-36"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="pt-4 border-t border-slate-800 space-y-2">
+        <button
+          onClick={() => {
+            closeContextDrawer();
+            navigate(`/investigate?plate=${plate}`);
+          }}
+          className="w-full py-2 px-3 rounded bg-cyber-blue hover:bg-cyber-cyan hover:text-black text-white font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md"
         >
-          <X className="w-4 h-4" />
+          <span>Track in Investigation</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
-      </div>
 
-      {/* Drawer Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* CAMERA CONTEXT */}
-        {type === 'CAMERA' && selectedCamera && (
-          <div className="space-y-4">
-            {/* Live Video Preview Box */}
-            <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-slate-800 group">
-              <video
-                src={`https://live.corp8.cloud/stream/${selectedCamera.stream_id || selectedCamera.id || '1'}`}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-2 left-2 bg-slate-950/80 px-2 py-0.5 rounded text-[10px] text-emerald-400 font-bold border border-slate-700 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                <span>● LIVE WAN NODE</span>
-              </div>
-            </div>
-
-            {/* Camera Metadata Card */}
-            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between border-b border-slate-900 pb-2">
-                <span className="text-[10px] text-slate-500">CAMERA CODE</span>
-                <span className="font-bold text-cyan-300">{selectedCamera.camera_code}</span>
-              </div>
-              <div className="flex items-center justify-between border-b border-slate-900 pb-2">
-                <span className="text-[10px] text-slate-500">LOCATION</span>
-                <span className="text-slate-200 truncate">{selectedCamera.name}</span>
-              </div>
-              <div className="flex items-center justify-between border-b border-slate-900 pb-2">
-                <span className="text-[10px] text-slate-500">DEPARTMENT</span>
-                <span className="text-slate-300">{selectedCamera.department_id}</span>
-              </div>
-              <div className="flex items-center justify-between border-b border-slate-900 pb-2">
-                <span className="text-[10px] text-slate-500">RESOLUTION & FPS</span>
-                <span className="text-slate-300">{selectedCamera.resolution || '1080p'} @ {selectedCamera.fps || 25}fps</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-slate-500">COORDINATES</span>
-                <span className="text-slate-400 text-[10px]">{selectedCamera.latitude}, {selectedCamera.longitude}</span>
-              </div>
-            </div>
-
-            {/* AI Capabilities */}
-            <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">AI PIPELINES ACTIVE</span>
-              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                <span className="bg-cyan-950 border border-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded text-[10px]">ANPR ●</span>
-                <span className="bg-emerald-950 border border-emerald-500/40 text-emerald-300 px-2 py-0.5 rounded text-[10px]">VEHICLE ●</span>
-                <span className="bg-purple-950 border border-purple-500/40 text-purple-300 px-2 py-0.5 rounded text-[10px]">PERSON ●</span>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="grid grid-cols-2 gap-2 pt-2">
-              <button
-                onClick={() => {
-                  closeDrawer();
-                  navigate(`/live?focus=${selectedCamera.id}`);
-                }}
-                className="py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition-colors flex items-center justify-center gap-1"
-              >
-                <Tv2 className="w-3.5 h-3.5" />
-                <span>EXPAND LIVE</span>
-              </button>
-              <button
-                onClick={() => {
-                  closeDrawer();
-                  navigate(`/investigate/vehicle?cam=${selectedCamera.id}`);
-                }}
-                className="py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold transition-colors flex items-center justify-center gap-1"
-              >
-                <Search className="w-3.5 h-3.5 text-cyan-400" />
-                <span>TRACE SIGHTINGS</span>
-              </button>
-            </div>
-          </div>
+        {canCreateCase && (
+          <button
+            onClick={() => {
+              closeContextDrawer();
+              navigate(`/cases?create=true&plate=${plate}`);
+            }}
+            className="w-full py-2 px-3 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-semibold flex items-center justify-center gap-2 transition-colors border border-slate-700"
+          >
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Create Police Case Dossier</span>
+          </button>
         )}
 
-        {/* VEHICLE CONTEXT */}
-        {type === 'VEHICLE' && (
-          <div className="space-y-4">
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-center">
-              <span className="text-[10px] text-slate-500">TARGET LICENSE REGISTRATION</span>
-              <div className="text-xl font-bold text-yellow-300 bg-yellow-950/60 py-1 px-3 rounded border border-yellow-500/40 inline-block">
-                {selectedPlate || 'GJ01AB1234'}
-              </div>
-              <div className="text-[11px] text-red-400 font-bold mt-1">● eGujCop Stolen Auto Hotlist Match</div>
-            </div>
-
-            <div className="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-2">
-              <span className="text-[10px] text-slate-400 font-bold uppercase">VAHAN Registry Summary</span>
-              <div className="space-y-1.5 pt-1 text-slate-300 text-[11px]">
-                <p>Owner: <strong className="text-slate-100">VIKRAMSINGH R. JADEJA</strong></p>
-                <p>Class: <strong>Toyota Fortuner (White SUV)</strong></p>
-                <p>Insurance: <strong className="text-emerald-400">Valid (2027-04-15)</strong></p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                closeDrawer();
-                navigate(`/investigate/vehicle?plate=${selectedPlate || 'GJ01AB1234'}`);
-              }}
-              className="w-full py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition-colors flex items-center justify-center gap-2"
-            >
-              <Search className="w-4 h-4" />
-              <span>OPEN 360° VEHICLE INVESTIGATION</span>
-            </button>
-          </div>
-        )}
-
-        {/* ALERT CONTEXT */}
-        {type === 'ALERT' && selectedAlert && (
-          <div className="space-y-4">
-            <div className="bg-red-950/40 p-4 rounded-xl border border-red-500/50 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/40">
-                  {selectedAlert.severity}
-                </span>
-                <span className="font-bold text-yellow-300 bg-black/60 px-2 py-0.5 rounded border border-yellow-500/30">
-                  {selectedAlert.detected_plate}
-                </span>
-              </div>
-              <h3 className="font-bold text-slate-100 text-xs mt-1">{selectedAlert.title}</h3>
-              <p className="text-[11px] text-slate-300 font-sans">{selectedAlert.description}</p>
-            </div>
-
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-[11px]">
-              <span className="text-[10px] text-slate-500">LOCATION SIGHTED</span>
-              <p className="font-bold text-slate-200">{selectedAlert.camera_name}</p>
-              <p className="text-slate-400 text-[10px]">{selectedAlert.district}</p>
-            </div>
-
-            <button
-              onClick={() => {
-                closeDrawer();
-                navigate(`/alerts?id=${selectedAlert.id}`);
-              }}
-              className="w-full py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition-colors flex items-center justify-center gap-2"
-            >
-              <ArrowRight className="w-4 h-4" />
-              <span>OPEN INCIDENT TRIAGE</span>
-            </button>
-          </div>
+        {canExport && (
+          <a
+            href={`http://localhost:8000/api/v1/cases/case-2026-00127/export/report`}
+            target="_blank"
+            rel="noreferrer"
+            className="w-full py-2 px-3 rounded bg-slate-900 hover:bg-slate-800 text-cyber-cyan font-mono text-xs font-semibold flex items-center justify-center gap-2 transition-colors border border-cyber-cyan/30"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export Section 65B Certificate</span>
+          </a>
         )}
       </div>
-    </div>
+    </aside>
   );
 };

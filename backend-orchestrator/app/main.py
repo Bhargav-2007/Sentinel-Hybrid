@@ -120,6 +120,20 @@ metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
 
+@app.get("/soc", response_class=JSONResponse, include_in_schema=False)
+@app.get("/dashboard", include_in_schema=False)
+async def serve_soc_dashboard():
+    """Serves the Unified Gujarat Police Cyber Command & SOC Live Matrix Dashboard."""
+    from fastapi.responses import HTMLResponse
+    from pathlib import Path
+    dashboard_path = Path(__file__).resolve().parent.parent.parent / "backend-hybrid" / "cmd" / "gateway" / "index.html"
+    if dashboard_path.exists():
+        with open(dashboard_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    return HTMLResponse("<h2>Gujarat Sentinel SOC Dashboard loading...</h2>")
+
+
 @app.get("/", tags=["Health & Status"])
 async def root():
     """Platform identity and system descriptor."""
@@ -129,6 +143,7 @@ async def root():
         "environment": settings.ENVIRONMENT,
         "status": "OPERATIONAL",
         "jurisdiction": "Gujarat Police & 26 State Departments",
+        "soc_dashboard_url": "/dashboard",
         "documentation": "/docs",
         "api_v1_base": "/api/v1",
         "models_integrated": ["Model 1 (GIS :8001)", "Model 2 (ANPR :8002)", "Model 3 (VMS :8003)", "Model 4 (Trajectory :8004)"],

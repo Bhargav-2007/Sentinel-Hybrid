@@ -1,137 +1,64 @@
 import { create } from 'zustand';
-import { Officer, OfficerRole, AuthTokens } from '../../shared/types';
-import { apiClient } from '../api/client';
+import { OfficerUser, AuthTokens, UserRole } from '../types/auth';
 
 interface AuthState {
-  officer: Officer | null;
+  user: OfficerUser | null;
   tokens: AuthTokens | null;
   isAuthenticated: boolean;
-  isBreakGlassActive: boolean;
-  breakGlassExpiresAt: string | null;
-  login: (badge_number: string, security_key: string) => Promise<void>;
-  requestBreakGlass: (fir_number: string, incident_reason: string) => Promise<void>;
+  login: (user: OfficerUser, tokens: AuthTokens) => void;
   logout: () => void;
+  setRole: (role: UserRole) => void;
 }
 
-const initialTokens: AuthTokens | null = (() => {
-  const tokenStr = localStorage.getItem('sentinel_token');
-  if (tokenStr) {
-    try {
-      return JSON.parse(tokenStr);
-    } catch {
-      return null;
-    }
+const getStoredUser = (): OfficerUser | null => {
+  try {
+    const raw = localStorage.getItem('sentinel_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
   }
-  // Default operator demo credentials
-  return {
-    access_token: 'demo-jwt-token-2026',
+};
+
+const defaultOfficer: OfficerUser = {
+  id: 'dev-off-01',
+  badge_number: 'GJ-POL-8842',
+  full_name: 'Inspector R.K. Jadeja',
+  role: 'INVESTIGATOR',
+  rank: 'Police Inspector (PI)',
+  station: 'Navrangpura Police Station',
+  district: 'Ahmedabad City',
+  email: 'rk.jadeja@gujaratpolice.gov.in',
+  is_active: true,
+};
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: getStoredUser() || defaultOfficer,
+  tokens: {
+    access_token: localStorage.getItem('sentinel_access_token') || 'sentinel-prod-token',
+    refresh_token: 'sentinel-refresh-token',
     token_type: 'Bearer',
-    expires_in: 86400,
-    officer_id: 'POLICE-AHM-042',
-    badge_number: 'GJ-POL-8842',
-    role: 'DUTY_OFFICER',
-    district: 'Ahmedabad City',
-    department: 'Gujarat Police State Command',
-  };
-})();
-
-export const useAuthStore = create<AuthState>((set, get) => ({
-  officer: initialTokens ? {
-    id: 'off-042',
-    officer_id: initialTokens.officer_id,
-    badge_number: initialTokens.badge_number,
-    full_name: 'Inspector R.K. Jadeja',
-    role: initialTokens.role,
-    rank: 'Police Inspector (Control Room)',
-    station: 'Navrangpura Police Station',
-    district: initialTokens.district,
-    department_id: 'POLICE',
-    is_active: true,
-    is_break_glass: false,
-    created_at: new Date().toISOString(),
-  } : null,
-  tokens: initialTokens,
-  isAuthenticated: Boolean(initialTokens),
-  isBreakGlassActive: false,
-  breakGlassExpiresAt: null,
-
-  login: async (badge_number, security_key) => {
-    try {
-      const res = await apiClient<AuthTokens>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ badge_number, security_key }),
-      });
-      localStorage.setItem('sentinel_token', JSON.stringify(res));
-      set({
-        tokens: res,
-        isAuthenticated: true,
-        officer: {
-          id: 'off-custom',
-          officer_id: res.officer_id,
-          badge_number: res.badge_number,
-          full_name: `Officer ${res.badge_number}`,
-          role: res.role,
-          rank: res.role === 'ADMIN' ? 'State DGP / Administrator' : 'Inspector of Police',
-          station: 'Central Police Command SOC',
-          district: res.district,
-          department_id: 'POLICE',
-          is_active: true,
-          is_break_glass: false,
-          created_at: new Date().toISOString(),
-        },
-      });
-    } catch {
-      // Fallback
-      const role: OfficerRole = badge_number.startsWith('ADMIN') ? 'ADMIN' : 'DUTY_OFFICER';
-      const fallbackTokens: AuthTokens = {
-        access_token: `token-${Date.now()}`,
-        token_type: 'Bearer',
-        expires_in: 86400,
-        officer_id: badge_number,
-        badge_number,
-        role,
-        district: 'Ahmedabad City',
-        department: 'Gujarat Police',
-      };
-      localStorage.setItem('sentinel_token', JSON.stringify(fallbackTokens));
-      set({
-        tokens: fallbackTokens,
-        isAuthenticated: true,
-        officer: {
-          id: 'off-custom',
-          officer_id: badge_number,
-          badge_number,
-          full_name: badge_number === 'ADMIN-GND-001' ? 'Director General of Police' : 'Inspector R.K. Jadeja',
-          role,
-          rank: role === 'ADMIN' ? 'State DGP / Administrator' : 'Police Inspector',
-          station: 'State Police Command HQ',
-          district: 'Gandhinagar / Ahmedabad',
-          department_id: 'POLICE',
-          is_active: true,
-          is_break_glass: false,
-          created_at: new Date().toISOString(),
-        },
-      });
-    }
+    expires_in: 28800,
   },
+  isAuthenticated: true,
 
-  requestBreakGlass: async (fir_number, incident_reason) => {
-    const currentOff = get().officer;
-    set({
-      isBreakGlassActive: true,
-      breakGlassExpiresAt: new Date(Date.now() + 3600000).toISOString(),
-      officer: currentOff ? { ...currentOff, role: 'ADMIN', is_break_glass: true } : null,
-    });
+  login: (user, tokens) => {
+    localStorage.setItem('sentinel_user', JSON.stringify(user));
+    localStorage.setItem('sentinel_access_token', tokens.access_token);
+    set({ user, tokens, isAuthenticated: true });
   },
 
   logout: () => {
-    localStorage.removeItem('sentinel_token');
-    set({
-      officer: null,
-      tokens: null,
-      isAuthenticated: false,
-      isBreakGlassActive: false,
-      breakGlassExpiresAt: null,
+    localStorage.removeItem('sentinel_user');
+    localStorage.removeItem('sentinel_access_token');
+    set({ user: null, tokens: null, isAuthenticated: false });
+  },
+
+  setRole: (role: UserRole) => {
+    set((state) => {
+      if (!state.user) return state;
+      const updated = { ...state.user, role };
+      localStorage.setItem('sentinel_user', JSON.stringify(updated));
+      return { user: updated };
     });
   },
 }));

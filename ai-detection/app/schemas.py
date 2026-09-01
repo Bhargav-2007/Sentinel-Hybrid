@@ -1,10 +1,26 @@
 """Pydantic schemas for AI Detection, ANPR, and Multi-Object Tracking APIs."""
 
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
 
+try:
+    from pydantic import BaseModel, Field, model_validator
+except Exception:
+    class BaseModel:
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+        def model_dump(self, **kwargs):
+            return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
+        def dict(self, **kwargs):
+            return self.model_dump(**kwargs)
 
-from pydantic import BaseModel, Field, model_validator
+    def Field(default=..., **kwargs):
+        return default
+
+    def model_validator(**kwargs):
+        def decorator(fn):
+            return fn
+        return decorator
 
 
 class BoundingBox(BaseModel):

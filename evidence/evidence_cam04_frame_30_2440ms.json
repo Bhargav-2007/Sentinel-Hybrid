@@ -1,0 +1,114 @@
+{
+  "certificate_id": "SEC65B-CAM04-1788240316-30",
+  "camera_id": "cam04",
+  "frame_index": 30,
+  "presentation_timestamp_ms": 2440.0,
+  "system_capture_time_utc": "2026-09-01T05:25:16Z",
+  "image_file": "evidence_cam04_frame_30_2440ms.jpg",
+  "sha256_checksum": "d6cb5af8e072899bc0d31de6ecba0b77812a2251868b6efc7fd43e2db457a082",
+  "hmac_sha256_signature": "d4f77174040b0ff674afbe8f8900d639fd3ac2e53348ecb942bd8f7bc2c04aef",
+  "detections_count": 10,
+  "detections": [
+    {
+      "class": "person",
+      "confidence": 0.686,
+      "bbox": [
+        1818,
+        527,
+        1881,
+        690
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.685,
+      "bbox": [
+        543,
+        69,
+        748,
+        213
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.635,
+      "bbox": [
+        1059,
+        315,
+        1095,
+        403
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.585,
+      "bbox": [
+        1773,
+        548,
+        1829,
+        694
+      ]
+    },
+    {
+      "class": "motorcycle",
+      "confidence": 0.528,
+      "bbox": [
+        1507,
+        340,
+        1581,
+        417
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.459,
+      "bbox": [
+        1252,
+        199,
+        1321,
+        252
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.454,
+      "bbox": [
+        1378,
+        236,
+        1474,
+        300
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.439,
+      "bbox": [
+        448,
+        117,
+        548,
+        217
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.407,
+      "bbox": [
+        1683,
+        525,
+        1711,
+        587
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.357,
+      "bbox": [
+        1865,
+        574,
+        1919,
+        708
+      ]
+    }
+  ],
+  "compliance": "Section 65B Indian Evidence Act & Bharatiya Sakshya Adhiniyam (BSA) 2023"
+}

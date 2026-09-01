@@ -1,0 +1,74 @@
+{
+  "certificate_id": "SEC65B-CAM04-1788238605-15",
+  "camera_id": "cam04",
+  "frame_index": 15,
+  "presentation_timestamp_ms": 1560.0,
+  "system_capture_time_utc": "2026-09-01T04:56:45Z",
+  "image_file": "evidence_cam04_frame_15_1560ms.jpg",
+  "sha256_checksum": "38c47451c7064c2f5162b285cb6c005421989fedc9280b0db4509e692cd41845",
+  "hmac_sha256_signature": "b107138d03e8d0d6af29852d7e86b8bf6e76d59554060f49254d2df57a0c4f23",
+  "detections_count": 6,
+  "detections": [
+    {
+      "class": "car",
+      "confidence": 0.68,
+      "bbox": [
+        1422,
+        259,
+        1550,
+        336
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.639,
+      "bbox": [
+        1007,
+        160,
+        1073,
+        214
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.532,
+      "bbox": [
+        1228,
+        156,
+        1341,
+        266
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.501,
+      "bbox": [
+        595,
+        484,
+        670,
+        600
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.482,
+      "bbox": [
+        598,
+        485,
+        659,
+        575
+      ]
+    },
+    {
+      "class": "motorcycle",
+      "confidence": 0.454,
+      "bbox": [
+        553,
+        542,
+        752,
+        649
+      ]
+    }
+  ],
+  "compliance": "Section 65B Indian Evidence Act & Bharatiya Sakshya Adhiniyam (BSA) 2023"
+}

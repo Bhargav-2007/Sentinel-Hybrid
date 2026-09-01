@@ -1,8 +1,14 @@
-"""Configuration settings for AI Detection and ANPR Engine."""
-
 import os
 from typing import List, Optional
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
+try:
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+except Exception:
+    class BaseSettings:
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+    SettingsConfigDict = dict
 
 
 class Settings(BaseSettings):

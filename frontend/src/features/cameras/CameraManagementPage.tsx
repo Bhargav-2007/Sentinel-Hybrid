@@ -1,289 +1,151 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { cameraService } from '../../services/cameraService';
-import { Camera, CameraType } from '../../types/camera';
-import { 
-  Camera as CameraIcon, 
-  Plus, 
-  Search, 
-  DownloadCloud, 
-  ExternalLink
-} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Camera, RefreshCw, Eye, CheckCircle2, XCircle, Search, Filter } from 'lucide-react';
+import { camerasApi } from '../../core/api/camerasApi';
+import { useUIStore } from '../../stores/uiStore';
+import { CameraNode } from '../../core/types/camera';
 
 export const CameraManagementPage: React.FC = () => {
-  const queryClient = useQueryClient();
-  const [selectedDept, setSelectedDept] = useState<string>('ALL');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { openContextDrawer } = useUIStore();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [districtFilter, setDistrictFilter] = useState('ALL');
 
-  // Form State
-  const [newCam, setNewCam] = useState({
-    name: '',
-    camera_code: '',
-    location_name: '',
-    district: 'Ahmedabad City',
-    station: 'Navrangpura PS',
-    latitude: 23.0225,
-    longitude: 72.5714,
-    camera_type: 'ANPR' as CameraType,
-    vms_vendor: 'CORP8_LIVE_GATEWAY',
-    department_id: 'POLICE',
-    rtsp_url: '',
-    hls_url: '',
+  const { data: cameras = [], isLoading, refetch } = useQuery({
+    queryKey: ['cameras-grid', districtFilter],
+    queryFn: () => camerasApi.listCameras(districtFilter !== 'ALL' ? { district: districtFilter } : undefined),
   });
 
-  // 1. Fetch Cameras
-  const { data: cameras = [], isLoading } = useQuery({
-    queryKey: ['cameras', selectedDept, searchTerm],
-    queryFn: () => cameraService.listCameras({
-      department_id: selectedDept,
-      search: searchTerm,
-      limit: 50,
-    }),
-    refetchInterval: 15000,
-  });
-
-  const onboardMutation = useMutation({
-    mutationFn: () => cameraService.onboard50SandboxFeeds(),
-    onSuccess: (data: any) => {
-      alert(`Success: Onboarded ${data?.length || data?.count || 50} official Gujarat Sentinel feeds!`);
-      queryClient.invalidateQueries({ queryKey: ['cameras'] });
-    },
-  });
-
-  // 3. Create Camera Mutation
-  const createMutation = useMutation({
-    mutationFn: (data: Partial<Camera>) => cameraService.createCamera(data),
-    onSuccess: () => {
-      setIsAddModalOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['cameras'] });
-    },
-  });
-
-  const departments = [
-    { code: 'ALL', label: 'All Departments' },
-    { code: 'POLICE', label: 'Gujarat Police' },
-    { code: 'TRANSPORT_RTO', label: 'Transport / RTO' },
-    { code: 'MUNICIPALITY_AMC', label: 'AMC Smart City' },
-    { code: 'BORDER_SECURITY', label: 'Border Security' },
-    { code: 'FOREST_WILDLIFE', label: 'Forest & Wildlife' },
-  ];
+  const filtered = cameras.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.camera_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.location.district.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto select-none font-mono">
-      {/* Top Header & Actions */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-[#090e1a] p-4 rounded-2xl border border-slate-800 shadow-xl">
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="p-4 rounded bg-sentinel-900/90 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/20">
-            <CameraIcon className="w-5 h-5" />
+          <div className="p-2 rounded bg-cyber-blue/10 border border-cyber-blue/30 text-cyber-cyan">
+            <Camera className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-slate-100 tracking-wide">
-              VMS CAMERA INVENTORY & STREAM ONBOARDING
+            <h1 className="text-base font-bold font-mono text-white">
+              Statewide Camera Grid Management & Protocol Diagnostics
             </h1>
-            <p className="text-xs text-slate-400 font-sans">
-              Statewide CCTV Node Registry • PostGIS Spatial Coordinates • Multi-Vendor Federation
+            <p className="text-xs font-mono text-slate-400">
+              RTSP TCP Streams &bull; WebRTC/WHEP Low-Latency &bull; HLS Broadcast Feeds
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 w-full md:w-auto">
-          <button
-            onClick={() => onboardMutation.mutate()}
-            disabled={onboardMutation.isPending}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs tracking-wider transition-all shadow-md shadow-emerald-500/20"
-          >
-            <DownloadCloud className="w-4 h-4" />
-            <span>{onboardMutation.isPending ? 'ONBOARDING...' : 'SYNC 50 SANDBOX FEEDS'}</span>
-          </button>
-
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs tracking-wider transition-all shadow-md shadow-cyan-500/20"
-          >
-            <Plus className="w-4 h-4" />
-            <span>ADD CAMERA</span>
-          </button>
-        </div>
+        <button
+          onClick={() => refetch()}
+          className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-cyber-cyan font-mono text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-700"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>REFRESH HEALTH</span>
+        </button>
       </div>
 
-      {/* Department Tabs & Search Filter */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-        <div className="flex items-center gap-1.5 overflow-x-auto">
-          {departments.map((dept) => (
-            <button
-              key={dept.code}
-              onClick={() => setSelectedDept(dept.code)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                selectedDept === dept.code
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-sm shadow-cyan-500/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              {dept.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+      {/* Filters & Search */}
+      <div className="p-3 rounded bg-sentinel-900/60 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative w-full sm:w-72">
+          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search code, junction, district..."
-            className="w-full md:w-64 pl-8 pr-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            placeholder="Search Camera or Junction..."
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-700 rounded font-mono text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyber-cyan"
           />
         </div>
-      </div>
 
-      {/* Camera Inventory Table */}
-      <div className="bg-[#090e1a] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/90 text-slate-400 border-b border-slate-800">
-              <tr>
-                <th className="p-3.5">STATUS</th>
-                <th className="p-3.5">CAMERA CODE</th>
-                <th className="p-3.5">NAME / JUNCTION</th>
-                <th className="p-3.5">DISTRICT & POLICE STATION</th>
-                <th className="p-3.5">TYPE</th>
-                <th className="p-3.5">DEPARTMENT</th>
-                <th className="p-3.5">STREAM ENDPOINTS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60 font-sans">
-              {cameras.map((cam) => (
-                <tr key={cam.id} className="hover:bg-slate-900/40 transition-colors font-mono">
-                  <td className="p-3.5">
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={`w-2.5 h-2.5 rounded-full ${
-                          cam.status === 'ONLINE' ? 'bg-emerald-400' : 'bg-red-400'
-                        }`}
-                      />
-                      <span className="text-[11px] font-bold text-slate-300">{cam.status}</span>
-                    </div>
-                  </td>
-                  <td className="p-3.5 font-bold text-cyan-300">{cam.camera_code}</td>
-                  <td className="p-3.5">
-                    <div className="flex flex-col font-sans">
-                      <span className="font-bold text-slate-200">{cam.name}</span>
-                      <span className="text-[11px] text-slate-400">{cam.location_name}</span>
-                    </div>
-                  </td>
-                  <td className="p-3.5 text-slate-300 font-sans">
-                    {cam.district} • {cam.station || 'PS'}
-                  </td>
-                  <td className="p-3.5">
-                    <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold">
-                      {cam.camera_type}
-                    </span>
-                  </td>
-                  <td className="p-3.5 text-[11px] text-slate-400 font-sans">{cam.department_id}</td>
-                  <td className="p-3.5">
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={cam.hls_url || `https://live.corp8.cloud/live/stream/${cam.stream_id || cam.id}/index.m3u8`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[10px] bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded hover:bg-cyan-900 flex items-center gap-1"
-                      >
-                        <span>HLS</span>
-                        <ExternalLink className="w-2.5 h-2.5" />
-                      </a>
-                      <span className="text-[10px] text-slate-500">RTSP :8554</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter className="w-3.5 h-3.5 text-slate-400" />
+          <select
+            value={districtFilter}
+            onChange={(e) => setDistrictFilter(e.target.value)}
+            className="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs font-mono text-slate-200"
+          >
+            <option value="ALL">All Districts</option>
+            <option value="Ahmedabad">Ahmedabad</option>
+            <option value="Surat">Surat</option>
+            <option value="Vadodara">Vadodara</option>
+            <option value="Gandhinagar">Gandhinagar</option>
+            <option value="Rajkot">Rajkot</option>
+          </select>
         </div>
       </div>
 
-      {/* Add Camera Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0b101d] border border-cyan-500/40 rounded-2xl max-w-lg w-full p-6 text-slate-100 shadow-2xl relative flex flex-col gap-4">
-            <h2 className="text-sm font-bold font-mono text-cyan-300 uppercase tracking-wider">
-              ONBOARD NEW CCTV NODE TO VMS
-            </h2>
+      {/* Table */}
+      {isLoading ? (
+        <div className="h-48 flex items-center justify-center font-mono text-xs text-cyber-cyan">
+          Connecting to Camera Catalogue...
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded border border-slate-800 bg-sentinel-900">
+          <table className="w-full text-left font-mono text-xs">
+            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+              <tr>
+                <th className="p-3">Camera Node</th>
+                <th className="p-3">District / Junction</th>
+                <th className="p-3">Vendor / Codec</th>
+                <th className="p-3">Stream Protocol (TCP/WHEP)</th>
+                <th className="p-3">Health Status</th>
+                <th className="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {filtered.map((cam: CameraNode) => {
+                const isOnline = cam.status === 'ONLINE';
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                createMutation.mutate(newCam);
-              }}
-              className="space-y-3 text-xs"
-            >
-              <div>
-                <label className="text-[10px] text-slate-400">CAMERA CODE</label>
-                <input
-                  type="text"
-                  required
-                  value={newCam.camera_code}
-                  onChange={(e) => setNewCam({ ...newCam, camera_code: e.target.value })}
-                  placeholder="CAM-AHM-51"
-                  className="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 text-slate-100"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] text-slate-400">LOCATION / JUNCTION NAME</label>
-                <input
-                  type="text"
-                  required
-                  value={newCam.name}
-                  onChange={(e) => setNewCam({ ...newCam, name: e.target.value })}
-                  placeholder="Sindhu Bhavan Road Junction"
-                  className="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 text-slate-100"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] text-slate-400">LATITUDE</label>
-                  <input
-                    type="number"
-                    step="0.0001"
-                    required
-                    value={newCam.latitude}
-                    onChange={(e) => setNewCam({ ...newCam, latitude: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 text-slate-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400">LONGITUDE</label>
-                  <input
-                    type="number"
-                    step="0.0001"
-                    required
-                    value={newCam.longitude}
-                    onChange={(e) => setNewCam({ ...newCam, longitude: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 text-slate-100"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
-                >
-                  CANCEL
-                </button>
-                <button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  className="px-4 py-2 rounded bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold"
-                >
-                  SAVE CAMERA
-                </button>
-              </div>
-            </form>
-          </div>
+                return (
+                  <tr key={cam.camera_id} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="p-3">
+                      <div className="font-bold text-slate-200">{cam.name}</div>
+                      <div className="text-[10px] text-slate-500">{cam.camera_id}</div>
+                    </td>
+                    <td className="p-3">
+                      <div className="text-slate-300">{cam.location.district}</div>
+                      <div className="text-[10px] text-slate-500 truncate max-w-xs">{cam.location.address}</div>
+                    </td>
+                    <td className="p-3">
+                      <span className="text-slate-300">{cam.vendor}</span> &bull;{' '}
+                      <span className="text-cyber-cyan uppercase font-bold">{cam.codec}</span>
+                    </td>
+                    <td className="p-3">
+                      <code className="text-[10px] text-slate-400 bg-black/60 px-1.5 py-0.5 rounded border border-slate-800">
+                        {cam.rtsp_url}
+                      </code>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-1.5">
+                        {isOnline ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-cyber-crimson" />
+                        )}
+                        <span className={`font-bold ${isOnline ? 'text-emerald-400' : 'text-cyber-crimson'}`}>
+                          {cam.status}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-3 text-right">
+                      <button
+                        onClick={() => openContextDrawer({ camera: cam })}
+                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-cyber-cyan hover:text-black text-slate-200 font-bold transition-all inline-flex items-center gap-1"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>PREVIEW</span>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

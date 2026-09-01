@@ -1,0 +1,134 @@
+{
+  "certificate_id": "SEC65B-CAM04-1788240316-15",
+  "camera_id": "cam04",
+  "frame_index": 15,
+  "presentation_timestamp_ms": 1840.0,
+  "system_capture_time_utc": "2026-09-01T05:25:16Z",
+  "image_file": "evidence_cam04_frame_15_1840ms.jpg",
+  "sha256_checksum": "ab4baddf390861c6a8e7f6c35cb2a138baf8146683e3a065a98ba8298bbdbf65",
+  "hmac_sha256_signature": "1c4074e7e1a2e10307782383420ea010ad745c99802b29d79b74b9deadd2995b",
+  "detections_count": 12,
+  "detections": [
+    {
+      "class": "person",
+      "confidence": 0.777,
+      "bbox": [
+        1050,
+        322,
+        1091,
+        418
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.673,
+      "bbox": [
+        545,
+        69,
+        746,
+        213
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.648,
+      "bbox": [
+        1853,
+        558,
+        1919,
+        736
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.52,
+      "bbox": [
+        1823,
+        577,
+        1873,
+        730
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.491,
+      "bbox": [
+        194,
+        212,
+        322,
+        309
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.432,
+      "bbox": [
+        584,
+        204,
+        677,
+        297
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.42,
+      "bbox": [
+        441,
+        237,
+        509,
+        326
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.413,
+      "bbox": [
+        1251,
+        202,
+        1321,
+        252
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.373,
+      "bbox": [
+        1683,
+        526,
+        1710,
+        587
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.365,
+      "bbox": [
+        287,
+        140,
+        434,
+        234
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.355,
+      "bbox": [
+        1273,
+        845,
+        1747,
+        1068
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.354,
+      "bbox": [
+        448,
+        117,
+        552,
+        217
+      ]
+    }
+  ],
+  "compliance": "Section 65B Indian Evidence Act & Bharatiya Sakshya Adhiniyam (BSA) 2023"
+}

@@ -1,6 +1,6 @@
 # Gujarat Sentinel — Multi-Camera Scalability & Throughput Benchmark
 
-**Evaluation Timestamp:** 2026-08-31 06:59:04 UTC  
+**Evaluation Timestamp:** 2026-09-01 05:26:17 UTC  
 **Architecture:** Metadata Edge Federation (Gujarat Sentinel Hybrid Architecture)
 
 ---
@@ -9,10 +9,10 @@
 
 | Ingestion Scale | Aggregate Throughput | Mean Latency | P99 Latency | Traditional RTSP Bandwidth | Sentinel Hybrid Bandwidth | Bandwidth Savings |
 |---|---|---|---|---|---|---|
-| **10 Cameras** | `960.9 FPS` | `0.004 ms` | `0.03 ms` | `40.0 Mbps` | `0.02 Mbps` | `99.95%` |
-| **25 Cameras** | `2265.3 FPS` | `0.006 ms` | `0.026 ms` | `100.0 Mbps` | `0.05 Mbps` | `99.95%` |
-| **50 Cameras** | `4738.2 FPS` | `0.002 ms` | `0.025 ms` | `200.0 Mbps` | `0.1 Mbps` | `99.95%` |
-| **100 Cameras** | `8873.3 FPS` | `0.001 ms` | `0.019 ms` | `400.0 Mbps` | `0.2 Mbps` | `99.95%` |
+| **10 Cameras** | `945.8 FPS` | `0.003 ms` | `0.031 ms` | `40.0 Mbps` | `0.02 Mbps` | `99.95%` |
+| **25 Cameras** | `2371.6 FPS` | `0.002 ms` | `0.029 ms` | `100.0 Mbps` | `0.05 Mbps` | `99.95%` |
+| **50 Cameras** | `4833.1 FPS` | `0.001 ms` | `0.009 ms` | `200.0 Mbps` | `0.1 Mbps` | `99.95%` |
+| **100 Cameras** | `9638.0 FPS` | `0.001 ms` | `0.006 ms` | `400.0 Mbps` | `0.2 Mbps` | `99.95%` |
 
 ---
 

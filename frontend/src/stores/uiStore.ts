@@ -1,29 +1,52 @@
 import { create } from 'zustand';
-import { DepartmentCode } from '../types/camera';
+import { CameraNode } from '../core/types/camera';
+import { ThreatAlert } from '../core/types/alert';
+import { LiveDetectionEvent } from '../core/types/detection';
 
 interface UIState {
-  sidebarOpen: boolean;
-  selectedDepartment: DepartmentCode | 'ALL';
-  commandPaletteOpen: boolean;
-  section65bModalIncidentId: string | null;
-  toggleSidebar: () => void;
-  setSidebarOpen: (open: boolean) => void;
-  setSelectedDepartment: (dept: DepartmentCode | 'ALL') => void;
-  setCommandPaletteOpen: (open: boolean) => void;
-  openSection65BModal: (incidentId: string) => void;
-  closeSection65BModal: () => void;
+  // Video Matrix Grid layout
+  gridMode: '2x2' | '3x3' | '4x4' | 'all30';
+  setGridMode: (mode: '2x2' | '3x3' | '4x4' | 'all30') => void;
+
+  // Selected camera for 360 Inspection modal / stream
+  selectedCamera: CameraNode | null;
+  setSelectedCamera: (camera: CameraNode | null) => void;
+
+  // Context Panel Drawer
+  isContextDrawerOpen: boolean;
+  contextData: {
+    detection?: LiveDetectionEvent;
+    alert?: ThreatAlert;
+    camera?: CameraNode;
+    plate?: string;
+  } | null;
+  openContextDrawer: (data: UIState['contextData']) => void;
+  closeContextDrawer: () => void;
+
+  // Audio Alerts
+  audioAlertsEnabled: boolean;
+  toggleAudioAlerts: () => void;
+
+  // Stream Protocol Preference
+  streamProtocol: 'hls' | 'webrtc' | 'rtsp';
+  setStreamProtocol: (proto: 'hls' | 'webrtc' | 'rtsp') => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
-  sidebarOpen: true,
-  selectedDepartment: 'ALL',
-  commandPaletteOpen: false,
-  section65bModalIncidentId: null,
+  gridMode: 'all30',
+  setGridMode: (mode) => set({ gridMode: mode }),
 
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
-  setSelectedDepartment: (selectedDepartment) => set({ selectedDepartment }),
-  setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
-  openSection65BModal: (incidentId) => set({ section65bModalIncidentId: incidentId }),
-  closeSection65BModal: () => set({ section65bModalIncidentId: null }),
+  selectedCamera: null,
+  setSelectedCamera: (camera) => set({ selectedCamera: camera }),
+
+  isContextDrawerOpen: false,
+  contextData: null,
+  openContextDrawer: (data) => set({ isContextDrawerOpen: true, contextData: data }),
+  closeContextDrawer: () => set({ isContextDrawerOpen: false, contextData: null }),
+
+  audioAlertsEnabled: true,
+  toggleAudioAlerts: () => set((state) => ({ audioAlertsEnabled: !state.audioAlertsEnabled })),
+
+  streamProtocol: 'hls',
+  setStreamProtocol: (streamProtocol) => set({ streamProtocol }),
 }));

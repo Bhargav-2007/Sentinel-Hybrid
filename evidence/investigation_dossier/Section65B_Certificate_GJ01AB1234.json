@@ -1,0 +1,15 @@
+{
+  "certificate_id": "SEC65B-GJ-GJ01AB1234-1788247036",
+  "target_plate": "GJ01AB1234",
+  "vehicle_make": "Toyota",
+  "vehicle_model": "Fortuner 4x4",
+  "active_fir": "FIR-2026-CR-08942",
+  "police_station": "Navrangpura Police Station, Ahmedabad",
+  "investigating_officer": "Inspector R.K. Jadeja (Badge GJ-POL-8842)",
+  "sha256_checksum": "8ec1e3b834551cde82d005379548437dfea4637f9e39dc7e56b79e214376b229",
+  "hmac_sha256_signature": "2b297c188c210bdb43ace4c42a4a38f1062508388a82544037f4361282975d55",
+  "camera_node": "CAM01",
+  "presentation_timestamp_ms": 804.0,
+  "sightings_count": 4,
+  "compliance": "Section 65B Indian Evidence Act 1872 & Bharatiya Sakshya Adhiniyam 2023"
+}

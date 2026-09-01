@@ -16,8 +16,11 @@ from typing import Any
 
 import httpx
 
-MODEL1_URL      = "http://localhost:8001"
-LIVE_INGEST_API = "https://live.corp8.cloud/api/ingest"
+MODEL1_URL          = "http://localhost:8001"
+PRIMARY_CATALOGUE_URL = "https://cctv.corp8.cloud/cameras.json"
+LIVE_INGEST_API       = "https://live.corp8.cloud/api/ingest"
+DEFAULT_RTSP_IP       = "103.250.160.189"
+DEFAULT_HLS_BASE      = "https://cctv.corp8.cloud"
 
 DEPARTMENTS_BY_CODE: dict[str, str] = {}
 
@@ -70,19 +73,19 @@ def geolocate(location_str: str) -> tuple[str, float, float]:
 
 
 def fetch_live_cameras() -> list[dict[str, Any]]:
-    print(f"Fetching live camera catalogue from {LIVE_INGEST_API}...")
-    # 1. Try Primary Live Ingest API
-    try:
-        resp = httpx.get(LIVE_INGEST_API, follow_redirects=True, timeout=10)
-        if resp.status_code == 200:
-            data = resp.json()
-            cameras = data.get("cameras", data) if isinstance(data, dict) else data
-            if cameras and isinstance(cameras, list):
-                print(f"  Found {len(cameras)} live cameras from live.corp8.cloud")
-                return cameras
-        print(f"  Live Ingest API returned HTTP {resp.status_code}. Trying local simulator...")
-    except Exception as e:
-        print(f"  Live Ingest API unavailable ({e}). Trying local simulator...")
+    # 1. Try Primary Sentinel Camera Catalogue (cameras.json)
+    for cat_url in [PRIMARY_CATALOGUE_URL, LIVE_INGEST_API]:
+        print(f"Fetching live camera catalogue from {cat_url}...")
+        try:
+            resp = httpx.get(cat_url, follow_redirects=True, timeout=10)
+            if resp.status_code == 200:
+                data = resp.json()
+                cameras = data.get("cameras", data) if isinstance(data, dict) else data
+                if cameras and isinstance(cameras, list):
+                    print(f"  Found {len(cameras)} live cameras from {cat_url}")
+                    return cameras
+        except Exception as e:
+            print(f"  Endpoint {cat_url} notice: {e}")
 
     # 2. Try Local RTSP Simulator (Docker / Localhost)
     for sim_url in ["http://localhost:8888/api/ingest", "http://rtsp-simulator:8888/api/ingest"]:
@@ -101,10 +104,11 @@ def fetch_live_cameras() -> list[dict[str, Any]]:
     print("  Generating 30 Gujarat State Police surveillance cameras from registry blueprint...")
     fallback_cams = []
     for i in range(1, 31):
+        cam_tag = f"cam{str(i).zfill(2)}"
         hint = LOCATION_HINTS[(i - 1) % len(LOCATION_HINTS)]
         loc_name = f"{hint[0].title()} - {hint[1]}"
         fallback_cams.append({
-            "id": i,
+            "id": cam_tag,
             "number": i,
             "name": f"CAM-LIVE-{str(i).zfill(2)} ({hint[0].title()})",
             "location": loc_name,
@@ -114,22 +118,25 @@ def fetch_live_cameras() -> list[dict[str, Any]]:
             "fps": 25.0,
             "bitrate_kbps": 2048 if i % 4 == 0 else 4096,
             "live": True,
-            "rtsp_url": f"rtsp://live.corp8.cloud:8554/stream/{i}",
-            "webrtc_url": f"http://live.corp8.cloud:8889/stream/{i}/whep",
-            "hls_live_url": f"/live/stream/{i}/index.m3u8",
+            "rtsp_url": f"rtsp://{DEFAULT_RTSP_IP}:8554/stream/{cam_tag}",
+            "webrtc_url": f"http://{DEFAULT_RTSP_IP}:8889/stream/{cam_tag}/whep",
+            "hls_live_url": f"/{cam_tag}/index.m3u8",
         })
     print(f"  Generated {len(fallback_cams)} Gujarat surveillance camera profiles.")
     return fallback_cams
 
 
 def build_camera_payload(live_cam: dict[str, Any], dept_id: str) -> dict[str, Any]:
-    cam_id     = str(live_cam["id"])
+    raw_id = str(live_cam["id"])
+    cam_clean = raw_id.lower().replace("cam", "").lstrip("0") or "1"
+    cam_id = f"cam{int(cam_clean):02d}" if cam_clean.isdigit() else raw_id
+
     name       = live_cam.get("name", f"Camera {cam_id}")
     location   = live_cam.get("location", "")
     codec_raw  = live_cam.get("codec", "") or ""
-    rtsp_url   = live_cam.get("rtsp_url", f"rtsp://live.corp8.cloud:8554/stream/{cam_id}")
-    webrtc_url = live_cam.get("webrtc_url")
-    hls_url    = live_cam.get("hls_live_url")
+    rtsp_url   = live_cam.get("rtsp_url", f"rtsp://{DEFAULT_RTSP_IP}:8554/stream/{cam_id}")
+    webrtc_url = live_cam.get("webrtc_url", f"http://{DEFAULT_RTSP_IP}:8889/stream/{cam_id}/whep")
+    hls_url    = live_cam.get("hls_live_url") or live_cam.get("hls_url") or f"/{cam_id}/index.m3u8"
     width      = live_cam.get("width", 0) or 0
     height     = live_cam.get("height", 0) or 0
     fps        = live_cam.get("fps", 0.0) or 0.0
@@ -138,11 +145,13 @@ def build_camera_payload(live_cam: dict[str, Any], dept_id: str) -> dict[str, An
     district, lat, lon = geolocate(location)
     codec = CODEC_MAP.get(codec_raw.lower(), "h264")
     resolution = f"{width}x{height}" if width and height else "1920x1080"
-    model1_camera_id = f"HOME-LIVE-{cam_id.zfill(3)}"
+    model1_camera_id = f"HOME-LIVE-{cam_id.upper()}"
 
     frame_rate_int = int(round(fps)) if fps > 0 else 15
     if frame_rate_int < 1:
         frame_rate_int = 15
+
+    hls_full = hls_url if hls_url.startswith("http") else f"{DEFAULT_HLS_BASE}{hls_url}"
 
     return {
         "camera_id":      model1_camera_id,
@@ -165,12 +174,12 @@ def build_camera_payload(live_cam: dict[str, Any], dept_id: str) -> dict[str, An
         "is_public_domain": True,
         "tags":           ["live", district.lower(), "gujarat"],
         "metadata": {
-            "source":         "live.corp8.cloud",
+            "source":         "cctv.corp8.cloud",
             "stream_id":      cam_id,
             "live_api_codec": codec_raw or "unknown",
             "bitrate_kbps":   bitrate,
             "webrtc_url":     webrtc_url,
-            "hls_url":        f"https://live.corp8.cloud{hls_url}" if hls_url else None,
+            "hls_url":        hls_full,
             "live_status":    "live" if live_cam.get("live", True) else "offline",
         },
     }

@@ -41,22 +41,24 @@ import (
 )
 
 type GatewayConfig struct {
-	Port     int
-	Model1   string
-	Model2   string
-	Model3   string
-	Model4   string
-	RedisURL string
+	Port         int
+	Model1       string
+	Model2       string
+	Model3       string
+	Model4       string
+	Orchestrator string
+	RedisURL     string
 }
 
 func loadConfig() *GatewayConfig {
 	return &GatewayConfig{
-		Port:     getEnvInt("GATEWAY_PORT", 8000),
-		Model1:   getEnv("MODEL1_URL", "http://model1:8001"),
-		Model2:   getEnv("MODEL2_URL", "http://model2:8002"),
-		Model3:   getEnv("MODEL3_URL", "http://model3:8003"),
-		Model4:   getEnv("MODEL4_URL", "http://model4:8004"),
-		RedisURL: getEnv("REDIS_URL", "redis://localhost:6379/3"),
+		Port:         getEnvInt("GATEWAY_PORT", 8000),
+		Model1:       getEnv("MODEL1_URL", "http://localhost:8001"),
+		Model2:       getEnv("MODEL2_URL", "http://localhost:8002"),
+		Model3:       getEnv("MODEL3_URL", "http://localhost:8003"),
+		Model4:       getEnv("MODEL4_URL", "http://localhost:8004"),
+		Orchestrator: getEnv("ORCHESTRATOR_URL", "http://localhost:8005"),
+		RedisURL:     getEnv("REDIS_URL", "redis://localhost:6379/3"),
 	}
 }
 
@@ -136,13 +138,19 @@ func main() {
 	}
 
 	// Model 1: Camera Registry & GIS
-	mountProxy("/api/v1/cameras", cfg.Model1)
+	mountProxy("/api/v1/cameras", cfg.Orchestrator)
 	mountProxy("/api/v1/gis", cfg.Model1)
 	mountProxy("/api/v1/departments", cfg.Model1)
-	mountProxy("/api/v1/audit", cfg.Model1)
+	mountProxy("/api/v1/audit", cfg.Orchestrator)
+
+	// Orchestrator & Live Streams
+	mountProxy("/api/v1/streams", cfg.Orchestrator)
+	mountProxy("/api/v1/cases", cfg.Orchestrator)
+	mountProxy("/api/v1/alerts", cfg.Orchestrator)
+	mountProxy("/api/v1/watchlists", cfg.Orchestrator)
+	mountProxy("/api/v1/auth", cfg.Orchestrator)
 
 	// Model 2: Unified Viewer & ANPR
-	mountProxy("/api/v1/streams", cfg.Model2)
 	mountProxy("/api/v1/anpr", cfg.Model2)
 	mountProxy("/api/v1/watchlist", cfg.Model2)
 	mountProxy("/api/v1/events", cfg.Model2)
@@ -151,7 +159,7 @@ func main() {
 	mountProxy("/api/v1/federation", cfg.Model3)
 
 	// Model 4: Vehicle Tracking & Clips
-	mountProxy("/api/v1/tracking", cfg.Model4)
+	mountProxy("/api/v1/tracking", cfg.Orchestrator)
 	mountProxy("/api/v1/clips", cfg.Model4)
 	mountProxy("/api/v1/dashboard", cfg.Model4)
 

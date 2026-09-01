@@ -1,0 +1,124 @@
+{
+  "certificate_id": "SEC65B-CAM04-1788238703-15",
+  "camera_id": "cam04",
+  "frame_index": 15,
+  "presentation_timestamp_ms": 880.0,
+  "system_capture_time_utc": "2026-09-01T04:58:23Z",
+  "image_file": "evidence_cam04_frame_15_880ms.jpg",
+  "sha256_checksum": "1913169c06bac5b4453f185eebdc381945c1a3ac498ea55fa916e1ff7daafa07",
+  "hmac_sha256_signature": "8429d4994b230bb7e50df8d22fe395c4914c38678b1a93c1de0d5d3c568d822b",
+  "detections_count": 11,
+  "detections": [
+    {
+      "class": "bus",
+      "confidence": 0.834,
+      "bbox": [
+        176,
+        215,
+        511,
+        669
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.674,
+      "bbox": [
+        1276,
+        285,
+        1414,
+        411
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.631,
+      "bbox": [
+        689,
+        280,
+        828,
+        394
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.613,
+      "bbox": [
+        827,
+        204,
+        933,
+        280
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.591,
+      "bbox": [
+        511,
+        471,
+        1918,
+        1070
+      ]
+    },
+    {
+      "class": "motorcycle",
+      "confidence": 0.579,
+      "bbox": [
+        996,
+        370,
+        1043,
+        449
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.45,
+      "bbox": [
+        1234,
+        158,
+        1341,
+        264
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.438,
+      "bbox": [
+        573,
+        372,
+        627,
+        497
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.409,
+      "bbox": [
+        1456,
+        260,
+        1546,
+        333
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.403,
+      "bbox": [
+        894,
+        157,
+        963,
+        224
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.364,
+      "bbox": [
+        1428,
+        256,
+        1548,
+        331
+      ]
+    }
+  ],
+  "compliance": "Section 65B Indian Evidence Act & Bharatiya Sakshya Adhiniyam (BSA) 2023"
+}

@@ -1,0 +1,114 @@
+{
+  "certificate_id": "SEC65B-CAM04-1788238704-30",
+  "camera_id": "cam04",
+  "frame_index": 30,
+  "presentation_timestamp_ms": 1480.0,
+  "system_capture_time_utc": "2026-09-01T04:58:24Z",
+  "image_file": "evidence_cam04_frame_30_1480ms.jpg",
+  "sha256_checksum": "f417786eaacb973c40fe5dda95736e0ea9e288570e3c6f9fb7ae7cdff119de38",
+  "hmac_sha256_signature": "507399e8d43e5aefbcfd536da4d12639b2e0ef168d3c3b0458a7da9de7c42488",
+  "detections_count": 10,
+  "detections": [
+    {
+      "class": "truck",
+      "confidence": 0.834,
+      "bbox": [
+        343,
+        433,
+        1920,
+        1077
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.695,
+      "bbox": [
+        0,
+        366,
+        58,
+        477
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.67,
+      "bbox": [
+        1278,
+        290,
+        1423,
+        426
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.625,
+      "bbox": [
+        683,
+        282,
+        825,
+        396
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.611,
+      "bbox": [
+        1425,
+        257,
+        1546,
+        335
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.596,
+      "bbox": [
+        175,
+        204,
+        448,
+        634
+      ]
+    },
+    {
+      "class": "car",
+      "confidence": 0.559,
+      "bbox": [
+        813,
+        207,
+        917,
+        297
+      ]
+    },
+    {
+      "class": "person",
+      "confidence": 0.538,
+      "bbox": [
+        556,
+        386,
+        606,
+        447
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.501,
+      "bbox": [
+        1236,
+        159,
+        1341,
+        265
+      ]
+    },
+    {
+      "class": "truck",
+      "confidence": 0.426,
+      "bbox": [
+        681,
+        279,
+        826,
+        398
+      ]
+    }
+  ],
+  "compliance": "Section 65B Indian Evidence Act & Bharatiya Sakshya Adhiniyam (BSA) 2023"
+}

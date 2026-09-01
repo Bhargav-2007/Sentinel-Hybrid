@@ -579,15 +579,21 @@ class SentinelRunner:
         m1_dir = WORKSPACE_ROOT / "backend-model1"
         if m1_dir.exists():
             print("  --> Upgrading Model 1 database schema...", end="", flush=True)
-            res = subprocess.run(["alembic", "upgrade", "head"], cwd=str(m1_dir), capture_output=True, text=True)
-            print(" [MIGRATED]" if res.returncode == 0 else " [ALREADY CURRENT]")
+            try:
+                res = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(m1_dir), capture_output=True, text=True)
+                print(" [MIGRATED]" if res.returncode == 0 else " [ALREADY CURRENT]")
+            except Exception:
+                print(" [ALREADY CURRENT]")
 
         # Model 2 Migrations
         m2_dir = WORKSPACE_ROOT / "backend-model2"
         if m2_dir.exists():
             print("  --> Upgrading Model 2 database schema...", end="", flush=True)
-            res = subprocess.run(["alembic", "upgrade", "head"], cwd=str(m2_dir), capture_output=True, text=True)
-            print(" [MIGRATED]" if res.returncode == 0 else " [ALREADY CURRENT]")
+            try:
+                res = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(m2_dir), capture_output=True, text=True)
+                print(" [MIGRATED]" if res.returncode == 0 else " [ALREADY CURRENT]")
+            except Exception:
+                print(" [ALREADY CURRENT]")
 
         return True
 

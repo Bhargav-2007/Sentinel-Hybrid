@@ -14,6 +14,7 @@ from app.api.v1.audit import router as audit_router
 from app.api.v1.evidence import router as evidence_router
 from app.api.v1.cases import router as cases_router
 from app.api.v1.websockets import router as ws_router
+from app.api.v1.streams import router as streams_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -29,3 +30,5 @@ api_router.include_router(cost_benefit_router)
 api_router.include_router(audit_router)
 api_router.include_router(evidence_router)
 api_router.include_router(ws_router)
+api_router.include_router(streams_router)
+

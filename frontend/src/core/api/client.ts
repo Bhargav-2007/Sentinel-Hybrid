@@ -1,50 +1,79 @@
-import { useAuthStore } from '../auth/authStore';
+/**
+ * Master API Client for Gujarat Sentinel Hybrid Gateway.
+ * All API requests route strictly through the Hybrid Gateway (:8000).
+ */
 
-export const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8005/api/v1';
-export const WS_BASE_URL = (import.meta as any).env?.VITE_WS_BASE_URL || 'ws://localhost:8005/api/v1/ws/live';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
-interface FetchOptions extends RequestInit {
-  timeout?: number;
+export class ApiError extends Error {
+  status: number;
+  data: any;
+
+  constructor(status: number, message: string, data?: any) {
+    super(message);
+    this.status = status;
+    this.data = data;
+    this.name = 'ApiError';
+  }
 }
 
-export async function apiClient<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-  const { timeout = 10000, ...customConfig } = options;
-  const token = useAuthStore.getState().tokens?.access_token;
+export async function apiClient<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const token = localStorage.getItem('sentinel_access_token');
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(customConfig.headers || {}),
+    Accept: 'application/json',
+    ...(options.headers as Record<string, string>),
   };
 
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   try {
     const response = await fetch(url, {
-      ...customConfig,
+      ...options,
       headers,
-      signal: controller.signal,
     });
 
-    clearTimeout(id);
+    if (response.status === 401) {
+      // Clear token and trigger auth logout event if unauthorized
+      localStorage.removeItem('sentinel_access_token');
+      localStorage.removeItem('sentinel_user');
+      window.dispatchEvent(new Event('sentinel:unauthorized'));
+      throw new ApiError(401, 'Session expired or invalid credentials.');
+    }
 
     if (!response.ok) {
-      if (response.status === 401) {
-        useAuthStore.getState().logout();
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = await response.text();
       }
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      const message = errorData?.detail || errorData?.message || response.statusText || 'API Request Failed';
+      throw new ApiError(response.status, message, errorData);
     }
 
-    return (await response.json()) as T;
-  } catch (error: any) {
-    clearTimeout(id);
-    if (error.name === 'AbortError') {
-      throw new Error(`Request timeout (${timeout}ms) for ${endpoint}`);
+    // Check if response is empty (204 No Content)
+    if (response.status === 204) {
+      return {} as T;
     }
-    throw error;
+
+    // Check content type
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      return (await response.json()) as T;
+    }
+    return (await response.text()) as unknown as T;
+  } catch (error: any) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(0, error.message || 'Network connection failed. Is Hybrid Gateway online?');
   }
 }

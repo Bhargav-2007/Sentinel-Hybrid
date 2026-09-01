@@ -58,24 +58,42 @@ class PersonVehicleDetector:
                     boxes = r.boxes
                     for box in boxes:
                         cls_id = int(box.cls[0].item())
-                        cls_name = self.model.names[cls_id]
+                        raw_cls_name = self.model.names[cls_id]
                         score = float(box.conf[0].item())
                         xyxy = box.xyxy[0].tolist()
 
                         x1, y1, x2, y2 = xyxy[0], xyxy[1], xyxy[2], xyxy[3]
+                        bw = x2 - x1
+                        bh = y2 - y1
+                        aspect_ratio = bw / max(bh, 1.0)
+                        area = bw * bh
+
+                        # Refine classification for Indian Traffic Context
+                        final_cls_name = raw_cls_name
+                        if raw_cls_name == "motorcycle":
+                            # Distinguish Scooter/Scooty (compact step-through profile) vs Motorcycle
+                            if aspect_ratio < 0.75 and bh < 220:
+                                final_cls_name = "scooter"
+                            else:
+                                final_cls_name = "motorcycle"
+                        elif raw_cls_name in ["car", "truck"]:
+                            # Auto-rickshaw / Three-wheeler detection heuristic (tall & boxy profile)
+                            if 0.70 <= aspect_ratio <= 1.15 and 6000 <= area <= 65000:
+                                final_cls_name = "auto-rickshaw"
+
                         bbox = BoundingBox(
                             x1=round(x1, 2),
                             y1=round(y1, 2),
                             x2=round(x2, 2),
                             y2=round(y2, 2),
-                            width=round(x2 - x1, 2),
-                            height=round(y2 - y1, 2),
+                            width=round(bw, 2),
+                            height=round(bh, 2),
                             center_x=round((x1 + x2) / 2.0, 2),
                             center_y=round((y1 + y2) / 2.0, 2),
                         )
                         detected_objects.append(DetectedObject(
                             class_id=cls_id,
-                            class_name=cls_name,
+                            class_name=final_cls_name,
                             confidence=round(score, 3),
                             bbox=bbox,
                             track_id=None,

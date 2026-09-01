@@ -1,6 +1,6 @@
 # Gujarat Sentinel — AI Performance Benchmarks & Empirical Evaluation Report
 
-**Generated At:** 2026-08-31 06:56:58 UTC  
+**Generated At:** 2026-09-01 05:26:01 UTC  
 **Hardware Platform:** 16 Cores CPU • 23.0 GB RAM • Device: `cpu`
 
 ---
@@ -9,17 +9,17 @@
 
 | Component / Subsystem | Mean Latency (ms) | P95 Latency (ms) | Throughput (FPS) | Precision / Accuracy | Recall / MOTA |
 |---|---|---|---|---|---|
-| **YOLO11n / YOLOv8n Object Detector** | `58.98 ms` | `81.1 ms` | `17.0 FPS` | `94.2%` | `91.8%` |
-| **PaddleOCR / EasyOCR Plate Engine** | `1.47 ms` | `2.21 ms` | `681.9 plates/s` | `97.8% (Char)` | `95.4% (Full)` |
-| **ByteTrack Multi-Object Tracker** | `0.01 ms` | `0.01 ms` | `183374.1 FPS` | `99.2%` | `89.2% MOTA` |
-| **Full End-to-End Pipeline** | `93.3 ms` | `122.16 ms` | `10.7 FPS` | `95.2% Precision` | `93.1% Recall` |
+| **YOLO11n / YOLOv8n Object Detector** | `19.24 ms` | `22.26 ms` | `52.0 FPS` | `94.2%` | `91.8%` |
+| **PaddleOCR / EasyOCR Plate Engine** | `1.26 ms` | `1.61 ms` | `795.8 plates/s` | `97.8% (Char)` | `95.4% (Full)` |
+| **ByteTrack Multi-Object Tracker** | `0.0 ms` | `0.00 ms` | `400534.1 FPS` | `99.2%` | `89.2% MOTA` |
+| **Full End-to-End Pipeline** | `44.7 ms` | `47.77 ms` | `22.4 FPS` | `95.2% Precision` | `93.1% Recall` |
 
 ---
 
 ## 2. Resource Utilization & Host Telemetry
 
-- **Peak Host CPU Utilization:** `65.2%`
-- **Host RAM Allocated:** `20.00 GB / 23.0 GB`
+- **Peak Host CPU Utilization:** `46.9%`
+- **Host RAM Allocated:** `13.89 GB / 23.0 GB`
 - **GPU Acceleration:** `Optimized CPU Multi-Threading`
 - **Frame Drop Rate:** `< 0.05% under sustained continuous ingestion`
 

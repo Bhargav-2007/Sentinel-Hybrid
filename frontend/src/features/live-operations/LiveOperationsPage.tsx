@@ -9,11 +9,37 @@ import { CameraNode } from '../../core/types/camera';
 export const LiveOperationsPage: React.FC = () => {
   const { gridMode, setGridMode, openContextDrawer } = useUIStore();
   const [districtFilter, setDistrictFilter] = useState('ALL');
+  const [deptFilter, setDeptFilter] = useState('ALL');
 
-  const { data: cameras = [], isLoading } = useQuery({
+  const { data: rawCameras = [], isLoading } = useQuery({
     queryKey: ['cameras', districtFilter],
     queryFn: () => camerasApi.listCameras(districtFilter !== 'ALL' ? { district: districtFilter } : undefined),
     refetchInterval: 20000,
+  });
+
+  const cameras = rawCameras.filter((c) => {
+    const camNum = parseInt(c.camera_id.replace(/\D/g, '') || '1', 10);
+    const dept = (
+      c.department_name ||
+      (camNum % 5 === 0
+        ? 'panchayat'
+        : camNum % 4 === 0
+        ? 'health'
+        : camNum % 3 === 0
+        ? 'municipal'
+        : camNum % 2 === 0
+        ? 'gsrtc'
+        : 'police')
+    ).toLowerCase();
+
+    return (
+      deptFilter === 'ALL' ||
+      (deptFilter === 'POLICE' && (dept.includes('police') || dept.includes('home'))) ||
+      (deptFilter === 'GSRTC' && (dept.includes('transport') || dept.includes('gsrtc'))) ||
+      (deptFilter === 'MUNICIPAL' && (dept.includes('municipal') || dept.includes('urban'))) ||
+      (deptFilter === 'HEALTH' && dept.includes('health')) ||
+      (deptFilter === 'PANCHAYAT' && (dept.includes('panchayat') || dept.includes('rural')))
+    );
   });
 
   // Determine active cameras to display
@@ -22,7 +48,7 @@ export const LiveOperationsPage: React.FC = () => {
   const activeCameras = cameras.slice(0, displayCount);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-mono">
       {/* Action Bar & Grid Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded bg-sentinel-900/90 border border-slate-800">
         <div className="flex items-center gap-3">
@@ -30,28 +56,44 @@ export const LiveOperationsPage: React.FC = () => {
             <Eye className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold font-mono text-white tracking-wide flex items-center gap-2">
+            <h1 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
               <span>Statewide Live Camera Matrix</span>
               <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold">
                 {activeCameras.length} STREAMS ACTIVE (103.250.160.189)
               </span>
             </h1>
-            <p className="text-xs font-mono text-slate-400">
+            <p className="text-xs text-slate-400">
               Direct RTSP TCP Streams &bull; Independent Node Decoding &bull; Live YOLOv8 Detection Overlays
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-          {/* District Filter */}
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
+          {/* Department Filter */}
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <select
+              value={deptFilter}
+              onChange={(e) => setDeptFilter(e.target.value)}
+              className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan"
+            >
+              <option value="ALL">All 5 Departments</option>
+              <option value="POLICE">Police / Home</option>
+              <option value="GSRTC">GSRTC Transport</option>
+              <option value="MUNICIPAL">Municipal Corp</option>
+              <option value="HEALTH">Health Dept</option>
+              <option value="PANCHAYAT">Panchayat & Rural</option>
+            </select>
+          </div>
+
+          {/* District Filter */}
+          <div className="flex items-center gap-2">
+            <select
               value={districtFilter}
               onChange={(e) => setDistrictFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyber-cyan"
+              className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan"
             >
-              <option value="ALL">All Gujarat Districts (30 Nodes)</option>
+              <option value="ALL">All Districts (30 Nodes)</option>
               <option value="Ahmedabad">Ahmedabad City</option>
               <option value="Surat">Surat City</option>
               <option value="Vadodara">Vadodara</option>

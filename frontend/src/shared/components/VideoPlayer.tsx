@@ -32,7 +32,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const clampedNum = Math.max(1, Math.min(30, numId));
   const camTag = `cam${String(clampedNum).padStart(2, '0')}`;
 
-  const snapshotBase = `http://localhost:8000/api/v1/streams/${camTag}/snapshot`;
+  const apiBase = (import.meta as any).env?.VITE_API_URL || '';
+  const snapshotBase = `${apiBase}/api/v1/streams/${camTag}/snapshot`;
 
   useEffect(() => {
     isMountedRef.current = true;

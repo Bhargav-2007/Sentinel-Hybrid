@@ -70,6 +70,18 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'watchlist',
+        element: <Navigate to="/watchlists" replace />,
+      },
+      {
+        path: 'audit',
+        element: <Navigate to="/system-status" replace />,
+      },
+      {
+        path: 'analytics',
+        element: <Navigate to="/system-status" replace />,
+      },
+      {
         path: 'system-status',
         element: <SystemStatusPage />,
       },

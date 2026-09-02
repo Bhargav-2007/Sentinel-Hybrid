@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Bell, BellOff, Activity, User, ShieldAlert, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '../../core/auth/authStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useTargetStore } from '../../stores/targetStore';
 import { UserRole } from '../../core/types/auth';
 
 export const Topbar: React.FC = () => {
   const { user, setRole } = useAuthStore();
   const { audioAlertsEnabled, toggleAudioAlerts } = useUIStore();
+  const { activeTarget } = useTargetStore();
   const [timeStr, setTimeStr] = useState('');
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
@@ -19,6 +21,11 @@ export const Topbar: React.FC = () => {
   }, []);
 
   const rolesList: UserRole[] = ['OPERATOR', 'INVESTIGATOR', 'SOC_LEAD', 'ADMIN'];
+
+  const latestLoc =
+    activeTarget?.sightings && activeTarget.sightings.length > 0
+      ? activeTarget.sightings[activeTarget.sightings.length - 1].camera_name
+      : 'SG HIGHWAY ISKCON';
 
   return (
     <header className="h-16 bg-sentinel-900/90 backdrop-blur border-b border-slate-800 px-4 flex items-center justify-between z-30 sticky top-0">
@@ -45,7 +52,9 @@ export const Topbar: React.FC = () => {
       {/* Center Ticker: APB Alert Banner */}
       <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded bg-cyber-crimson/15 border border-cyber-crimson/40 text-cyber-crimson font-mono text-xs font-semibold animate-pulse-fast">
         <ShieldAlert className="w-4 h-4" />
-        <span>HOTLIST APB: WANTED VEHICLE GJ01AB1234 SIGHTED (SG HIGHWAY)</span>
+        <span>
+          HOTLIST APB: {activeTarget?.plate || 'GJ 01 AB 1234'} ({activeTarget?.vehicleMake || 'TOYOTA'} {activeTarget?.vehicleModel || 'FORTUNER'}) &bull; SIGHTED: {latestLoc.toUpperCase()}
+        </span>
       </div>
 
       {/* Right Side Controls */}

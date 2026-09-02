@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   Volume2,
@@ -19,9 +19,12 @@ import {
   Server,
   Activity,
   Layers,
+  RotateCcw,
 } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
 import { playRiskAlertSiren } from '../../shared/utils/alertSiren';
+
+const SETTINGS_STORAGE_KEY = 'sentinel_soc_enterprise_settings';
 
 export const SettingsPage: React.FC = () => {
   const { audioAlertsEnabled, toggleAudioAlerts, streamProtocol, setStreamProtocol } = useUIStore();
@@ -59,8 +62,95 @@ export const SettingsPage: React.FC = () => {
   const [enforceMfa, setEnforceMfa] = useState(true);
   const [ipWhitelisting, setIpWhitelisting] = useState(true);
 
+  // Load from LocalStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.confidenceThreshold !== undefined) setConfidenceThreshold(parsed.confidenceThreshold);
+        if (parsed.inferenceBackend) setInferenceBackend(parsed.inferenceBackend);
+        if (parsed.detectCars !== undefined) setDetectCars(parsed.detectCars);
+        if (parsed.detectPlates !== undefined) setDetectPlates(parsed.detectPlates);
+        if (parsed.detectAutos !== undefined) setDetectAutos(parsed.detectAutos);
+        if (parsed.detectBikes !== undefined) setDetectBikes(parsed.detectBikes);
+        if (parsed.detectPeds !== undefined) setDetectPeds(parsed.detectPeds);
+        if (parsed.targetFps) setTargetFps(parsed.targetFps);
+        if (parsed.autoCallEnabled !== undefined) setAutoCallEnabled(parsed.autoCallEnabled);
+        if (parsed.riskThreshold !== undefined) setRiskThreshold(parsed.riskThreshold);
+        if (parsed.dispatchPolicy) setDispatchPolicy(parsed.dispatchPolicy);
+        if (parsed.sirenVolume !== undefined) setSirenVolume(parsed.sirenVolume);
+        if (parsed.hmacSecretKey) setHmacSecretKey(parsed.hmacSecretKey);
+        if (parsed.hashAlgorithm) setHashAlgorithm(parsed.hashAlgorithm);
+        if (parsed.timeSource) setTimeSource(parsed.timeSource);
+        if (parsed.vahanEndpoint) setVahanEndpoint(parsed.vahanEndpoint);
+        if (parsed.egujcopSyncInterval) setEgujcopSyncInterval(parsed.egujcopSyncInterval);
+        if (parsed.fastagEndpoint) setFastagEndpoint(parsed.fastagEndpoint);
+        if (parsed.sessionTimeout) setSessionTimeout(parsed.sessionTimeout);
+        if (parsed.enforceMfa !== undefined) setEnforceMfa(parsed.enforceMfa);
+        if (parsed.ipWhitelisting !== undefined) setIpWhitelisting(parsed.ipWhitelisting);
+      }
+    } catch {
+      // Keep defaults
+    }
+  }, []);
+
   const handleSaveSettings = () => {
-    setSavedToast('✓ SOC Platform Configuration & Security Policies Updated Successfully');
+    const config = {
+      confidenceThreshold,
+      inferenceBackend,
+      detectCars,
+      detectPlates,
+      detectAutos,
+      detectBikes,
+      detectPeds,
+      targetFps,
+      autoCallEnabled,
+      riskThreshold,
+      dispatchPolicy,
+      sirenVolume,
+      hmacSecretKey,
+      hashAlgorithm,
+      timeSource,
+      vahanEndpoint,
+      egujcopSyncInterval,
+      fastagEndpoint,
+      sessionTimeout,
+      enforceMfa,
+      ipWhitelisting,
+      streamProtocol,
+      audioAlertsEnabled,
+    };
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(config));
+    setSavedToast('✓ SOC Platform Configuration & Security Policies Saved Successfully to System Storage');
+    setTimeout(() => setSavedToast(null), 4000);
+  };
+
+  const handleResetDefaults = () => {
+    localStorage.removeItem(SETTINGS_STORAGE_KEY);
+    setConfidenceThreshold(0.40);
+    setInferenceBackend('NVIDIA TensorRT GPU (CUDA 12.4)');
+    setDetectCars(true);
+    setDetectPlates(true);
+    setDetectAutos(true);
+    setDetectBikes(true);
+    setDetectPeds(true);
+    setTargetFps('25');
+    setAutoCallEnabled(true);
+    setRiskThreshold(80);
+    setDispatchPolicy('NEAREST_GIS_CHOWKI');
+    setSirenVolume(80);
+    setHmacSecretKey('GUJARAT_POLICE_SEC65B_HSM_SEAL_KEY_2026_PROD');
+    setHashAlgorithm('SHA-256 (FIPS 180-4)');
+    setTimeSource('NTP Stratum 1 Gujarat State Clock');
+    setVahanEndpoint('https://vahan.parivahan.gov.in/api/v4/scr/gujarat');
+    setEgujcopSyncInterval('Live Real-Time Push');
+    setFastagEndpoint('https://npci.org.in/api/fastag/toll/gujarat');
+    setSessionTimeout('8 Hours (SOC Shift)');
+    setEnforceMfa(true);
+    setIpWhitelisting(true);
+    setStreamProtocol('hls');
+    setSavedToast('✓ Reset Configuration to Factory Default Parameters');
     setTimeout(() => setSavedToast(null), 4000);
   };
 
@@ -86,13 +176,23 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={handleSaveSettings}
-          className="px-4 py-2 rounded bg-cyber-blue hover:bg-cyber-cyan hover:text-black text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md"
-        >
-          <Save className="w-4 h-4" />
-          <span>SAVE CONFIGURATION</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleResetDefaults}
+            className="px-3 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Reset to default settings"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>RESET</span>
+          </button>
+          <button
+            onClick={handleSaveSettings}
+            className="px-4 py-2 rounded bg-cyber-blue hover:bg-cyber-cyan hover:text-black text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            <span>SAVE CONFIGURATION</span>
+          </button>
+        </div>
       </div>
 
       {savedToast && (
@@ -115,7 +215,7 @@ export const SettingsPage: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`p-2.5 rounded border text-left font-bold transition-all flex items-center justify-center gap-1.5 ${
+            className={`p-2.5 rounded border text-left font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === tab.id
                 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-md'
                 : 'bg-sentinel-900 border-slate-800 text-slate-400 hover:text-white'
@@ -129,9 +229,7 @@ export const SettingsPage: React.FC = () => {
 
       {/* Main Settings Content Area */}
       <div className="p-6 rounded bg-sentinel-900 border border-slate-800 text-xs space-y-6">
-        {/* ================================================================= */}
         {/* TAB 1: AI INFERENCE ENGINE & YOLO VISION */}
-        {/* ================================================================= */}
         {activeTab === 'ai' && (
           <div className="space-y-5">
             <div>
@@ -159,7 +257,7 @@ export const SettingsPage: React.FC = () => {
                   step="0.05"
                   value={confidenceThreshold}
                   onChange={(e) => setConfidenceThreshold(parseFloat(e.target.value))}
-                  className="w-full accent-cyber-cyan"
+                  className="w-full accent-cyber-cyan cursor-pointer"
                 />
                 <p className="text-[11px] text-slate-500">
                   Detections below this confidence score will be suppressed from the surveillance stream.
@@ -194,12 +292,12 @@ export const SettingsPage: React.FC = () => {
                   { label: 'Bikes & Scooters', state: detectBikes, set: setDetectBikes },
                   { label: 'Pedestrians', state: detectPeds, set: setDetectPeds },
                 ].map((item) => (
-                  <label key={item.label} className="flex items-center gap-2 cursor-pointer p-2 rounded bg-sentinel-900 border border-slate-800">
+                  <label key={item.label} className="flex items-center gap-2 cursor-pointer p-2 rounded bg-sentinel-900 border border-slate-800 hover:border-slate-700">
                     <input
                       type="checkbox"
                       checked={item.state}
                       onChange={(e) => item.set(e.target.checked)}
-                      className="accent-cyber-cyan w-4 h-4"
+                      className="accent-cyber-cyan w-4 h-4 cursor-pointer"
                     />
                     <span className="text-slate-300 font-bold text-[11px]">{item.label}</span>
                   </label>
@@ -209,9 +307,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         )}
 
-        {/* ================================================================= */}
         {/* TAB 2: SURVEILLANCE GRID & VIDEO PROTOCOLS */}
-        {/* ================================================================= */}
         {activeTab === 'stream' && (
           <div className="space-y-5">
             <div>
@@ -277,9 +373,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         )}
 
-        {/* ================================================================= */}
         {/* TAB 3: EMERGENCY AUTO-CALL & INTERCEPT DISPATCH */}
-        {/* ================================================================= */}
         {activeTab === 'dispatch' && (
           <div className="space-y-5">
             <div>
@@ -322,7 +416,7 @@ export const SettingsPage: React.FC = () => {
                   step="5"
                   value={riskThreshold}
                   onChange={(e) => setRiskThreshold(parseInt(e.target.value, 10))}
-                  className="w-full accent-cyber-crimson"
+                  className="w-full accent-cyber-crimson cursor-pointer"
                 />
               </div>
             </div>
@@ -332,7 +426,7 @@ export const SettingsPage: React.FC = () => {
                 <span className="font-bold text-slate-200">Acoustic APB Siren & Audio Alarm</span>
                 <button
                   onClick={handleTestSiren}
-                  className="px-2.5 py-1 rounded bg-red-900/80 hover:bg-red-700 text-white font-bold text-[11px] flex items-center gap-1"
+                  className="px-2.5 py-1 rounded bg-red-900/80 hover:bg-red-700 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer"
                 >
                   <Volume2 className="w-3 h-3" />
                   <span>TEST APB SIREN</span>
@@ -345,9 +439,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         )}
 
-        {/* ================================================================= */}
         {/* TAB 4: SECTION 65B FORENSICS & HSM CRYPTOGRAPHY */}
-        {/* ================================================================= */}
         {activeTab === 'forensics' && (
           <div className="space-y-5">
             <div>
@@ -360,64 +452,62 @@ export const SettingsPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-2">
-              <label className="text-[10px] text-slate-400 block">Master HSM HMAC Secret Key</label>
+            <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-3">
+              <span className="font-bold text-slate-200 block">HSM Master Secret Key Phrase</span>
               <input
                 type="text"
                 value={hmacSecretKey}
                 onChange={(e) => setHmacSecretKey(e.target.value)}
-                className="w-full px-3 py-2 bg-sentinel-900 border border-slate-700 rounded text-emerald-400 font-bold focus:outline-none"
+                className="w-full px-3 py-2 bg-sentinel-900 border border-slate-700 rounded text-cyber-cyan font-mono text-xs"
               />
+              <p className="text-[11px] text-slate-500">
+                Key used by the Hardware Security Module (HSM) to sign Section 65B forensic certificates with HMAC-SHA256.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-2">
-                <label className="text-[10px] text-slate-400 block">Digital Hash Algorithm</label>
-                <select
+                <span className="font-bold text-slate-200 block">Digest Hash Algorithm</span>
+                <input
+                  type="text"
+                  readOnly
                   value={hashAlgorithm}
-                  onChange={(e) => setHashAlgorithm(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-sentinel-900 border border-slate-700 rounded text-slate-200"
-                >
-                  <option value="SHA-256 (FIPS 180-4)">SHA-256 (FIPS 180-4 Standard)</option>
-                  <option value="SHA-512 (High Security)">SHA-512 (High Security)</option>
-                  <option value="BLAKE3 (Ultra-Fast)">BLAKE3 (Ultra-Fast)</option>
-                </select>
+                  className="w-full px-2.5 py-1.5 bg-sentinel-900 border border-slate-700 rounded text-slate-300 font-bold"
+                />
               </div>
 
               <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-2">
-                <label className="text-[10px] text-slate-400 block">Forensic Time Source</label>
+                <span className="font-bold text-slate-200 block">Authoritative Time Source</span>
                 <input
                   type="text"
+                  readOnly
                   value={timeSource}
-                  onChange={(e) => setTimeSource(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-sentinel-900 border border-slate-700 rounded text-slate-200"
+                  className="w-full px-2.5 py-1.5 bg-sentinel-900 border border-slate-700 rounded text-slate-300 font-bold"
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* ================================================================= */}
-        {/* TAB 5: EXTERNAL GOVERNMENT GATEWAYS */}
-        {/* ================================================================= */}
+        {/* TAB 5: EXTERNAL GOVT GATEWAYS */}
         {activeTab === 'gateways' && (
           <div className="space-y-5">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-1">
                 <Globe className="w-4 h-4 text-cyber-cyan" />
-                <span>External Government Systems & Inter-Agency Gateways</span>
+                <span>External Government Gateways & National Registries</span>
               </h3>
               <p className="text-slate-400 text-xs">
-                Real-time API federation links to MoRTH VAHAN 4.0, eGujCop CCTNS State SCRB, and NPCI FASTag Tolls.
+                Integrations with Ministry of Road Transport (VAHAN 4.0), Gujarat Police eGujCop/CCTNS, and NETC FASTag toll networks.
               </p>
             </div>
 
             <div className="space-y-3">
-              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-1.5">
+              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-200">VAHAN 4.0 National Vehicle Registry Gateway</span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">
-                    CONNECTED (112ms)
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-700">
+                    CONNECTED
                   </span>
                 </div>
                 <input
@@ -428,11 +518,11 @@ export const SettingsPage: React.FC = () => {
                 />
               </div>
 
-              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-1.5">
+              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-200">eGujCop CCTNS Hotlist Live Push Sync</span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">
-                    STATE SCRB ACTIVE
+                  <span className="font-bold text-slate-200">eGujCop / CCTNS Crime Database Live Feed</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-700">
+                    ONLINE
                   </span>
                 </div>
                 <input
@@ -443,11 +533,11 @@ export const SettingsPage: React.FC = () => {
                 />
               </div>
 
-              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-1.5">
+              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-200">NPCI FASTag Highway Toll Corridor Gateway</span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">
-                    LIVE GATEWAY (86ms)
+                  <span className="font-bold text-slate-200">NETC FASTag Gujarat Toll Barrier Feed</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-700">
+                    ONLINE
                   </span>
                 </div>
                 <input
@@ -461,38 +551,23 @@ export const SettingsPage: React.FC = () => {
           </div>
         )}
 
-        {/* ================================================================= */}
-        {/* TAB 6: SECURITY & RBAC AUDIT POLICY */}
-        {/* ================================================================= */}
+        {/* TAB 6: SECURITY & RBAC */}
         {activeTab === 'security' && (
           <div className="space-y-5">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-1">
                 <Lock className="w-4 h-4 text-cyber-cyan" />
-                <span>Law Enforcement RBAC Security & Audit Compliance</span>
+                <span>SOC Security Policy & Role-Based Access Controls</span>
               </h3>
               <p className="text-slate-400 text-xs">
-                Tamper-evident audit logging, session policies, and MFA enforcement for duty officers.
+                Enforce multi-factor authentication, station IP whitelisting, and duty session timeouts for Gujarat Police officers.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-2">
-                <span className="font-bold text-slate-200 block">Duty Session Timeout</span>
-                <select
-                  value={sessionTimeout}
-                  onChange={(e) => setSessionTimeout(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-sentinel-900 border border-slate-700 rounded text-slate-200"
-                >
-                  <option value="15 Minutes (Strict Security)">15 Minutes (Strict Security)</option>
-                  <option value="8 Hours (SOC Shift)">8 Hours (SOC Shift)</option>
-                  <option value="24 Hours (Control Room)">24 Hours (Control Room)</option>
-                </select>
-              </div>
-
-              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-2">
+              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-200">Hardware MFA / TOTP Enforcement</span>
+                  <span className="font-bold text-slate-200">Enforce Multi-Factor Auth (MFA)</span>
                   <input
                     type="checkbox"
                     checked={enforceMfa}
@@ -500,8 +575,23 @@ export const SettingsPage: React.FC = () => {
                     className="accent-cyber-cyan w-4 h-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-[11px] text-slate-500">
-                  Mandatory TOTP authenticator code required for all Investigator and Admin logins.
+                <p className="text-[11px] text-slate-400">
+                  Requires Time-based One-Time Password (TOTP) / Security Key for officer login.
+                </p>
+              </div>
+
+              <div className="p-4 rounded bg-slate-950 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-200">Police Intranet IP Whitelisting</span>
+                  <input
+                    type="checkbox"
+                    checked={ipWhitelisting}
+                    onChange={(e) => setIpWhitelisting(e.target.checked)}
+                    className="accent-cyber-cyan w-4 h-4 cursor-pointer"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Restricts access strictly to authorized Gujarat Police WAN & LAN subnets.
                 </p>
               </div>
             </div>

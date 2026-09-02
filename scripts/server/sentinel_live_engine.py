@@ -57,9 +57,9 @@ CLASS_NAMES = {
     7: "truck",
 }
 
-# 30 Real Gujarat CCTV Node Locations
+# 30 Real Gujarat CCTV Node Locations (All 30 Nodes Distinct)
 GUJARAT_CAMERAS = [
-    {"name": "SG Highway — Iskcon Crossroad", "district": "Ahmedabad City", "lat": 23.0298, "lng": 72.5074},
+    {"name": "SG Highway - Iskcon Crossroad", "district": "Ahmedabad City", "lat": 23.0298, "lng": 72.5074},
     {"name": "Majura Gate Ring Road", "district": "Surat City", "lat": 21.1702, "lng": 72.8311},
     {"name": "Alkapuri Circle", "district": "Vadodara", "lat": 22.3072, "lng": 73.1812},
     {"name": "Sector 10 Secretariat", "district": "Gandhinagar", "lat": 23.2156, "lng": 72.6369},
@@ -79,6 +79,16 @@ GUJARAT_CAMERAS = [
     {"name": "Ring Road Vesu Junction", "district": "Surat City", "lat": 21.1450, "lng": 72.7750},
     {"name": "Science City Road", "district": "Ahmedabad City", "lat": 23.0780, "lng": 72.5180},
     {"name": "Akshar Chowk", "district": "Vadodara", "lat": 22.2850, "lng": 73.1750},
+    {"name": "Vastrapur Lake Junction", "district": "Ahmedabad City", "lat": 23.0350, "lng": 72.5290},
+    {"name": "Adajan Patiya Circle", "district": "Surat City", "lat": 21.1960, "lng": 72.7930},
+    {"name": "Sayajigunj Tower Crossroad", "district": "Vadodara", "lat": 22.3110, "lng": 73.1890},
+    {"name": "Infocity Circle", "district": "Gandhinagar", "lat": 23.1880, "lng": 72.6280},
+    {"name": "Aji Dam Highway Checkpoint", "district": "Rajkot", "lat": 22.2610, "lng": 70.8350},
+    {"name": "Ghogha Circle", "district": "Bhavnagar", "lat": 21.7580, "lng": 72.1420},
+    {"name": "Naroda Patiya Junction", "district": "Ahmedabad City", "lat": 23.0670, "lng": 72.6480},
+    {"name": "Varachha Main Road", "district": "Surat City", "lat": 21.2180, "lng": 72.8620},
+    {"name": "Gotri Medical Crossroad", "district": "Vadodara", "lat": 22.3180, "lng": 73.1490},
+    {"name": "Mahatma Mandir Expressway", "district": "Gandhinagar", "lat": 23.2320, "lng": 72.6610},
 ]
 
 # In-Memory Real-Time State Stores
@@ -1000,67 +1010,155 @@ async def handle_system_status(request: web.Request) -> web.Response:
     })
 
 
+# Gujarat RTO Districts Mapping Dictionary
+GJ_RTO_MAP = {
+    "01": {"district": "Ahmedabad City", "name": "RTO Ahmedabad Subhash Bridge (GJ-01)", "station": "Navrangpura Police Station, Ahmedabad", "lat": 23.0298, "lng": 72.5074},
+    "02": {"district": "Mehsana", "name": "RTO Mehsana (GJ-02)", "station": "Modhera Highway Police Station, Mehsana", "lat": 23.5880, "lng": 72.3693},
+    "03": {"district": "Rajkot", "name": "RTO Rajkot (GJ-03)", "station": "Kalawad Road Police Station, Rajkot", "lat": 22.3039, "lng": 70.8022},
+    "04": {"district": "Bhavnagar", "name": "RTO Bhavnagar (GJ-04)", "station": "Nilambag Police Station, Bhavnagar", "lat": 21.7645, "lng": 72.1519},
+    "05": {"district": "Surat City", "name": "RTO Surat Ring Road (GJ-05)", "station": "Majura Gate Police Station, Surat", "lat": 21.1702, "lng": 72.8311},
+    "06": {"district": "Vadodara", "name": "RTO Vadodara (GJ-06)", "station": "Alkapuri Police Station, Vadodara", "lat": 22.3072, "lng": 73.1812},
+    "07": {"district": "Kheda / Nadiad", "name": "RTO Nadiad (GJ-07)", "station": "Nadiad Town Police Station", "lat": 22.6916, "lng": 72.8634},
+    "08": {"district": "Banaskantha", "name": "RTO Palanpur (GJ-08)", "station": "Palanpur Highway Police Station", "lat": 24.1700, "lng": 72.4300},
+    "09": {"district": "Sabarkantha", "name": "RTO Himatnagar (GJ-09)", "station": "Himatnagar Highway Police Station", "lat": 23.5977, "lng": 72.9698},
+    "10": {"district": "Jamnagar", "name": "RTO Jamnagar (GJ-10)", "station": "Khambhalia Gate Police Station, Jamnagar", "lat": 22.4707, "lng": 70.0577},
+    "11": {"district": "Junagadh", "name": "RTO Junagadh (GJ-11)", "station": "Majevadi Gate Police Station, Junagadh", "lat": 21.5222, "lng": 70.4579},
+    "12": {"district": "Kutch", "name": "RTO Bhuj (GJ-12)", "station": "Bhuj City Police Station", "lat": 23.2420, "lng": 69.6669},
+    "13": {"district": "Surendranagar", "name": "RTO Surendranagar (GJ-13)", "station": "Surendranagar Police Station", "lat": 22.7275, "lng": 71.6370},
+    "15": {"district": "Valsad", "name": "RTO Valsad (GJ-15)", "station": "Valsad Highway Police Station", "lat": 20.6071, "lng": 72.9249},
+    "16": {"district": "Bharuch", "name": "RTO Bharuch (GJ-16)", "station": "Narmada Bridge Checkpoint, Bharuch", "lat": 21.7051, "lng": 72.9959},
+    "18": {"district": "Gandhinagar", "name": "RTO Gandhinagar (GJ-18)", "station": "Sector 10 Secretariat Police Station", "lat": 23.2156, "lng": 72.6369},
+    "19": {"district": "Navsari", "name": "RTO Navsari (GJ-19)", "station": "Lunsikui Police Station, Navsari", "lat": 20.9500, "lng": 72.9300},
+    "23": {"district": "Anand", "name": "RTO Anand (GJ-23)", "station": "Express Toll Police Station, Anand", "lat": 22.5645, "lng": 72.9289},
+    "24": {"district": "Patan", "name": "RTO Patan (GJ-24)", "station": "Rani Ki Vav Police Station, Patan", "lat": 23.8500, "lng": 72.1300},
+    "27": {"district": "Ahmedabad City", "name": "RTO Vastral Ahmedabad (GJ-27)", "station": "Vastral Police Station, Ahmedabad", "lat": 23.0040, "lng": 72.6570},
+    "28": {"district": "Surat City", "name": "RTO Pal Surat (GJ-28)", "station": "Pal Vesu Police Station, Surat", "lat": 21.1450, "lng": 72.7750},
+}
+
+DYNAMIC_TARGET_REGISTRY: Dict[str, Dict[str, Any]] = {}
+
 # ==============================================================================
 # TIER 3: ADVANCED SERVICES
 # ==============================================================================
 
 async def handle_vehicle_360(request: web.Request) -> web.Response:
-    plate = request.match_info.get("plate", "GJ01AB1234").strip().upper()
-    is_wanted = plate in ("GJ01AB1234", "GJ09SS4567")
+    raw_plate = request.match_info.get("plate", "GJ01AB1234").strip().upper()
+    clean_plate = raw_plate.replace(" ", "")
+
+    # 1. Check Dynamic Case Registry First
+    if clean_plate in DYNAMIC_TARGET_REGISTRY:
+        return web.json_response(DYNAMIC_TARGET_REGISTRY[clean_plate])
+
+    # 2. Check CASES_DB
+    matched_case = next((c for c in CASES_DB if c.get("target_plate", "").replace(" ", "").upper() == clean_plate), None)
+
+    # 3. Check WATCHLIST_DB
+    matched_wl = next((w for w in WATCHLIST_DB if w.get("plate_number", "").replace(" ", "").upper() == clean_plate), None)
+
+    is_wanted = bool(matched_case or matched_wl or clean_plate in ("GJ01AB1234", "GJ09SS4567"))
+    
+    # Resolve vehicle specifications
+    v_cat = matched_case.get("target_vehicle_category") if matched_case else (matched_wl.get("vehicle_category") if matched_wl else "Car")
+    v_make = matched_case.get("target_vehicle_make") if matched_case else (matched_wl.get("vehicle_make") if matched_wl else ("Toyota" if is_wanted else "Maruti Suzuki"))
+    v_model = matched_case.get("target_vehicle_model") if matched_case else (matched_wl.get("vehicle_model") if matched_wl else ("Fortuner 4x4" if is_wanted else "Swift Dzire"))
+    v_color = matched_case.get("target_vehicle_color") if matched_case else (matched_wl.get("vehicle_color") if matched_wl else "White")
+    fir_num = matched_case.get("fir_number") if matched_case else (matched_wl.get("fir_number") if matched_wl else ("FIR-2026-CR-08942" if is_wanted else None))
+    p_station = matched_case.get("station") if matched_case else (matched_wl.get("police_station") if matched_wl else "Navrangpura Police Station, Ahmedabad")
+    officer = matched_case.get("assigned_officer_name") if matched_case else "Inspector R.K. Jadeja (Badge GJ-POL-8842)"
+
+    # Extract 2-digit RTO Code
+    code_match = re.search(r'GJ\s*(\d{2})', raw_plate)
+    rto_code = code_match.group(1) if code_match else "01"
+    rto_info = GJ_RTO_MAP.get(rto_code, GJ_RTO_MAP["01"])
+
+    # Trajectory reconstruction from case sightings or dynamic cameras
+    if matched_case and matched_case.get("sightings"):
+        trajectory_points = []
+        for idx, s in enumerate(matched_case["sightings"]):
+            cam_name = s.get("camera_name", "Gujarat CCTV")
+            # Find coordinates from GUJARAT_CAMERAS
+            cam_match = next((g for g in GUJARAT_CAMERAS if g["name"].lower() in cam_name.lower() or cam_name.lower() in g["name"].lower()), None)
+            lat = s.get("latitude") or (cam_match["lat"] if cam_match else rto_info["lat"] + (idx * 0.025))
+            lng = s.get("longitude") or (cam_match["lng"] if cam_match else rto_info["lng"] + (idx * 0.020))
+            pts = s.get("pts_ms") or (1000 + idx * 7000)
+            time_str = s.get("timestamp", f"{10 + idx}:{15 + idx * 5}:00 UTC").split("(")[0].strip()
+
+            trajectory_points.append({
+                "camera_id": s.get("camera_id") or f"cam{idx + 1:02d}",
+                "camera_name": cam_name,
+                "district": s.get("district", rto_info["district"]),
+                "latitude": round(lat, 5),
+                "longitude": round(lng, 5),
+                "sighted_at": time_str,
+                "speed_kmh": float(s.get("speed_kmh", 55.0)),
+                "pts_ms": pts,
+            })
+    else:
+        # Build corridor trajectory around the RTO district
+        candidate_cams = [g for g in GUJARAT_CAMERAS if g["district"].lower() in rto_info["district"].lower()]
+        if len(candidate_cams) < 4:
+            candidate_cams = (candidate_cams + GUJARAT_CAMERAS)[:4]
+
+        trajectory_points = []
+        for idx, c in enumerate(candidate_cams[:4]):
+            pts = 1000 + idx * 7000
+            time_str = f"05:{10 + idx * 7:02d}:00 UTC"
+            trajectory_points.append({
+                "camera_id": f"cam{idx + 1:02d}",
+                "camera_name": f"{c['name']} (CAM{idx + 1:02d})",
+                "district": c["district"],
+                "latitude": round(c["lat"], 5),
+                "longitude": round(c["lng"], 5),
+                "sighted_at": time_str,
+                "speed_kmh": round(45.0 + (idx * 6.5), 1),
+                "pts_ms": pts,
+            })
 
     data = {
-        "plate": plate,
+        "plate": raw_plate,
         "threat_score": 95 if is_wanted else 15,
         "priority": "CRITICAL" if is_wanted else "LOW",
         "vahan": {
-            "plate_number": plate,
-            "owner_name": "State Registered Citizen" if not is_wanted else "State Wanted Record",
-            "vehicle_make": "Toyota" if is_wanted else "Maruti Suzuki",
-            "vehicle_model": "Fortuner 4x4" if is_wanted else "Swift Dzire",
-            "vehicle_class": "LMV (Motor Car)",
-            "fuel_type": "Diesel",
+            "plate_number": raw_plate,
+            "owner_name": "State Wanted Criminal Record" if is_wanted else "Gujarat Registered Citizen Record",
+            "vehicle_category": v_cat,
+            "vehicle_make": v_make,
+            "vehicle_model": v_model,
+            "vehicle_color": v_color,
+            "vehicle_class": "LMV (Motor Car)" if "Car" in v_cat else ("2W (Motorcycle)" if "Bike" in v_cat or "Scooter" in v_cat else "HMV (Commercial)"),
+            "fuel_type": "Diesel" if "Car" in v_cat or "Truck" in v_cat else "Petrol",
             "registration_date": "2022-04-15",
             "insurance_valid_upto": "2027-04-14",
             "puc_valid_upto": "2026-11-30",
-            "rto_location": "RTO Ahmedabad (GJ-01)",
-            "chassis_number": f"MBH{plate}884219",
-            "engine_number": f"2GD{plate}9904",
+            "rto_location": rto_info["name"],
+            "chassis_number": f"MBH{clean_plate}884219",
+            "engine_number": f"2GD{clean_plate}9904",
             "blacklist_status": "BLACK_LISTED (STOLEN)" if is_wanted else "CLEAN",
             "data_source": "VAHAN 4.0 (MoRTH)",
         },
         "criminal_record": {
-            "queried_plate": plate,
+            "queried_plate": raw_plate,
             "is_wanted": is_wanted,
             "category": "STOLEN_VEHICLE" if is_wanted else None,
-            "fir_number": "FIR-2026-CR-08942" if is_wanted else None,
-            "police_station": "Navrangpura Police Station, Ahmedabad" if is_wanted else None,
-            "investigating_officer": "Inspector R.K. Jadeja (Badge GJ-POL-8842)" if is_wanted else None,
-            "crime_sections": ["IPC Section 379", "BNS Section 303 (Theft)"] if is_wanted else [],
+            "fir_number": fir_num or ("FIR-2026-CR-08942" if is_wanted else None),
+            "police_station": p_station,
+            "investigating_officer": officer,
+            "crime_sections": ["IPC Section 379", "BNS Section 303 (Theft)", "Motor Vehicles Act Sec 192A"] if is_wanted else [],
             "hotlist_timestamp": "2026-08-30T10:15:00Z" if is_wanted else None,
             "data_source": "eGujCop / CCTNS (SCRB Gujarat)",
         },
         "trajectory": {
-            "plate": plate,
-            "clean_plate": plate,
+            "plate": raw_plate,
+            "clean_plate": clean_plate,
             "first_seen_at": "2026-09-01T05:10:00Z",
             "last_seen_at": "2026-09-01T05:32:00Z",
-            "total_sightings": 4,
-            "last_camera_id": "cam04",
-            "last_latitude": 23.2156,
-            "last_longitude": 72.6369,
-            "path_geojson": [
-                {"camera_id": "cam07", "camera_name": "Sarkhej Cross Roads", "latitude": 22.9868, "longitude": 72.4965, "sighted_at": "05:10:00 UTC", "speed_kmh": 42.0},
-                {"camera_id": "cam01", "camera_name": "SG Highway Iskcon Jct", "latitude": 23.0298, "longitude": 72.5074, "sighted_at": "05:18:00 UTC", "speed_kmh": 68.2},
-                {"camera_id": "cam08", "camera_name": "C.G. Road Crossroad", "latitude": 23.0338, "longitude": 72.5562, "sighted_at": "05:25:00 UTC", "speed_kmh": 35.0},
-                {"camera_id": "cam04", "camera_name": "Gandhinagar Secretariat", "latitude": 23.2156, "longitude": 72.6369, "sighted_at": "05:32:00 UTC", "speed_kmh": 64.0},
-            ]
+            "total_sightings": len(trajectory_points),
+            "last_camera_id": trajectory_points[-1]["camera_id"] if trajectory_points else "cam01",
+            "last_latitude": trajectory_points[-1]["latitude"] if trajectory_points else rto_info["lat"],
+            "last_longitude": trajectory_points[-1]["longitude"] if trajectory_points else rto_info["lng"],
+            "path_geojson": trajectory_points,
         },
-        "sightings_history": [
-            {"camera_id": "cam07", "camera_name": "Sarkhej Cross Roads", "latitude": 22.9868, "longitude": 72.4965, "sighted_at": "05:10:00 UTC", "speed_kmh": 42.0},
-            {"camera_id": "cam01", "camera_name": "SG Highway Iskcon Jct", "latitude": 23.0298, "longitude": 72.5074, "sighted_at": "05:18:00 UTC", "speed_kmh": 68.2},
-            {"camera_id": "cam08", "camera_name": "C.G. Road Crossroad", "latitude": 23.0338, "longitude": 72.5562, "sighted_at": "05:25:00 UTC", "speed_kmh": 35.0},
-            {"camera_id": "cam04", "camera_name": "Gandhinagar Secretariat", "latitude": 23.2156, "longitude": 72.6369, "sighted_at": "05:32:00 UTC", "speed_kmh": 64.0},
-        ]
+        "sightings_history": trajectory_points,
     }
     return web.json_response(data)
 
@@ -1096,6 +1194,8 @@ async def handle_create_case(request: web.Request) -> web.Response:
     next_counter = (max(existing_nums) + 1) if existing_nums else 128
     case_num = f"CASE-2026-{next_counter:05d}"
     fir_num = data.get("fir_number") or f"FIR-2026-CR-{8942 + next_counter - 127:05d}"
+    target_plate = data.get("target_plate", "GJ01AB1234").strip().upper()
+    clean_plate = target_plate.replace(" ", "")
 
     # Calculate real SHA-256 & HMAC signature for the case
     payload_str = json.dumps(data, sort_keys=True).encode("utf-8")
@@ -1103,15 +1203,17 @@ async def handle_create_case(request: web.Request) -> web.Response:
     hmac_sig = hmac.new(SECRET_KEY, payload_str, hashlib.sha256).hexdigest()
     cert_id = f"SEC65B-CAM04-{int(time.time())}-{next_counter}"
 
+    sightings = data.get("sightings") or []
+
     new_case = {
         "id": f"case-2026-{next_counter:05d}",
         "case_number": case_num,
-        "title": data.get("title") or f"APB Investigation: {data.get('target_vehicle_make', 'Vehicle')} [{data.get('target_plate', 'GJ01AB1234')}]",
+        "title": data.get("title") or f"APB Investigation: {data.get('target_vehicle_make', 'Vehicle')} [{target_plate}]",
         "description": data.get("description", "Section 65B forensic case file generated from live CCTV surveillance grid."),
         "fir_number": fir_num,
         "status": data.get("status", "INVESTIGATING"),
         "priority": data.get("priority", "CRITICAL"),
-        "target_plate": data.get("target_plate", "GJ01AB1234"),
+        "target_plate": target_plate,
         "target_vehicle_category": data.get("target_vehicle_category", "Car"),
         "target_vehicle_make": data.get("target_vehicle_make", "Toyota"),
         "target_vehicle_model": data.get("target_vehicle_model", "Fortuner 4x4"),
@@ -1120,19 +1222,78 @@ async def handle_create_case(request: web.Request) -> web.Response:
         "station": data.get("station", "Navrangpura Police Station, Ahmedabad"),
         "assigned_officer_badge": data.get("assigned_officer_badge", "GJ-POL-8842"),
         "assigned_officer_name": data.get("assigned_officer_name", "Inspector R.K. Jadeja"),
-        "sightings": data.get("sightings") or [
-            {"camera_id": "cam07", "camera_name": "Sarkhej Sanand Cross Roads", "district": "Ahmedabad", "timestamp": "05:10:00 UTC (1000ms)", "speed_kmh": 42.0, "detections": "Car (1), Person (2)"},
-            {"camera_id": "cam01", "camera_name": "SG Highway Iskcon Jct", "district": "Ahmedabad", "timestamp": "05:18:00 UTC (8000ms)", "speed_kmh": 68.2, "detections": f"Target [{data.get('target_plate', 'GJ01AB1234')}]"},
-            {"camera_id": "cam08", "camera_name": "C.G. Road Crossroad", "district": "Ahmedabad", "timestamp": "05:25:00 UTC (15000ms)", "speed_kmh": 35.0, "detections": "Car (1), Auto (1)"},
-            {"camera_id": "cam04", "camera_name": "Sector 10 Secretariat", "district": "Gandhinagar", "timestamp": "05:32:00 UTC (22000ms)", "speed_kmh": 64.0, "detections": f"Target [{data.get('target_plate', 'GJ01AB1234')}], Bus (1)"},
-        ],
+        "sightings": sightings,
         "section65b_certificate_id": cert_id,
         "sha256_checksum": sha256_hash,
         "hmac_sha256_signature": hmac_sig,
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
-    CASES_DB.append(new_case)
+    CASES_DB.insert(0, new_case)
+
+    # 1. Synchronize to APB ALERTS_DB
+    latest_sighting = sightings[-1] if sightings else {}
+    new_alert = {
+        "id": f"INC-{int(time.time()):08X}",
+        "incident_number": f"APB-2026-{next_counter:05d}",
+        "alert_type": "WANTED_SUSPECT_VEHICLE",
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": f"🚨 APB PURSUIT: {target_plate} — {new_case['target_vehicle_make']} {new_case['target_vehicle_model']}",
+        "camera_id": latest_sighting.get("camera_id", "cam01"),
+        "camera_name": latest_sighting.get("camera_name", "SG Highway Iskcon Jct"),
+        "district": latest_sighting.get("district", new_case["district"]),
+        "latitude": latest_sighting.get("latitude", 23.0298),
+        "longitude": latest_sighting.get("longitude", 72.5074),
+        "detected_plate": target_plate,
+        "vehicle_make": new_case["target_vehicle_make"],
+        "vehicle_model": new_case["target_vehicle_model"],
+        "vehicle_color": new_case["target_vehicle_color"],
+        "confidence_score": 0.985,
+        "threat_score": 95,
+        "speed_kmh": float(latest_sighting.get("speed_kmh", 68.2)),
+        "fir_number": fir_num,
+        "station": new_case["station"],
+        "assigned_officer": new_case["assigned_officer_name"],
+        "nearest_chowki": f"{new_case['station']} Intercept Chowki",
+        "watchlist_tag": "Active Case Dossier (Section 65B)",
+        "section65b_hmac_hash": hmac_sig,
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    # Remove existing alert for this plate if present and add new at top
+    global ALERTS_DB
+    ALERTS_DB = [a for a in ALERTS_DB if a.get("detected_plate", "").replace(" ", "").upper() != clean_plate]
+    ALERTS_DB.insert(0, new_alert)
+
+    # 2. Synchronize to WATCHLIST_DB
+    global WATCHLIST_DB
+    WATCHLIST_DB = [w for w in WATCHLIST_DB if w.get("plate_number", "").replace(" ", "").upper() != clean_plate]
+    WATCHLIST_DB.insert(0, {
+        "id": f"WL-{len(WATCHLIST_DB) + 1:03d}",
+        "plate_number": target_plate,
+        "category": "CASE_SUSPECT_TARGET",
+        "priority": "CRITICAL",
+        "vehicle_category": new_case["target_vehicle_category"],
+        "vehicle_make": new_case["target_vehicle_make"],
+        "vehicle_model": new_case["target_vehicle_model"],
+        "vehicle_color": new_case["target_vehicle_color"],
+        "fir_number": fir_num,
+        "police_station": new_case["station"],
+        "assigned_officer": new_case["assigned_officer_name"],
+        "source": "Section 65B Forensics Studio",
+        "added_date": time.strftime("%Y-%m-%d", time.gmtime()),
+        "is_active": True,
+    })
+
+    AUDIT_LOGS.append({
+        "id": f"AUD-{int(time.time())}",
+        "officer_badge": new_case["assigned_officer_badge"],
+        "action": "CASE_DOSSIER_REGISTERED",
+        "target": target_plate,
+        "ip_address": request.remote or "127.0.0.1",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
+
     return web.json_response(new_case, status=201)
 
 

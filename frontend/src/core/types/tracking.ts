@@ -24,8 +24,10 @@ export interface VehicleTrajectoryData {
 export interface VahanDossier {
   plate_number: string;
   owner_name: string;
+  vehicle_category?: string;
   vehicle_make: string;
   vehicle_model: string;
+  vehicle_color?: string;
   vehicle_class: string;
   fuel_type: string;
   registration_date: string;

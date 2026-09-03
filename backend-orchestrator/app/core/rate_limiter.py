@@ -59,9 +59,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """FastAPI Middleware enforcing sliding window rate limits."""
 
     async def dispatch(self, request: Request, call_next):
-        # Bypass rate limiting for local health probes and websocket handshakes
+        # Bypass rate limiting for local health probes, websocket handshakes, and high-frequency CCTV video streams
         path = request.url.path
-        if path in ("/health", "/api/v1/health-matrix", "/docs", "/openapi.json", "/redoc") or path.startswith("/ws"):
+        if (
+            path in ("/health", "/api/v1/health-matrix", "/docs", "/openapi.json", "/redoc")
+            or path.startswith("/ws")
+            or path.startswith("/api/v1/streams")
+        ):
             return await call_next(request)
 
         client_ip = request.client.host if request.client else "127.0.0.1"

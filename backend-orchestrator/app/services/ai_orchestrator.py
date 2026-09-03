@@ -309,6 +309,26 @@ class AIOrchestratorService:
                 ],
             }
 
+        traj_dict = None
+        if trajectory:
+            if isinstance(trajectory, dict):
+                traj_dict = trajectory
+            else:
+                first_seen = getattr(trajectory, "first_seen_at", None)
+                last_seen = getattr(trajectory, "last_seen_at", None)
+                traj_dict = {
+                    "id": getattr(trajectory, "id", f"TRJ-{clean_plate}"),
+                    "plate": getattr(trajectory, "plate", clean_plate),
+                    "clean_plate": getattr(trajectory, "clean_plate", clean_plate),
+                    "first_seen_at": first_seen.isoformat() if hasattr(first_seen, "isoformat") else str(first_seen or ""),
+                    "last_seen_at": last_seen.isoformat() if hasattr(last_seen, "isoformat") else str(last_seen or ""),
+                    "total_sightings": getattr(trajectory, "total_sightings", 0),
+                    "last_camera_id": getattr(trajectory, "last_camera_id", "CAM-01"),
+                    "last_latitude": getattr(trajectory, "last_latitude", 23.0298),
+                    "last_longitude": getattr(trajectory, "last_longitude", 72.5074),
+                    "path_geojson": getattr(trajectory, "path_geojson", []),
+                }
+
         return {
             "plate": clean_plate,
             "vahan_registration": vahan_record,
@@ -316,7 +336,7 @@ class AIOrchestratorService:
                 "is_wanted": watchlist_match.is_match,
                 "details": watchlist_match.watchlist_entry.model_dump() if watchlist_match.watchlist_entry else None,
             },
-            "trajectory_history": trajectory,
+            "trajectory_history": traj_dict,
             "reconstructed_corridor_route": route_payload,
             "model4_stream_data": model4_traj,
             "query_timestamp": datetime.now(timezone.utc).isoformat(),

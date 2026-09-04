@@ -144,9 +144,8 @@ class CameraService:
                     codec=c_data["codec"],
                     fps=c_data["fps"],
                     resolution=c_data["resolution"],
-                    bitrate_kbps=c_data["bitrate_kbps"],
-                    status=CameraStatus.ONLINE,
-                    is_live=True,
+                    status=CameraStatus.OFFLINE,
+                    is_live=False,
                     department_id=c_data.get("department_id"),
                 )
                 db.add(camera)

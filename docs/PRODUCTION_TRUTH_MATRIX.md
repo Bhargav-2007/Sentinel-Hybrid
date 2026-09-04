@@ -21,7 +21,7 @@ This document establishes the verified state of every architectural component, A
 ## 2. Real-Time Video & CCTV Streaming Specification
 
 - **Streaming Source**: Live CCTV media gateway at `rtsp://103.250.160.189:8554/stream/{id}` and `http://103.250.160.189:8889/stream/{id}/whep`.
-- **Authenticated Runtime Credentials**: Basic Auth `bhargav.umetiya@gmail.com:PJMN-KC93-T648`.
+- **Authenticated Runtime Credentials**: Loaded via runtime environment variables (`SENTINEL_STREAM_USER=bhargav.umetiya@gmail.com` and `SENTINEL_STREAM_PASSWORD=[REDACTED_RUNTIME_CREDENTIAL]`). Passwords must never be stored in source code or committed documentation.
 - **Empirical 30-Camera Gateway Audit (September 4, 2026)**:
   - Total Cameras Probed: 30/30 (`cam01` through `cam30`).
   - Reachability: `30/30 NETWORK_REACHABLE` (TCP ports 8554 & 8889 active).

@@ -1,25 +1,27 @@
-# Sentinel-Hybrid — Production Readiness & Deployment Verification
+# Sentinel-Hybrid — Production Hardening & Verification Status
 
-**Status**: **PRODUCTION READY**  
-**Compliance**: Gujarat Police CCTV Challenge Specification (Official Portal: [sentinel.gujarat.gov.in](https://sentinel.gujarat.gov.in/))  
-**Evidence Standard**: Section 65B Indian Evidence Act (Forensic Integrity & Hash Signatures)
+**Status**: **HARDENED PRE-PRODUCTION BASELINE (EMPIRICALLY VERIFIED)**  
+**Classification**: Engineering Verification Assessment  
+**Gateway Source**: `103.250.160.189` (MediaMTX RTSP :8554 / WHEP :8889)  
+**Compliance Standard**: Gujarat Police CCTV Challenge Specification  
+**Evidence Standard**: Section 65B Indian Evidence Act / BSA 2023 (Cryptographic HMAC-SHA256 Signatures)  
 
 ---
 
-## 1. Production Architecture Verification
+## 1. Verified Architecture & Fleet Status
 
 ```mermaid
 flowchart TD
-    subgraph Edge["Edge Infrastructure"]
-        CCTV["Gujarat CCTV Grid (50 Checkpoints)"] -->|RTSP / H.264 / WHEP| Ingestion["Ingestion & Frame Demuxer"]
-        Ingestion -->|PTS Frames| AIDetect["AI Detection Engine (YOLOv8 + EasyOCR)"]
+    subgraph Edge["Live CCTV Fleet (103.250.160.189)"]
+        CCTV["30 Live Gujarat Cameras (cam01 - cam30)"] -->|30/30 MEDIA_ACTIVE| Ingestion["MediaMTX RTSP :8554 / WHEP :8889"]
+        Ingestion -->|6/30 AI_ACTIVE Tested| AIDetect["ai-detection Microservice (:8006)"]
     end
 
     subgraph Core["Central Platform Core (Port :8000)"]
-        AIDetect -->|Detection Metadata| Orch["Central Brain Orchestrator"]
-        Orch -->|SQL / Spatial| DB[("SQLite / PostgreSQL 16 PostGIS")]
-        Orch -->|Corridor Tracking| Model4["Trajectory & Evidence Vault"]
-        Orch -->|Alert Dispatch| WebSockets["WebSocket & Event Bus"]
+        AIDetect -->|Detection JSON Events| Orch["backend-orchestrator (:8000)"]
+        Orch -->|SQL / Spatial| DB[("PostgreSQL 16 PostGIS / SQLite Fallback")]
+        Orch -->|HMAC Signatures| Sec65B["Section 65B Evidence Studio"]
+        Orch -->|Alert Dispatch| WebSockets["WebSocket Alerts (:8000/api/v1/ws)"]
     end
 
     subgraph Presentation["Command & Control UI (Port :5173 / :80)"]
@@ -30,37 +32,38 @@ flowchart TD
 
 ---
 
-## 2. Readiness Checklist
+## 2. Empirical Verification Scorecard
 
-- [x] **Zero Mock Data in Production**: Verified via `scripts/scan-no-mock-data.py --ci` (0 violations across 257 files).
-- [x] **AI Detection & ANPR**: EasyOCR (PyTorch CPU backend) & YOLOv8n initialized and verified.
-- [x] **Database Resiliency**: Multi-backend support (`sentinel_platform.db` SQLite native fallback + Dockerized PostgreSQL).
-- [x] **Section 65B Compliance**: SHA256 / HMAC forensic signatures on exported evidence dossiers.
-- [x] **Frontend Integrity**: All feature pages (Cases, Live Operations, GIS Map, Investigation, System Status, Users, Watchlists) bound directly to backend REST APIs.
-- [x] **Automated Tests**:
-  - `ai-detection`: 22 / 22 Passed.
-  - `backend-orchestrator`: 14 / 14 Passed.
-  - `frontend`: TypeScript compilation and production build passed in 3.56s.
+- **CCTV Gateway Reachability**: **30/30 (100%)** cameras network-reachable and authenticated via runtime credentials.
+- **Media Ingestion**: **30/30 (100%)** active RTSP SDP video tracks (24 H.264, 6 H.265).
+- **Frame Decode & AI Processing**: **6/30 (20%)** empirically decoded and inference-verified (`cam01` through `cam06`). Remaining 24 streams require multi-node edge worker scaling to sustain full 25 FPS concurrent load.
+- **ANPR Anti-Hallucination**: Distant blurred plates (>30m) truthfully classified as `UNREADABLE` without text hallucination.
+- **Database Architecture**: PostgreSQL primary with graceful SQLite fallback logging `DATABASE_UNAVAILABLE` notifications in development.
+- **Section 65B Forensic Integrity**: Verified with SHA-256 frame hashes and HMAC seals (`fa8a04ca...` / `020ec3f0...`).
+- **Frontend Build & Test Integrity**: Zero TypeScript errors; 100% connected to backend APIs.
+  - `backend-orchestrator`: 14/14 Tests Passed.
+  - `ai-detection`: 22/22 Tests Passed.
+  - `frontend`: Vite production build passed cleanly (`dist/` zero secrets).
 
 ---
 
 ## 3. How to Run Locally
 
 ### Start Backend Services
-```bash
-# Central Orchestrator & API Gateway (Port 8000)
+```powershell
+# 1. Central Orchestrator & API Gateway (Port 8000)
 cd backend-orchestrator
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 
-# AI Computer Vision Microservice (Port 8006)
+# 2. AI Computer Vision Microservice (Port 8006)
 cd ai-detection
-uvicorn app.main:app --host 0.0.0.0 --port 8006 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8006
 ```
 
 ### Start Frontend Surveillance UI
-```bash
+```powershell
 cd frontend
-npm install
 npm run dev
 ```
-Navigate to `http://localhost:5173`.
+
+Visit: `http://localhost:5173/` (Login with Badge ID `POLICE-AHM-042` / `Sentinel@2026`).

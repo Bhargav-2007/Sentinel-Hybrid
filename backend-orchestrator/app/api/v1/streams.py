@@ -283,74 +283,79 @@ async def list_stream_catalogue(db: AsyncSession = Depends(get_db)):
 @router.get("/{camera_id}/snapshot")
 async def get_camera_snapshot(camera_id: str):
     """
-    Returns a single live JPEG snapshot from the physical camera feed with
-    genuine decoded presentation time (ms) and server UTC observation time.
-    Does NOT claim hardware clock unless verified.
+    Returns a single live JPEG snapshot from the supervisor's already-connected camera worker.
+    Serves the latest frame from the bounded queue — no per-request RTSP reconnect.
+    Falls back to a direct RTSP connection if the supervisor has not yet connected this camera.
     """
-    cam_tag = normalize_cam_tag(camera_id)
-    rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
-    cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+    from app.services.stream_supervisor import stream_supervisor
+    import queue as q_module
 
-    if not cap.isOpened():
+    cam_tag = normalize_cam_tag(camera_id)
+    now_utc = datetime.now(timezone.utc)
+
+    # Path 1: Supervisor has this camera connected — use latest frame directly (non-destructive)
+    worker = stream_supervisor.workers.get(cam_tag)
+    if worker and worker.telemetry.frame_active:
+        # If AI has produced an annotated frame with detections HUD, serve it directly
+        if worker.latest_annotated_jpeg is not None:
+            return Response(
+                content=worker.latest_annotated_jpeg,
+                media_type="image/jpeg",
+                headers={
+                    "X-Sentinel-Observation-Time": now_utc.isoformat(),
+                    "X-Sentinel-Camera": cam_tag,
+                    "X-Sentinel-Frame-Source": "SUPERVISOR_AI_ANNOTATED",
+                    "Cache-Control": "no-store, no-cache, must-revalidate",
+                },
+            )
+
+        # Otherwise serve latest decoded raw frame with decoder HUD
+        latest_pkt = getattr(worker, "latest_frame", None)
+        if latest_pkt is not None and latest_pkt.frame is not None and latest_pkt.frame.size > 0:
+            frame = latest_pkt.frame.copy()
+            decoded_pts_ms = latest_pkt.decoded_pts_ms
+
+            # Draw HUD: Decoded Presentation Time (genuine decoder timing, not hardware clock)
+            pts_display = (
+                f"DECODER PTS: {decoded_pts_ms:.1f}ms"
+                if decoded_pts_ms > 0
+                else "DECODER PTS: 0.0ms (STREAM START)"
+            )
+            obs_display = f"OBSERVED: {now_utc.strftime('%H:%M:%S.%f')[:-3]} UTC"
+
+            cv2.rectangle(frame, (10, 10), (420, 52), (10, 15, 25), -1)
+            cv2.rectangle(frame, (10, 10), (420, 52), (0, 240, 255), 1)
+            cv2.putText(frame, f"SENTINEL {cam_tag.upper()} | {pts_display}", (18, 28),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.38, (0, 240, 255), 1, cv2.LINE_AA)
+            cv2.putText(frame, obs_display, (18, 44),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.34, (0, 255, 153), 1, cv2.LINE_AA)
+
+            success, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+            if success:
+                return Response(
+                    content=buffer.tobytes(),
+                    media_type="image/jpeg",
+                    headers={
+                        "X-Sentinel-Decoder-PTS-MS": str(decoded_pts_ms),
+                        "X-Sentinel-Observation-Time": now_utc.isoformat(),
+                        "X-Sentinel-Camera": cam_tag,
+                        "X-Sentinel-Frame-Source": "SUPERVISOR_FRAME",
+                        "Cache-Control": "no-store, no-cache, must-revalidate",
+                    },
+                )
+
+    # Path 2: Worker not frame-active yet. Report truthfully instead of opening new RTSP.
+    if worker:
+        state = worker.state.value if worker.state else "UNKNOWN"
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Camera stream {cam_tag} offline or unreachable on {DEFAULT_RTSP_HOST}:{DEFAULT_RTSP_PORT}",
+            detail=f"Camera {cam_tag} supervisor state={state}. No frames decoded yet.",
         )
 
-    ret, frame = cap.read()
-    raw_pts = cap.get(cv2.CAP_PROP_POS_MSEC)
-    cap.release()
-
-    if not ret or frame is None:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Frame decode failure for {cam_tag}",
-        )
-
-    now_utc = datetime.now(timezone.utc)
-    decoded_pts_ms = round(float(raw_pts), 2) if raw_pts > 0 else 0.0
-
-    # Draw HUD with genuine timing labels (Decoded Presentation Time, not hardware PTS)
-    pts_display = f"DECODER PTS: {decoded_pts_ms:.1f}ms" if decoded_pts_ms > 0 else "DECODER PTS: 0.0ms (STREAM START)"
-    obs_display = f"OBSERVED: {now_utc.strftime('%H:%M:%S.%f')[:-3]} UTC"
-
-    cv2.rectangle(frame, (10, 10), (420, 52), (10, 15, 25), -1)
-    cv2.rectangle(frame, (10, 10), (420, 52), (0, 240, 255), 1)
-    cv2.putText(
-        frame,
-        f"SENTINEL {cam_tag.upper()} | {pts_display}",
-        (18, 28),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.38,
-        (0, 240, 255),
-        1,
-        cv2.LINE_AA,
-    )
-    cv2.putText(
-        frame,
-        obs_display,
-        (18, 44),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.34,
-        (0, 255, 153),
-        1,
-        cv2.LINE_AA,
-    )
-
-    success, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to encode JPEG snapshot")
-
-    headers = {
-        "X-Sentinel-Decoder-PTS-MS": str(decoded_pts_ms),
-        "X-Sentinel-Observation-Time": now_utc.isoformat(),
-        "X-Sentinel-Camera": cam_tag,
-        "Cache-Control": "no-store, no-cache, must-revalidate",
-    }
-    return Response(
-        content=buffer.tobytes(),
-        media_type="image/jpeg",
-        headers=headers,
+    # Path 3: Camera not registered in supervisor at all
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Camera {cam_tag} is not registered in the stream supervisor.",
     )
 
 
@@ -653,4 +658,17 @@ async def probe_camera_stream(camera_id: str):
         "detections": detections_found,
         # WHEP Model
         "whep": whep_model,
+    }
+
+
+@router.get("/events/recent")
+async def get_recent_stream_events(limit: int = 50):
+    """
+    Returns the latest real events generated by the live multi-camera AI pipeline.
+    """
+    from app.services.stream_supervisor import stream_supervisor
+    events = stream_supervisor.get_recent_events(limit=limit)
+    return {
+        "count": len(events),
+        "events": events,
     }

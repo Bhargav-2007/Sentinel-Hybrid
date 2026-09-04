@@ -194,8 +194,20 @@ async def detect_person_vehicle(
     tracker = get_tracker_for_camera(camera_id)
     tracked_detections = tracker.update(detections)
 
+    vehicle_types = {"car", "truck", "bus", "motorcycle", "scooter", "auto-rickshaw", "bicycle"}
+    for obj in tracked_detections:
+        if obj.class_name == "person":
+            obj.is_person = True
+            obj.vehicle_type = None
+        elif obj.class_name in vehicle_types:
+            obj.is_person = False
+            obj.vehicle_type = obj.class_name
+        else:
+            obj.is_person = False
+            obj.vehicle_type = "vehicle"
+
     # Calculate counts
-    people_count = sum(1 for d in tracked_detections if d.class_name == "person")
+    people_count = sum(1 for d in tracked_detections if d.is_person)
     vehicle_count = len(tracked_detections) - people_count
 
     # Optional annotated frame
@@ -234,8 +246,9 @@ async def detect_anpr(
     plate_results = []
 
     for bbox, crop, _ in plate_regions:
-        plate_det = plate_reader.read_plate(crop, bbox=bbox)
-        plate_results.append(plate_det)
+        plate_det = plate_reader.read_plate(crop, bbox=bbox, camera_id=camera_id)
+        if plate_det.plate_number:
+            plate_results.append(plate_det)
 
     # Optional annotated frame
     annotated_b64 = None
@@ -261,10 +274,11 @@ async def detect_full_pipeline(
     """
     Combined End-to-End Pipeline in a Single Call:
     1. YOLO Person & Vehicle Detection
-    2. ByteTrack Multi-Object Tracking
-    3. License Plate Localization
+    2. ByteTrack Multi-Object Tracking with explicit Vehicle Type classification
+    3. Vehicle-Centric License Plate Localization
     4. PaddleOCR / EasyOCR Plate Number Recognition
-    5. Police Command-Center HUD Visual Overlay
+    5. Direct Vehicle-Plate Association
+    6. Police Command-Center HUD Visual Overlay
     """
     t0 = time.time()
     frame = _resolve_input_frame(payload, None)
@@ -276,22 +290,44 @@ async def detect_full_pipeline(
     tracker = get_tracker_for_camera(camera_id)
     tracked_objects = tracker.update(objects)
 
+    vehicle_types = {"car", "truck", "bus", "motorcycle", "scooter", "auto-rickshaw", "bicycle"}
+    for obj in tracked_objects:
+        if obj.class_name == "person":
+            obj.is_person = True
+            obj.vehicle_type = None
+        elif obj.class_name in vehicle_types:
+            obj.is_person = False
+            obj.vehicle_type = obj.class_name
+        else:
+            obj.is_person = False
+            obj.vehicle_type = "vehicle"
+
     # 2. Extract vehicle bounding boxes for targeted plate detection
-    vehicle_boxes = [obj.bbox for obj in tracked_objects if obj.class_name in ("car", "truck", "bus", "motorcycle")]
-    
+    vehicle_objs = [obj for obj in tracked_objects if not obj.is_person and obj.class_name in vehicle_types]
+    vehicle_boxes = [obj.bbox for obj in vehicle_objs]
+
     # 3. License Plate Detection & OCR Reading
     plate_regions = license_plate_detector.detect_plates(frame, vehicle_boxes=vehicle_boxes, conf_threshold=conf_thresh)
     plate_results = []
 
     for idx, (bbox, crop, _) in enumerate(plate_regions):
-        matched_track_id = None
-        for obj in tracked_objects:
+        matched_vehicle = None
+        for obj in vehicle_objs:
             if obj.bbox.x1 <= bbox.center_x <= obj.bbox.x2 and obj.bbox.y1 <= bbox.center_y <= obj.bbox.y2:
-                matched_track_id = obj.track_id
+                matched_vehicle = obj
                 break
 
-        plate_det = plate_reader.read_plate(crop, bbox=bbox, vehicle_track_id=matched_track_id)
-        plate_results.append(plate_det)
+        plate_det = plate_reader.read_plate(
+            crop,
+            bbox=bbox,
+            vehicle_track_id=matched_vehicle.track_id if matched_vehicle else None,
+            camera_id=camera_id,
+        )
+        if plate_det.plate_number:
+            plate_results.append(plate_det)
+            if matched_vehicle:
+                matched_vehicle.license_plate = plate_det
+                matched_vehicle.plate_text = plate_det.formatted_plate or plate_det.plate_number
 
     # 4. Draw HUD Visual Overlay
     annotated_frame = draw_hud_annotations(frame, objects=tracked_objects, plates=plate_results, camera_id=camera_id)
@@ -300,13 +336,16 @@ async def detect_full_pipeline(
     inference_ms = round((time.time() - t0) * 1000.0, 2)
     now_iso = datetime.now(timezone.utc).isoformat()
 
-    # Count breakdown
+    # Accurate Count breakdown: people, vehicle types, and plates
     counts = {
-        "people": sum(1 for obj in tracked_objects if obj.class_name == "person"),
-        "cars": sum(1 for obj in tracked_objects if obj.class_name == "car"),
-        "trucks": sum(1 for obj in tracked_objects if obj.class_name == "truck"),
-        "buses": sum(1 for obj in tracked_objects if obj.class_name == "bus"),
-        "motorcycles": sum(1 for obj in tracked_objects if obj.class_name in ("motorcycle", "bicycle")),
+        "people": sum(1 for obj in tracked_objects if obj.is_person),
+        "cars": sum(1 for obj in tracked_objects if obj.vehicle_type == "car"),
+        "trucks": sum(1 for obj in tracked_objects if obj.vehicle_type == "truck"),
+        "buses": sum(1 for obj in tracked_objects if obj.vehicle_type == "bus"),
+        "motorcycles": sum(1 for obj in tracked_objects if obj.vehicle_type in ("motorcycle", "scooter")),
+        "auto_rickshaws": sum(1 for obj in tracked_objects if obj.vehicle_type == "auto-rickshaw"),
+        "bicycles": sum(1 for obj in tracked_objects if obj.vehicle_type == "bicycle"),
+        "total_vehicles": sum(1 for obj in tracked_objects if not obj.is_person),
         "plates": len(plate_results),
     }
 

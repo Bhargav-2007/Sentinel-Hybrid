@@ -1,5 +1,6 @@
 """Gujarat Sentinel — Unified Platform Backend & Central Brain Application Factory."""
 
+import os
 import time
 import logging
 from contextlib import asynccontextmanager
@@ -51,11 +52,44 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Camera auto-onboarding notice: {e}")
 
+    # 4. Start Stream Supervisor (load cameras from DB, spawn workers)
+    try:
+        from app.services.stream_supervisor import stream_supervisor, CameraPriority
+        from app.adapters.sentinel_feed_adapter import sentinel_feed_adapter
+
+        # Build authenticated RTSP URLs for cam01..cam30 (the live fleet)
+        logger.info("Starting Stream Supervisor for live CCTV fleet...")
+        cam_ids = [f"cam{i:02d}" for i in range(1, 31)]
+        for cam_tag in cam_ids:
+            rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
+            stream_supervisor.register_camera(
+                camera_id=cam_tag,
+                rtsp_url=rtsp_url,
+                target_ai_fps=2.0,
+                priority=CameraPriority.NORMAL,
+            )
+
+        # Start with AI pool size of 4 (CPU-bound: ~16 inf/s; 2 FPS × 8 cams)
+        ai_pool_size = int(os.environ.get("SENTINEL_AI_POOL_SIZE", "4"))
+        stream_supervisor.start_all(pool_size=ai_pool_size)
+        logger.info(
+            f"✓ Stream Supervisor started: {len(cam_ids)} cameras registered, "
+            f"AI pool size={ai_pool_size}."
+        )
+    except Exception as sup_err:
+        logger.error(f"Stream Supervisor startup failed: {sup_err}", exc_info=True)
+
     logger.info("✨ Gujarat Sentinel Platform Backend is READY and listening.")
     yield
 
     # Cleanup on shutdown
     logger.info("Shutting down Sentinel Orchestrator services...")
+    try:
+        from app.services.stream_supervisor import stream_supervisor
+        stream_supervisor.stop_all()
+        logger.info("Stream Supervisor stopped.")
+    except Exception:
+        pass
     await redis_manager.disconnect()
 
 

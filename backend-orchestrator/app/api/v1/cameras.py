@@ -159,25 +159,41 @@ async def get_camera_fleet_health_summary(
     if summary["total_cameras"] > 0:
         return summary
 
-    # If stream_supervisor hasn't been started with all cameras yet, query DB cameras
+    # Stream supervisor not started yet — return truthful NOT_STARTED state
     cameras = await camera_service.get_all_cameras(db, limit=100)
     total = len(cameras)
     return {
         "total_cameras": total,
         "running": False,
+        "supervisor_state": "NOT_STARTED",
         "scorecard": {
-            "network_reachable": f"30/{total}",
-            "authenticated_verified": f"30/{total}",
-            "rtsp_session_established": f"30/{total}",
-            "rtp_media_observed": f"30/{total}",
-            "decoder_open": f"30/{total}",
-            "frame_active": f"6/{total} (sustained live verified; 24 pending ramp)",
-            "ai_active": f"6/{total} (sustained live verified; 24 pending ramp)",
-            "tracking_active": f"6/{total}",
-            "anpr_tested": f"6/{total}",
-            "anpr_readable": f"0/{total} (optical distance >35m; unreadable correctly reported)",
+            "network_reachable": 0,
+            "authenticated_verified": 0,
+            "rtsp_session_established": 0,
+            "rtp_media_observed": 0,
+            "decoder_open": 0,
+            "frame_active": 0,
+            "ai_active": 0,
+            "tracking_active": 0,
+            "anpr_tested": 0,
         },
-        "message": "Authoritative camera registry loaded. Stream supervisor standing by for active ramp.",
+        "per_camera_state": [
+            {
+                "camera_id": str(c.camera_id),
+                "name": c.name,
+                "network_reachable": "NOT_TESTED",
+                "authenticated": "NOT_TESTED",
+                "rtsp_session_established": "NOT_TESTED",
+                "rtp_media_observed": "NOT_TESTED",
+                "decoder_open": "NOT_TESTED",
+                "frame_active": "NOT_TESTED",
+                "ai_active": "NOT_TESTED",
+                "tracking_active": "NOT_TESTED",
+                "anpr_active": "NOT_TESTED",
+            }
+            for c in cameras[:30]
+        ],
+        "message": "Stream supervisor not started. No camera connections have been attempted.",
     }
 
 

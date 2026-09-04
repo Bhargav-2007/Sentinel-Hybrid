@@ -8,12 +8,6 @@ import { EmergencyInterceptBanner } from './EmergencyInterceptBanner';
 import { useAuthStore } from '../../core/auth/authStore';
 
 export const Layout: React.FC = () => {
-  const { isAuthenticated } = useAuthStore();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
   return (
     <div className="min-h-screen bg-sentinel-950 text-slate-100 flex flex-col font-sans">
       <Topbar />

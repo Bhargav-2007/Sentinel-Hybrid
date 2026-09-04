@@ -49,13 +49,15 @@ export const Topbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Center Ticker: APB Alert Banner */}
-      <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded bg-cyber-crimson/15 border border-cyber-crimson/40 text-cyber-crimson font-mono text-xs font-semibold animate-pulse-fast">
-        <ShieldAlert className="w-4 h-4" />
-        <span>
-          HOTLIST APB: {activeTarget?.plate || 'GJ 01 AB 1234'} ({activeTarget?.vehicleMake || 'TOYOTA'} {activeTarget?.vehicleModel || 'FORTUNER'}) &bull; SIGHTED: {latestLoc.toUpperCase()}
-        </span>
-      </div>
+      {/* Center Ticker: APB Alert Banner — only shown for real active targets */}
+      {activeTarget && (
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded bg-cyber-crimson/15 border border-cyber-crimson/40 text-cyber-crimson font-mono text-xs font-semibold animate-pulse-fast">
+          <ShieldAlert className="w-4 h-4" />
+          <span>
+            HOTLIST APB: {activeTarget.plate} ({activeTarget.vehicleMake} {activeTarget.vehicleModel}) &bull; SIGHTED: {latestLoc.toUpperCase()}
+          </span>
+        </div>
+      )}
 
       {/* Right Side Controls */}
       <div className="flex items-center gap-3">

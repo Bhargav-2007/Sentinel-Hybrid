@@ -145,6 +145,20 @@ class PlateReader:
         # Normalize and clean plate string conforming to Indian RTO / Bharat Series standards
         clean_plate, formatted_plate, is_valid = self._clean_and_format_plate(raw_text)
 
+        # Minimum alphanumeric length check to reject noise artifacts (e.g. single letters or symbols)
+        if len(clean_plate) < 4:
+            crop_b64 = frame_to_base64(plate_crop) if plate_crop is not None else None
+            return LicensePlateDetection(
+                plate_number="",
+                formatted_plate="",
+                raw_ocr_text=raw_text,
+                confidence=0.0,
+                bbox=bbox,
+                vehicle_track_id=vehicle_track_id,
+                is_valid_indian_format=False,
+                plate_crop_base64=crop_b64
+            )
+
         # Apply temporal fusion if persistent track ID is available
         if vehicle_track_id is not None and camera_id is not None:
             from app.ocr.temporal_fusion import temporal_ocr_fusion

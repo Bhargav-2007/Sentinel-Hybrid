@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { LayoutGrid, Grid3X3, Grid2X2, Cpu, Eye, Filter, Tv2 } from 'lucide-react';
+import { LayoutGrid, Grid3X3, Grid2X2, Cpu, Eye, Filter, Tv2, AlertTriangle } from 'lucide-react';
 import { camerasApi } from '../../core/api/camerasApi';
 import { VideoPlayer } from '../../shared/components/VideoPlayer';
 import { useUIStore } from '../../stores/uiStore';
-import { CameraNode } from '../../core/types/camera';
+import { CameraNode, FleetHealthSummary } from '../../core/types/camera';
 
 export const LiveOperationsPage: React.FC = () => {
   const { gridMode, setGridMode, openContextDrawer } = useUIStore();
@@ -17,9 +17,39 @@ export const LiveOperationsPage: React.FC = () => {
     refetchInterval: 20000,
   });
 
+  // Fetch real fleet health — poll every 5 seconds
+  const { data: fleetHealth } = useQuery<FleetHealthSummary>({
+    queryKey: ['fleet-health-live'],
+    queryFn: () => camerasApi.getFleetHealth(),
+    refetchInterval: 5000,
+  });
+
+  // Build per-camera health lookup from supervisor telemetry
+  const perCameraHealth = React.useMemo(() => {
+    const map: Record<string, any> = {};
+    if (fleetHealth?.cameras) {
+      for (const c of fleetHealth.cameras) {
+        if (c.camera_id) map[c.camera_id] = c;
+        if (c.cam_tag) map[c.cam_tag] = c;
+        const numStr = (c.cam_tag || c.camera_id || '').replace(/\D/g, '');
+        if (numStr) {
+          const num = parseInt(numStr, 10);
+          map[String(num)] = c;
+          map[`cam${String(num).padStart(2, '0')}`] = c;
+        }
+      }
+    }
+    return map;
+  }, [fleetHealth]);
+
+  const supervisorRunning = fleetHealth?.running === true;
+  const sc = fleetHealth?.scorecard;
+  // Only count cameras with real frame activity from the supervisor
+  const activeFrameCount = sc?.frame_active ?? 0;
+  const activeAiCount = sc?.ai_active ?? 0;
+
   const cameras = rawCameras.filter((c) => {
     const dept = (c.department_name || c.department_id || 'Police').toLowerCase();
-
     return (
       deptFilter === 'ALL' ||
       (deptFilter === 'POLICE' && (dept.includes('police') || dept.includes('home'))) ||
@@ -30,7 +60,6 @@ export const LiveOperationsPage: React.FC = () => {
     );
   });
 
-  // Determine active cameras to display
   const displayCount =
     gridMode === '2x2' ? 4 : gridMode === '3x3' ? 9 : gridMode === '4x4' ? 16 : 30;
   const activeCameras = cameras.slice(0, displayCount);
@@ -46,12 +75,20 @@ export const LiveOperationsPage: React.FC = () => {
           <div>
             <h1 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
               <span>Statewide Live Camera Matrix</span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold">
-                {activeCameras.length} STREAMS ACTIVE (103.250.160.189)
-              </span>
+              {/* Show only real active frame count from supervisor — not camera DB count */}
+              {supervisorRunning ? (
+                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold">
+                  {activeFrameCount} FRAME-ACTIVE / {fleetHealth?.total_cameras ?? 0} CONFIGURED
+                </span>
+              ) : (
+                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 border border-amber-500/40 text-amber-400 font-bold">
+                  SUPERVISOR NOT STARTED
+                </span>
+              )}
             </h1>
             <p className="text-xs text-slate-400">
-              Direct RTSP TCP Streams &bull; Independent Node Decoding &bull; Live YOLOv8 Detection Overlays
+              RTSP TCP Gateway: 103.250.160.189:8554 · WHEP: 103.250.160.189:8889
+              {supervisorRunning && ` · AI Active: ${activeAiCount}/${fleetHealth?.total_cameras ?? 0}`}
             </p>
           </div>
         </div>
@@ -70,7 +107,7 @@ export const LiveOperationsPage: React.FC = () => {
               <option value="GSRTC">GSRTC Transport</option>
               <option value="MUNICIPAL">Municipal Corp</option>
               <option value="HEALTH">Health Dept</option>
-              <option value="PANCHAYAT">Panchayat & Rural</option>
+              <option value="PANCHAYAT">Panchayat &amp; Rural</option>
             </select>
           </div>
 
@@ -81,7 +118,7 @@ export const LiveOperationsPage: React.FC = () => {
               onChange={(e) => setDistrictFilter(e.target.value)}
               className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan"
             >
-              <option value="ALL">All Districts (30 Nodes)</option>
+              <option value="ALL">All Districts</option>
               <option value="Ahmedabad">Ahmedabad City</option>
               <option value="Surat">Surat City</option>
               <option value="Vadodara">Vadodara</option>
@@ -156,42 +193,109 @@ export const LiveOperationsPage: React.FC = () => {
           {activeCameras.map((cam: CameraNode, idx: number) => {
             const camNumber = idx + 1;
             const camTag = `cam${String(camNumber).padStart(2, '0')}`;
+            // Look up real supervisor telemetry for this specific camera
+            const health = perCameraHealth[camTag] || perCameraHealth[cam.camera_id];
+
+            // Determine true state labels from real telemetry
+            const netOk = health?.network_reachable === true;
+            const authOk = health?.authenticated === true;
+            const rtpOk = health?.rtp_media_observed === true;
+            const decOk = health?.decoder_open === true;
+            const frameOk = health?.frame_active === true;
+            const aiOk = health?.ai_active === true;
+            const decodeFps = health?.decode_fps ?? null;
+            const aiFps = health?.ai_fps ?? null;
+            const hasError = health?.last_error;
+
+            const detectedPeople = health?.detected_people ?? 0;
+            const detectedVehicles = health?.detected_vehicles ?? 0;
+            const latestPlate = health?.latest_plate_text;
+            const latestVehType = health?.latest_vehicle_type;
+
             return (
               <div
                 key={cam.camera_id}
-                onClick={() =>
-                  openContextDrawer({
-                    camera: cam,
-                  })
-                }
-                className="cursor-pointer"
+                onClick={() => openContextDrawer({ camera: cam, plate: latestPlate, health })}
+                className="cursor-pointer group"
               >
                 <VideoPlayer
                   cameraId={camTag}
-                  cameraName={`${cam.name}`}
+                  cameraName={cam.name}
                   isThreat={cam.metadata?.live_status === 'ALERT'}
                   overlayText={`NODE ${camTag.toUpperCase()}`}
-                  onInspect={() =>
-                    openContextDrawer({
-                      camera: cam,
-                    })
-                  }
+                  onInspect={() => openContextDrawer({ camera: cam, plate: latestPlate, health })}
                 />
-                <div className="mt-1 bg-slate-950/80 border border-slate-800 rounded px-2 py-1 flex items-center justify-between text-[10px] font-mono">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-emerald-400 font-bold">NET:OK</span>
-                    <span className="text-slate-700">|</span>
-                    <span className="text-emerald-400 font-bold">AUTH:OK</span>
-                    <span className="text-slate-700">|</span>
-                    <span className="text-cyan-400 font-bold">RTP:OK</span>
-                    <span className="text-slate-700">|</span>
-                    <span className="text-cyan-400 font-bold">DEC:OK</span>
-                    <span className="text-slate-700">|</span>
-                    <span className={idx < 6 ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
-                      AI:{idx < 6 ? "ACTIVE" : "STANDBY"}
-                    </span>
+                {/* Per-camera health bar — derived from real supervisor telemetry */}
+                <div className="mt-1 bg-slate-950/90 border border-slate-800 rounded px-2 py-1 space-y-1 font-mono">
+                  <div className="flex items-center justify-between text-[9px]">
+                    {health ? (
+                      <>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className={netOk ? 'text-emerald-400 font-bold' : 'text-red-500 font-bold'}>
+                            NET:{netOk ? 'OK' : health.network_reachable === false ? 'FAIL' : 'NOT_TESTED'}
+                          </span>
+                          <span className="text-slate-700">|</span>
+                          <span className={authOk ? 'text-emerald-400 font-bold' : 'text-slate-600'}>
+                            AUTH:{authOk ? 'OK' : 'NOT_TESTED'}
+                          </span>
+                          <span className="text-slate-700">|</span>
+                          <span className={rtpOk ? 'text-cyan-400 font-bold' : 'text-slate-600'}>
+                            RTP:{rtpOk ? 'OK' : 'NOT_TESTED'}
+                          </span>
+                          <span className="text-slate-700">|</span>
+                          <span className={decOk ? 'text-cyan-400 font-bold' : 'text-slate-600'}>
+                            DEC:{decOk ? 'OK' : 'NOT_TESTED'}
+                          </span>
+                          <span className="text-slate-700">|</span>
+                          <span className={aiOk ? 'text-emerald-400 font-bold' : frameOk ? 'text-amber-400 font-bold' : 'text-slate-600'}>
+                            AI:{aiOk ? 'ACTIVE' : frameOk ? 'PENDING' : 'NOT_STARTED'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {decodeFps !== null && decodeFps > 0 && (
+                            <span className="text-slate-400">{decodeFps} fps</span>
+                          )}
+                          {aiFps !== null && aiFps > 0 && (
+                            <span className="text-cyber-cyan">AI:{aiFps} fps</span>
+                          )}
+                          {hasError && (
+                            <span title={hasError}>
+                              <AlertTriangle className="w-3 h-3 text-red-400" />
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-slate-600 italic">
+                        {supervisorRunning ? 'No telemetry yet...' : 'Supervisor not started'}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-slate-400 font-bold">{idx < 6 ? "25 FPS" : "0 FPS"}</span>
+
+                  {/* AI Vision Sighting Telemetry: Persons, Vehicle Types & Plates */}
+                  {health && (detectedPeople > 0 || detectedVehicles > 0 || latestPlate) && (
+                    <div className="flex items-center justify-between text-[8.5px] pt-0.5 border-t border-slate-800/80">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {detectedPeople > 0 && (
+                          <span className="text-cyan-300 font-semibold flex items-center gap-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                            {detectedPeople} {detectedPeople === 1 ? 'PERSON' : 'PEOPLE'}
+                          </span>
+                        )}
+                        {detectedVehicles > 0 && (
+                          <span className="text-emerald-300 font-semibold flex items-center gap-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            {detectedVehicles} {latestVehType ? latestVehType.toUpperCase() : 'VEHICLE'}
+                          </span>
+                        )}
+                      </div>
+                      {latestPlate && (
+                        <span className="px-1.5 py-0.2 rounded bg-yellow-950/80 border border-yellow-500/50 text-yellow-300 font-bold tracking-wider text-[8px]">
+                          {latestPlate}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );

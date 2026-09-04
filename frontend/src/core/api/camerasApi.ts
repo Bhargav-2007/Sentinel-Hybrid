@@ -34,14 +34,15 @@ export const camerasApi = {
         webrtc_url: c.webrtc_url || '',
         hls_url: c.hls_url || '',
         vendor: c.vms_vendor || c.vendor || 'Standard VMS',
-        codec: c.codec || 'h264',
-        resolution: c.resolution || '1920x1080',
-        frame_rate: c.fps || c.frame_rate || 25,
-        status: c.status || 'CONNECTING',
+        // Do NOT default codec/fps — only report what is actually observed from stream
+        codec: c.codec || null,
+        resolution: c.resolution || null,
+        frame_rate: c.fps || c.frame_rate || null,
+        status: c.status || 'UNKNOWN',
         is_public_domain: true,
         tags: c.tags || ['traffic', 'gujarat'],
         metadata: c.extra_metadata || c.metadata || {},
-        last_seen_at: c.last_seen_at || c.updated_at || new Date().toISOString(),
+        last_seen_at: c.last_seen_at || c.updated_at || null,
       };
     });
   },
@@ -52,5 +53,10 @@ export const camerasApi = {
 
   getCameraHealth: async (id: string): Promise<any> => {
     return apiClient<any>(`/api/v1/cameras/${id}/health`);
+  },
+
+  /** Fleet-wide health summary from the stream supervisor (real runtime state). */
+  getFleetHealth: async (): Promise<any> => {
+    return apiClient<any>(`/api/v1/cameras/health/summary`);
   },
 };

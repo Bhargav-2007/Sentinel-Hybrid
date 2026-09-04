@@ -1,9 +1,46 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Camera, RefreshCw, Eye, CheckCircle2, XCircle, Search, Filter, Building2, Shield, Bus, HeartPulse, Landmark } from 'lucide-react';
+import {
+  Camera, RefreshCw, Eye, Search, Filter,
+  Building2, Shield, Bus, HeartPulse, Landmark,
+  AlertTriangle, CheckCircle2, XCircle, Clock, Wifi, WifiOff,
+} from 'lucide-react';
 import { camerasApi } from '../../core/api/camerasApi';
 import { useUIStore } from '../../stores/uiStore';
-import { CameraNode } from '../../core/types/camera';
+import { CameraNode, FleetHealthSummary } from '../../core/types/camera';
+
+// ─── Helper: render a health badge with truthful state ───────────────────────
+type BadgeState = 'OK' | 'FAIL' | 'NOT_TESTED' | 'UNKNOWN' | 'ACTIVE' | 'INACTIVE';
+
+function healthBadge(label: string, state: BadgeState) {
+  const styles: Record<BadgeState, string> = {
+    OK:       'bg-emerald-950 text-emerald-400 border-emerald-800/60',
+    ACTIVE:   'bg-emerald-950 text-emerald-400 border-emerald-800/60',
+    FAIL:     'bg-red-950 text-red-400 border-red-800/60',
+    INACTIVE: 'bg-red-950 text-red-400 border-red-800/60',
+    NOT_TESTED: 'bg-slate-900 text-slate-500 border-slate-700',
+    UNKNOWN:  'bg-amber-950 text-amber-400 border-amber-800/60',
+  };
+  return (
+    <span className={`px-1.5 py-0.5 rounded font-bold border text-[9px] ${styles[state]}`}>
+      {label}:{state === 'OK' || state === 'ACTIVE' ? 'OK' : state === 'FAIL' || state === 'INACTIVE' ? 'FAIL' : state.replace('_', ' ')}
+    </span>
+  );
+}
+
+function toBadgeState(value: boolean | string | null | undefined): BadgeState {
+  if (value === true || value === 'true') return 'OK';
+  if (value === false || value === 'false') return 'FAIL';
+  if (value === 'NOT_TESTED') return 'NOT_TESTED';
+  return 'UNKNOWN';
+}
+
+function toActiveBadge(value: boolean | string | null | undefined): BadgeState {
+  if (value === true || value === 'true') return 'ACTIVE';
+  if (value === false || value === 'false') return 'INACTIVE';
+  if (value === 'NOT_TESTED') return 'NOT_TESTED';
+  return 'UNKNOWN';
+}
 
 export const CameraManagementPage: React.FC = () => {
   const { openContextDrawer } = useUIStore();
@@ -15,6 +52,38 @@ export const CameraManagementPage: React.FC = () => {
     queryKey: ['cameras-grid', districtFilter],
     queryFn: () => camerasApi.listCameras(districtFilter !== 'ALL' ? { district: districtFilter } : undefined),
   });
+
+  // Fetch real fleet health from the supervisor
+  const { data: fleetHealth, isLoading: healthLoading } = useQuery<FleetHealthSummary>({
+    queryKey: ['fleet-health'],
+    queryFn: () => camerasApi.getFleetHealth(),
+    refetchInterval: 5000,
+  });
+
+  // Build a per-camera health index from supervisor telemetry
+  const perCameraHealth = React.useMemo(() => {
+    const map: Record<string, any> = {};
+    // From supervisor's live cameras array
+    if (fleetHealth?.cameras) {
+      for (const c of fleetHealth.cameras) {
+        if (c.camera_id) map[c.camera_id] = c;
+        if (c.cam_tag) map[c.cam_tag] = c;
+        const numStr = (c.cam_tag || c.camera_id || '').replace(/\D/g, '');
+        if (numStr) {
+          const num = parseInt(numStr, 10);
+          map[String(num)] = c;
+          map[`cam${String(num).padStart(2, '0')}`] = c;
+        }
+      }
+    }
+    // From NOT_STARTED fallback per_camera_state
+    if (fleetHealth?.per_camera_state) {
+      for (const c of fleetHealth.per_camera_state) {
+        if (!map[c.camera_id]) map[c.camera_id] = c;
+      }
+    }
+    return map;
+  }, [fleetHealth]);
 
   const filtered = cameras.filter((c) => {
     const matchesSearch =
@@ -46,6 +115,9 @@ export const CameraManagementPage: React.FC = () => {
     }).length;
   };
 
+  const supervisorRunning = fleetHealth?.running === true;
+  const sc = fleetHealth?.scorecard;
+
   return (
     <div className="space-y-4 font-mono">
       {/* Header */}
@@ -56,10 +128,13 @@ export const CameraManagementPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-base font-bold text-white">
-              Model 1 & 2: Statewide Central CCTV Registry & Multi-Department Grid
+              Statewide Central CCTV Registry &amp; Fleet Health
             </h1>
             <p className="text-xs text-slate-400">
-              Federated Integration of 5 Key Gujarat Departments: Police • GSRTC • Municipal • Health • Panchayat
+              Supervisor: {healthLoading ? 'Loading...' : supervisorRunning
+                ? <span className="text-emerald-400">RUNNING</span>
+                : <span className="text-amber-400">NOT_STARTED</span>}
+              {fleetHealth && ` · ${fleetHealth.total_cameras} cameras configured`}
             </p>
           </div>
         </div>
@@ -69,11 +144,43 @@ export const CameraManagementPage: React.FC = () => {
           className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-cyber-cyan text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-700 cursor-pointer"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span>REFRESH HEALTH</span>
+          <span>REFRESH</span>
         </button>
       </div>
 
-      {/* Department Quick Stats Grid */}
+      {/* Real Fleet Scorecard — derived from supervisor runtime state */}
+      {fleetHealth && (
+        <div className="p-3 rounded bg-slate-950 border border-slate-800">
+          <div className="text-[10px] text-slate-500 mb-2 uppercase tracking-wider font-bold">
+            Fleet Scorecard — {supervisorRunning ? 'Live Supervisor Data' : 'Supervisor Not Started'}
+            {!supervisorRunning && (
+              <span className="ml-2 text-amber-400">(all counts are 0 — no connections attempted)</span>
+            )}
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-[10px]">
+            {sc && [
+              { label: 'Network', val: sc.network_reachable },
+              { label: 'Auth', val: sc.authenticated_verified },
+              { label: 'RTSP Session', val: sc.rtsp_session_established },
+              { label: 'RTP Media', val: sc.rtp_media_observed },
+              { label: 'Decoder Open', val: sc.decoder_open },
+              { label: 'Frame Active', val: sc.frame_active },
+              { label: 'AI Active', val: sc.ai_active },
+              { label: 'Tracking', val: sc.tracking_active },
+              { label: 'ANPR Tested', val: sc.anpr_tested },
+            ].map((item) => (
+              <div key={item.label} className="bg-slate-900 border border-slate-800 rounded p-2">
+                <div className="text-slate-500 text-[9px]">{item.label}</div>
+                <div className="text-white font-bold text-sm mt-0.5">
+                  {item.val}<span className="text-slate-500 text-[9px]">/{fleetHealth.total_cameras}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Department Quick Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
         {[
           { label: 'Police / Home', count: `${getDeptCount('POLICE')} Nodes`, icon: <Shield className="w-3.5 h-3.5 text-cyber-cyan" />, id: 'POLICE' },
@@ -128,7 +235,7 @@ export const CameraManagementPage: React.FC = () => {
               <option value="GSRTC">GSRTC (State Transport)</option>
               <option value="MUNICIPAL">Municipal Corporations</option>
               <option value="HEALTH">Health Department</option>
-              <option value="PANCHAYAT">Panchayat & Rural</option>
+              <option value="PANCHAYAT">Panchayat &amp; Rural</option>
             </select>
           </div>
 
@@ -163,16 +270,21 @@ export const CameraManagementPage: React.FC = () => {
                 <th className="p-3">Camera Node</th>
                 <th className="p-3">Department</th>
                 <th className="p-3">District / Junction</th>
-                <th className="p-3">Vendor / Codec</th>
-                <th className="p-3">Stream Protocol (TCP/WHEP)</th>
-                <th className="p-3">Health Status</th>
+                <th className="p-3">Codec / FPS</th>
+                <th className="p-3">Runtime Health (Live)</th>
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {filtered.map((cam: CameraNode) => {
-                const isOnline = cam.status === 'ONLINE';
-                const deptName = cam.department_name || 'Police / Home';
+                const numMatch = cam.camera_id.match(/\d+/);
+                const numVal = numMatch ? parseInt(numMatch[0], 10) : 0;
+                const camTagNorm = numVal > 0 ? `cam${String(numVal).padStart(2, '0')}` : '';
+                const health =
+                  perCameraHealth[cam.camera_id] ||
+                  (camTagNorm ? perCameraHealth[camTagNorm] : null) ||
+                  perCameraHealth[String(numVal)] ||
+                  perCameraHealth[`cam${cam.camera_id}`];
 
                 return (
                   <tr key={cam.camera_id} className="hover:bg-slate-800/40 transition-colors">
@@ -182,7 +294,7 @@ export const CameraManagementPage: React.FC = () => {
                     </td>
                     <td className="p-3">
                       <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-700 text-cyber-cyan font-bold text-[10px]">
-                        {deptName}
+                        {cam.department_name || cam.department_id}
                       </span>
                     </td>
                     <td className="p-3">
@@ -190,31 +302,51 @@ export const CameraManagementPage: React.FC = () => {
                       <div className="text-[10px] text-slate-500 truncate max-w-xs">{cam.location.address}</div>
                     </td>
                     <td className="p-3">
-                      <span className="text-slate-300">{cam.vendor}</span> &bull;{' '}
-                      <span className="text-cyber-cyan uppercase font-bold">{cam.codec}</span>
+                      {/* Only show codec/fps if actually observed from the stream */}
+                      {health?.codec_observed
+                        ? <span className="text-cyber-cyan uppercase font-bold">{health.codec_observed}</span>
+                        : <span className="text-slate-600 italic text-[10px]">Not observed</span>}
+                      {health?.decode_fps != null && health.decode_fps > 0
+                        ? <span className="ml-1 text-slate-400 text-[10px]">@ {health.decode_fps} fps</span>
+                        : null}
                     </td>
                     <td className="p-3">
-                      <code className="text-[10px] text-slate-400 bg-black/60 px-1.5 py-0.5 rounded border border-slate-800">
-                        {cam.rtsp_url}
-                      </code>
-                    </td>
-                    <td className="p-3">
-                      <div className="flex flex-col gap-1 font-mono text-[10px]">
-                        <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-bold">NET:OK</span>
-                          <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-bold">AUTH:OK</span>
-                          <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 font-bold">RTSP:OK</span>
+                      {health ? (
+                        <div className="flex flex-col gap-1 font-mono text-[9px]">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {healthBadge('NET', toBadgeState(health.network_reachable))}
+                            {healthBadge('AUTH', toBadgeState(health.authenticated))}
+                            {healthBadge('RTSP', toBadgeState(health.rtsp_session_established))}
+                            {healthBadge('RTP', toBadgeState(health.rtp_media_observed))}
+                          </div>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {healthBadge('DEC', toActiveBadge(health.decoder_open ?? health.frame_active))}
+                            {healthBadge('AI', toActiveBadge(health.ai_active))}
+                            {healthBadge('TRK', toActiveBadge(health.tracking_active))}
+                            <span className="px-1.5 py-0.5 rounded border border-slate-700 text-slate-500 text-[9px]">
+                              ANPR:{health.anpr_active ?? 'NOT_TESTED'}
+                            </span>
+                          </div>
+                          {health.last_frame_at && (
+                            <div className="text-slate-600 text-[9px] flex items-center gap-1">
+                              <Clock className="w-2.5 h-2.5" />
+                              {new Date(health.last_frame_at).toLocaleTimeString()}
+                            </div>
+                          )}
+                          {health.last_error && (
+                            <div className="text-red-500 text-[9px] truncate max-w-xs">
+                              ⚠ {health.last_error}
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 font-bold">RTP:OK</span>
-                          <span className={`px-1.5 py-0.2 rounded font-bold border ${isOnline ? 'bg-emerald-950 text-emerald-400 border-emerald-800/60' : 'bg-slate-900 text-slate-400 border-slate-700'}`}>
-                            DEC:{isOnline ? 'ACTIVE' : 'STANDBY'}
-                          </span>
-                          <span className={`px-1.5 py-0.2 rounded font-bold border ${isOnline ? 'bg-emerald-950 text-emerald-400 border-emerald-800/60' : 'bg-amber-950 text-amber-400 border-amber-800/60'}`}>
-                            AI:{isOnline ? 'ACTIVE' : 'STANDBY'}
-                          </span>
-                        </div>
-                      </div>
+                      ) : supervisorRunning ? (
+                        <span className="text-slate-500 text-[10px] italic">No telemetry (cam not registered)</span>
+                      ) : (
+                        <span className="text-amber-500 text-[10px] italic flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          Supervisor not started
+                        </span>
+                      )}
                     </td>
                     <td className="p-3 text-right">
                       <button

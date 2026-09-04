@@ -46,14 +46,6 @@ class BoundingBox(BaseModel):
         return self
 
 
-class DetectedObject(BaseModel):
-    class_id: int = Field(..., description="COCO or Model class index")
-    class_name: str = Field(..., description="Object label (person, car, truck, bus, motorcycle, bicycle)")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="Detection confidence score")
-    bbox: BoundingBox = Field(..., description="Spatial bounding box")
-    track_id: Optional[int] = Field(None, description="Persistent ByteTrack object tracking ID")
-
-
 class LicensePlateDetection(BaseModel):
     plate_number: str = Field(..., description="Normalized alphanumeric license plate string (e.g. GJ01AB1234)")
     formatted_plate: str = Field(..., description="Human-readable plate with state spacing (e.g. GJ 01 AB 1234)")
@@ -63,6 +55,18 @@ class LicensePlateDetection(BaseModel):
     vehicle_track_id: Optional[int] = Field(None, description="Associated vehicle ByteTrack ID if linked")
     is_valid_indian_format: bool = Field(True, description="Conforms to standard Indian HSRP registration pattern")
     plate_crop_base64: Optional[str] = Field(None, description="Cropped high-resolution image of the license plate")
+
+
+class DetectedObject(BaseModel):
+    class_id: int = Field(..., description="COCO or Model class index")
+    class_name: str = Field(..., description="Object label (person, car, truck, bus, motorcycle, bicycle)")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Detection confidence score")
+    bbox: BoundingBox = Field(..., description="Spatial bounding box")
+    track_id: Optional[int] = Field(None, description="Persistent ByteTrack object tracking ID")
+    is_person: bool = Field(False, description="True if detected object is a person")
+    vehicle_type: Optional[str] = Field(None, description="Type of vehicle (car, bus, truck, motorcycle, scooter, auto-rickshaw)")
+    plate_text: Optional[str] = Field(None, description="Extracted license plate text if vehicle has plate")
+    license_plate: Optional[LicensePlateDetection] = Field(None, description="Associated license plate detection")
 
 
 class ImageInputPayload(BaseModel):

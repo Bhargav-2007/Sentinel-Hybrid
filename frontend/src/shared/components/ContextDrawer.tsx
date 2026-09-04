@@ -13,11 +13,16 @@ export const ContextDrawer: React.FC = () => {
 
   if (!isContextDrawerOpen || !contextData) return null;
 
-  const plate = contextData.plate || contextData.detection?.license_plate?.plate_number || '';
+  const health = (contextData as any).health;
+  const plate = contextData.plate || contextData.detection?.license_plate?.plate_number || health?.latest_plate_text || '';
   const isWanted = Boolean(contextData.alert || (contextData.detection as any)?.is_wanted);
   const camName = contextData.camera?.name || contextData.detection?.camera_name || 'Camera Node';
+  const camId = contextData.camera?.camera_id || 'cam01';
   const lat = contextData.camera?.location?.latitude || 0;
   const lng = contextData.camera?.location?.longitude || 0;
+  const vehicleType = contextData.detection?.vehicle_type || health?.latest_vehicle_type || 'Motor Vehicle';
+  const personCount = health?.detected_people ?? 0;
+  const vehicleCount = health?.detected_vehicles ?? 0;
 
   const canExport = hasPermission(user?.role, PERMISSIONS.EXPORT_SECTION_65B_EVIDENCE);
   const canCreateCase = hasPermission(user?.role, PERMISSIONS.CREATE_CASE);
@@ -29,7 +34,7 @@ export const ContextDrawer: React.FC = () => {
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <Car className="w-5 h-5 text-cyber-cyan" />
-            <h3 className="font-mono font-bold text-sm text-white">Target Context Panel</h3>
+            <h3 className="font-mono font-bold text-sm text-white">AI Vision & Target Context</h3>
           </div>
           <button
             onClick={closeContextDrawer}
@@ -39,24 +44,59 @@ export const ContextDrawer: React.FC = () => {
           </button>
         </div>
 
+        {/* Live Camera Snapshot Preview with HUD Overlay */}
+        <div className="mt-3 relative rounded overflow-hidden border border-slate-800 bg-black aspect-video flex items-center justify-center">
+          <img
+            src={`http://localhost:8000/api/v1/streams/${camId}/snapshot?t=${Date.now()}`}
+            alt={camName}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = 'none';
+            }}
+          />
+          <div className="absolute bottom-1.5 left-2 px-1.5 py-0.5 rounded bg-black/80 border border-slate-700 text-[8px] font-mono text-cyber-cyan">
+            LIVE AI HUD • {camName}
+          </div>
+        </div>
+
         {/* Plate & Criminal Threat Badge */}
-        <div className="mt-4 p-3 rounded bg-slate-950 border border-slate-800 space-y-2">
+        <div className="mt-3 p-3 rounded bg-slate-950 border border-slate-800 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono text-slate-400">DETECTED LICENSE PLATE</span>
+            <span className="text-[10px] font-mono text-slate-400">
+              {plate ? 'DETECTED LICENSE PLATE' : 'AI TARGET CLASSIFICATION'}
+            </span>
             <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
               isWanted ? 'bg-cyber-crimson/20 border border-cyber-crimson text-cyber-crimson' : 'bg-emerald-950 text-emerald-400'
             }`}>
-              {isWanted ? 'THREAT SCORE: 95/100' : 'CLEAN: 15/100'}
+              {isWanted ? 'THREAT SCORE: 95/100' : 'STATUS: VERIFIED'}
             </span>
           </div>
 
-          <div className="p-2 rounded bg-black border-2 border-slate-700 text-center font-mono font-extrabold text-xl text-yellow-400 tracking-widest shadow-inner">
-            {plate}
-          </div>
+          {plate ? (
+            <div className="p-2 rounded bg-black border-2 border-yellow-500/50 text-center font-mono font-extrabold text-xl text-yellow-400 tracking-widest shadow-inner">
+              {plate}
+            </div>
+          ) : (
+            <div className="p-2 rounded bg-black/80 border border-slate-800 text-center font-mono text-sm text-slate-300">
+              {vehicleCount > 0 ? (
+                <span className="text-emerald-400 font-bold">{vehicleCount} {vehicleType.toUpperCase()} DETECTED</span>
+              ) : personCount > 0 ? (
+                <span className="text-cyan-400 font-bold">{personCount} PERSONS DETECTED</span>
+              ) : (
+                <span className="text-slate-500 italic">Scanning stream for plates & targets...</span>
+              )}
+            </div>
+          )}
 
-          <div className="flex items-center justify-between text-xs font-mono text-slate-300 pt-1">
-            <span>OCR Confidence: <b className="text-emerald-400">98.4%</b></span>
-            <span>Type: <b className="text-cyber-cyan">Car (SUV)</b></span>
+          <div className="grid grid-cols-2 gap-2 text-xs font-mono text-slate-300 pt-1 border-t border-slate-900">
+            <div>
+              <span className="text-slate-500 text-[10px] block">TARGET TYPE</span>
+              <b className="text-cyber-cyan capitalize">{vehicleType}</b>
+            </div>
+            <div>
+              <span className="text-slate-500 text-[10px] block">LIVE SIGHTINGS</span>
+              <b className="text-emerald-400">{personCount} People • {vehicleCount} Veh</b>
+            </div>
           </div>
         </div>
 

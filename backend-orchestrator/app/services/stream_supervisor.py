@@ -14,6 +14,8 @@ Architected for 30 concurrent physical CCTV feeds with:
 from __future__ import annotations
 
 import asyncio
+import base64
+import collections
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -101,6 +103,12 @@ class CameraTelemetry:
     last_ai_at: Optional[str] = None
     last_error: Optional[str] = None
     codec_observed: Optional[str] = None
+    # Live AI Vision Telemetry
+    detected_people: int = 0
+    detected_vehicles: int = 0
+    detected_plates: int = 0
+    latest_plate_text: Optional[str] = None
+    latest_vehicle_type: Optional[str] = None
 
 
 class CameraWorker:
@@ -135,6 +143,8 @@ class CameraWorker:
 
         # Bounded frame queue: maximum 2 frames to enforce lowest latency
         self.frame_queue: queue.Queue[FramePacket] = queue.Queue(maxsize=2)
+        self.latest_frame: Optional[FramePacket] = None
+        self.latest_annotated_jpeg: Optional[bytes] = None
         self._stop_signal = threading.Event()
         self._thread: Optional[threading.Thread] = None
 
@@ -237,18 +247,20 @@ class CameraWorker:
                     h, w = frame.shape[:2]
                     self.telemetry.codec_observed = "H264" if w > 0 else None
 
+                    pkt = FramePacket(
+                        camera_id=self.camera_id,
+                        cam_tag=self.cam_tag,
+                        frame=frame,
+                        decoded_pts_ms=decoded_pts,
+                        observation_time_utc=now_utc,
+                        frame_sequence=self._frame_seq,
+                        source_resolution=(w, h),
+                    )
+                    self.latest_frame = pkt
+
                     # Check AI sampling eligibility (e.g. 2 FPS -> every 500ms)
                     min_interval = 1.0 / self.target_ai_fps
                     if (now - self._last_ai_dispatch) >= min_interval:
-                        pkt = FramePacket(
-                            camera_id=self.camera_id,
-                            cam_tag=self.cam_tag,
-                            frame=frame,
-                            decoded_pts_ms=decoded_pts,
-                            observation_time_utc=now_utc,
-                            frame_sequence=self._frame_seq,
-                            source_resolution=(w, h),
-                        )
                         # Bounded queue newest-frame policy: drop oldest if full
                         if self.frame_queue.full():
                             try:
@@ -371,7 +383,8 @@ class AIWorkerPool:
         logger.info("AI Worker Pool stopped.")
 
     def _worker_loop(self):
-        client = httpx.Client(timeout=4.0)
+        client = httpx.Client(timeout=10.0)
+        consecutive_conn_errors = 0
 
         while not self._stop_signal.is_set():
             pkt = self.scheduler.get_next_frame()
@@ -383,8 +396,16 @@ class AIWorkerPool:
             if not cam_worker:
                 continue
 
+            # Resize frame to standard 800 width to dramatically reduce base64 size & transfer latency
+            fh, fw = pkt.frame.shape[:2]
+            if fw > 800:
+                scale = 800.0 / fw
+                send_frame = cv2.resize(pkt.frame, (800, int(fh * scale)))
+            else:
+                send_frame = pkt.frame
+
             # Encode frame to JPEG base64
-            success, buffer = cv2.imencode(".jpg", pkt.frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            success, buffer = cv2.imencode(".jpg", send_frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
             if not success:
                 continue
 
@@ -395,12 +416,14 @@ class AIWorkerPool:
                 "image_base64": b64_img,
                 "camera_id": pkt.cam_tag,
                 "confidence_threshold": 0.35,
+                "return_annotated_image": True,
             }
 
             try:
                 t0 = time.time()
                 resp = client.post(endpoint, json=payload)
                 elapsed_ms = round((time.time() - t0) * 1000, 2)
+                consecutive_conn_errors = 0  # Reset on success
 
                 if resp.status_code == 200:
                     data = resp.json()
@@ -410,20 +433,48 @@ class AIWorkerPool:
                     cam_worker.telemetry.ai_frames_processed += 1
                     cam_worker._ai_timestamps.append(time.time())
 
-                    detections = data.get("detections", [])
+                    # Support both people_and_vehicles and detections
+                    detections = data.get("people_and_vehicles") or data.get("detections") or []
                     has_tracks = any(d.get("track_id") is not None for d in detections)
                     cam_worker.telemetry.tracking_active = has_tracks
 
                     # Check ANPR
-                    plates = data.get("plates", [])
+                    plates = data.get("license_plates") or data.get("plates") or []
                     if plates:
-                        readable = any(p.get("text") and "UNREADABLE" not in p.get("text") for p in plates)
+                        readable = any(
+                            (p.get("plate_number") or p.get("formatted_plate") or p.get("text")) and "UNREADABLE" not in (p.get("plate_number") or p.get("text", ""))
+                            for p in plates
+                        )
                         cam_worker.telemetry.anpr_active = "READABLE" if readable else "UNREADABLE"
                     elif detections:
                         cam_worker.telemetry.anpr_active = "UNREADABLE"
 
-                    # Generate structured event for significant detections
+                    # Update camera telemetry counts
+                    counts = data.get("counts", {})
+                    cam_worker.telemetry.detected_people = counts.get("people", sum(1 for d in detections if d.get("is_person") or d.get("class_name") == "person"))
+                    cam_worker.telemetry.detected_vehicles = counts.get("total_vehicles", sum(1 for d in detections if not d.get("is_person") and d.get("class_name") != "person"))
+                    cam_worker.telemetry.detected_plates = len(plates)
+
+                    # Save annotated frame if returned
+                    annotated_b64 = data.get("annotated_image_base64")
+                    if annotated_b64:
+                        try:
+                            cam_worker.latest_annotated_jpeg = base64.b64decode(annotated_b64)
+                        except Exception:
+                            pass
+
+                    # Generate structured event for significant detections (Persons & Vehicles)
                     for det in detections:
+                        obj_cls = det.get("class_name", "vehicle")
+                        veh_type = det.get("vehicle_type") or (obj_cls if obj_cls != "person" else None)
+                        is_person = det.get("is_person") or (obj_cls == "person")
+                        p_text = det.get("plate_text") or (det.get("license_plate") or {}).get("formatted_plate") or (det.get("license_plate") or {}).get("plate_number")
+
+                        if p_text:
+                            cam_worker.telemetry.latest_plate_text = p_text
+                        if veh_type:
+                            cam_worker.telemetry.latest_vehicle_type = veh_type
+
                         event_record = {
                             "event_id": f"evt-{uuid.uuid4().hex[:12]}",
                             "camera_id": pkt.camera_id,
@@ -431,10 +482,12 @@ class AIWorkerPool:
                             "track_id": det.get("track_id"),
                             "timestamp": now_utc,
                             "decoder_timestamp_ms": pkt.decoded_pts_ms,
-                            "object_class": det.get("class_name", "vehicle"),
+                            "object_class": obj_cls,
+                            "vehicle_type": veh_type,
+                            "is_person": is_person,
                             "confidence": det.get("confidence", 0.0),
-                            "box": det.get("box", []),
-                            "plate_text": det.get("plate_text"),
+                            "box": det.get("bbox") or det.get("box", {}),
+                            "plate_text": p_text,
                             "inference_latency_ms": elapsed_ms,
                         }
                         if self.event_handler:
@@ -443,13 +496,53 @@ class AIWorkerPool:
                             except Exception as ev_err:
                                 logger.debug(f"Event dispatch error: {ev_err}")
 
+                    # Generate dedicated plate events for ANPR sightings
+                    for pl in plates:
+                        plate_num = pl.get("formatted_plate") or pl.get("plate_number")
+                        if plate_num:
+                            cam_worker.telemetry.latest_plate_text = plate_num
+                            plate_event = {
+                                "event_id": f"anpr-{uuid.uuid4().hex[:12]}",
+                                "camera_id": pkt.camera_id,
+                                "cam_tag": pkt.cam_tag,
+                                "track_id": pl.get("vehicle_track_id"),
+                                "timestamp": now_utc,
+                                "decoder_timestamp_ms": pkt.decoded_pts_ms,
+                                "object_class": "license_plate",
+                                "vehicle_type": None,
+                                "is_person": False,
+                                "confidence": pl.get("confidence", 0.0),
+                                "box": pl.get("bbox") or {},
+                                "plate_text": plate_num,
+                                "is_valid_indian_format": pl.get("is_valid_indian_format", True),
+                                "inference_latency_ms": elapsed_ms,
+                            }
+                            if self.event_handler:
+                                try:
+                                    self.event_handler(plate_event)
+                                except Exception as ev_err:
+                                    logger.debug(f"Plate event dispatch error: {ev_err}")
+
                 else:
                     cam_worker.telemetry.ai_errors += 1
                     cam_worker.telemetry.last_error = f"AI service HTTP {resp.status_code}"
 
+            except (httpx.ConnectError, httpx.RemoteProtocolError, ConnectionRefusedError, OSError) as conn_err:
+                cam_worker.telemetry.ai_errors += 1
+                cam_worker.telemetry.last_error = f"AI connect error: {str(conn_err)[:80]}"
+                consecutive_conn_errors += 1
+                try:
+                    client.close()
+                except Exception:
+                    pass
+                backoff = min(2.0, 0.1 * (2 ** consecutive_conn_errors))
+                time.sleep(backoff)
+                client = httpx.Client(timeout=10.0)
+                logger.warning(f"AI pool recreated client after connection error (attempt {consecutive_conn_errors})")
+
             except Exception as e:
                 cam_worker.telemetry.ai_errors += 1
-                cam_worker.telemetry.last_error = f"AI worker error: {str(e)}"
+                cam_worker.telemetry.last_error = f"AI worker error: {str(e)[:80]}"
                 time.sleep(0.05)
 
         client.close()
@@ -476,6 +569,7 @@ class StreamSupervisor:
         self.scheduler = FrameScheduler(self.workers)
         self.ai_pool: Optional[AIWorkerPool] = None
         self._event_subscribers: List[Callable[[Dict[str, Any]], None]] = []
+        self.recent_events: collections.deque = collections.deque(maxlen=200)
         self._running = False
         self._initialized = True
         logger.info("StreamSupervisor singleton initialized.")
@@ -484,11 +578,33 @@ class StreamSupervisor:
         self._event_subscribers.append(subscriber)
 
     def _broadcast_event(self, event: Dict[str, Any]):
+        self.recent_events.append(event)
+
+        # Broadcast real-time detection to connected frontend WebSockets
+        try:
+            import asyncio
+            from app.services.websocket_manager import ws_manager
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    asyncio.run_coroutine_threadsafe(
+                        ws_manager.broadcast_event("NEW_DETECTION", event), loop
+                    )
+            except RuntimeError:
+                pass
+        except Exception:
+            pass
+
         for sub in self._event_subscribers:
             try:
                 sub(event)
             except Exception:
                 pass
+
+    def get_recent_events(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Returns recent in-memory real detection events."""
+        events = list(self.recent_events)
+        return events[-limit:]
 
     def register_camera(
         self,
@@ -577,16 +693,17 @@ class StreamSupervisor:
             "total_cameras": total,
             "running": self._running,
             "scorecard": {
-                "network_reachable": f"{network_reachable_count}/{total}",
-                "authenticated_verified": f"{authenticated_count}/{total}",
-                "rtsp_session_established": f"{rtsp_session_count}/{total}",
-                "rtp_media_observed": f"{rtp_media_count}/{total}",
-                "decoder_open": f"{decoder_open_count}/{total}",
-                "frame_active": f"{frame_active_count}/{total}",
-                "ai_active": f"{ai_active_count}/{total}",
-                "tracking_active": f"{tracking_active_count}/{total}",
-                "anpr_tested": f"{anpr_tested_count}/{total}",
-                "anpr_readable": f"{anpr_readable_count}/{total}",
+                # Integer counts — frontend calculates ratios from total_cameras
+                "network_reachable": network_reachable_count,
+                "authenticated_verified": authenticated_count,
+                "rtsp_session_established": rtsp_session_count,
+                "rtp_media_observed": rtp_media_count,
+                "decoder_open": decoder_open_count,
+                "frame_active": frame_active_count,
+                "ai_active": ai_active_count,
+                "tracking_active": tracking_active_count,
+                "anpr_tested": anpr_tested_count,
+                "anpr_readable": anpr_readable_count,
             },
             "aggregate_rates": {
                 "total_decode_fps": round(total_decode_fps, 1),

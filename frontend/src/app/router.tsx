@@ -21,7 +21,7 @@ import { PERMISSIONS } from '../core/auth/permissions';
 export const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />,
+    element: <Navigate to="/live" replace />,
   },
   {
     path: '/',

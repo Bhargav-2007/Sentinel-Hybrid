@@ -18,25 +18,13 @@ export const LiveOperationsPage: React.FC = () => {
   });
 
   const cameras = rawCameras.filter((c) => {
-    const camNum = parseInt(c.camera_id.replace(/\D/g, '') || '1', 10);
-    const dept = (
-      c.department_name ||
-      (camNum % 5 === 0
-        ? 'panchayat'
-        : camNum % 4 === 0
-        ? 'health'
-        : camNum % 3 === 0
-        ? 'municipal'
-        : camNum % 2 === 0
-        ? 'gsrtc'
-        : 'police')
-    ).toLowerCase();
+    const dept = (c.department_name || c.department_id || 'Police').toLowerCase();
 
     return (
       deptFilter === 'ALL' ||
       (deptFilter === 'POLICE' && (dept.includes('police') || dept.includes('home'))) ||
-      (deptFilter === 'GSRTC' && (dept.includes('transport') || dept.includes('gsrtc'))) ||
-      (deptFilter === 'MUNICIPAL' && (dept.includes('municipal') || dept.includes('urban'))) ||
+      (deptFilter === 'GSRTC' && (dept.includes('transport') || dept.includes('gsrtc') || dept.includes('rto'))) ||
+      (deptFilter === 'MUNICIPAL' && (dept.includes('municipal') || dept.includes('urban') || dept.includes('amc'))) ||
       (deptFilter === 'HEALTH' && dept.includes('health')) ||
       (deptFilter === 'PANCHAYAT' && (dept.includes('panchayat') || dept.includes('rural')))
     );

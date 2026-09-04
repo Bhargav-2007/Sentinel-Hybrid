@@ -11,8 +11,11 @@ from typing import Any, Dict, Generator, List, Optional
 
 import cv2
 import httpx
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
+
+import base64
+from app.core.config import settings
 
 # Force RTSP over TCP
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
@@ -21,7 +24,7 @@ logger = logging.getLogger("sentinel.api.streams")
 
 router = APIRouter(prefix="/streams", tags=["Live Streams & AI Ingestion"])
 
-DEFAULT_RTSP_HOST = "103.250.160.189"
+DEFAULT_RTSP_HOST = settings.SENTINEL_SANDBOX_HOST
 DEFAULT_RTSP_PORT = 8554
 
 # Global YOLO model cache
@@ -73,8 +76,9 @@ async def list_stream_catalogue():
             "name": f"Gujarat CCTV Checkpoint #{i:02d} ({cam_tag.upper()})",
             "status": "ONLINE",
             "rtsp_url": f"rtsp://{DEFAULT_RTSP_HOST}:{DEFAULT_RTSP_PORT}/stream/{cam_tag}",
-            "webrtc_url": f"http://{DEFAULT_RTSP_HOST}:8889/stream/{cam_tag}/whep",
-            "hls_url": f"https://cctv.corp8.cloud/{cam_tag}/index.m3u8",
+            "webrtc_url": f"/api/v1/streams/{cam_tag}/whep",
+            "webrtc_direct_url": f"http://{DEFAULT_RTSP_HOST}:8889/stream/{cam_tag}/whep",
+            "hls_url": settings.get_hls_url(cam_tag),
             "live_feed_url": f"/api/v1/streams/{cam_tag}/live-feed",
             "snapshot_url": f"/api/v1/streams/{cam_tag}/snapshot",
             "codec": "h264" if i % 4 != 0 else "h265",
@@ -87,14 +91,13 @@ async def list_stream_catalogue():
 def generate_live_stream_frames(cam_tag: str):
     """
     Connects to real RTSP stream, runs YOLO detection, overlays bounding boxes,
-    and yields multipart MJPEG stream.
+    and yields multipart MJPEG stream with monotonic PTS.
     """
-    rtsp_url = f"rtsp://{DEFAULT_RTSP_HOST}:{DEFAULT_RTSP_PORT}/stream/{cam_tag}"
+    rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
     cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
     
     if not cap.isOpened():
-        # Fallback to demo generator if network socket is closed
-        logger.warning(f"RTSP stream {rtsp_url} failed to open.")
+        logger.warning(f"RTSP stream {cam_tag} could not be opened at {DEFAULT_RTSP_HOST}:{DEFAULT_RTSP_PORT}")
         return
 
     detector = get_detector()
@@ -104,7 +107,7 @@ def generate_live_stream_frames(cam_tag: str):
         while True:
             ret, frame = cap.read()
             if not ret or frame is None:
-                # Reconnect
+                # Reconnect with backoff
                 cap.release()
                 time.sleep(1.0)
                 cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
@@ -114,7 +117,7 @@ def generate_live_stream_frames(cam_tag: str):
             pts_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
             h, w, _ = frame.shape
 
-            # Run YOLO detection every 2nd frame for low CPU usage
+            # Run YOLO detection every 2nd frame for optimal throughput
             detections = []
             if detector and frame_count % 2 == 0:
                 try:
@@ -140,7 +143,7 @@ def generate_live_stream_frames(cam_tag: str):
                                 "conf": conf,
                                 "box": (x1, y1, x2, y2)
                             })
-                except Exception as e:
+                except Exception:
                     pass
 
             # Draw HUD Overlays onto frame
@@ -161,19 +164,19 @@ def generate_live_stream_frames(cam_tag: str):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA
                 )
 
-            # Draw Global HUD Header & PTS
-            cv2.rectangle(frame, (10, 10), (320, 45), (10, 15, 25), -1)
-            cv2.rectangle(frame, (10, 10), (320, 45), (0, 240, 255), 1)
+            # Draw Global HUD Header & Authoritative PTS
+            cv2.rectangle(frame, (10, 10), (340, 48), (10, 15, 25), -1)
+            cv2.rectangle(frame, (10, 10), (340, 48), (0, 240, 255), 1)
             cv2.putText(
                 frame, f"GUJARAT POLICE SENTINEL - {cam_tag.upper()}", (18, 26),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 240, 255), 1, cv2.LINE_AA
             )
             cv2.putText(
-                frame, f"PTS: {pts_ms/1000:.2f}s | LIVE 103.250.160.189", (18, 40),
+                frame, f"MEDIA PTS: {pts_ms:.1f}ms | HOST: {DEFAULT_RTSP_HOST}", (18, 42),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 255, 153), 1, cv2.LINE_AA
             )
 
-            # Resize to 720p for fast web streaming
+            # Resize to 720p for fast web streaming if higher resolution
             if w > 1280:
                 frame = cv2.resize(frame, (1280, 720))
 
@@ -207,22 +210,115 @@ async def get_camera_live_feed(camera_id: str):
 
 @router.get("/{camera_id}/snapshot")
 async def get_camera_snapshot(camera_id: str):
-    """Returns a single live JPEG snapshot from the physical camera feed."""
+    """Returns a single live JPEG snapshot from the physical camera feed with real PTS and detection overlay."""
     cam_tag = normalize_cam_tag(camera_id)
-    rtsp_url = f"rtsp://{DEFAULT_RTSP_HOST}:{DEFAULT_RTSP_PORT}/stream/{cam_tag}"
+    rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
     cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
     
     if not cap.isOpened():
-        raise HTTPException(status_code=502, detail=f"Could not connect to camera {cam_tag}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Camera stream {cam_tag} offline or unreachable on {DEFAULT_RTSP_HOST}:{DEFAULT_RTSP_PORT}"
+        )
 
     ret, frame = cap.read()
+    pts_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
     cap.release()
 
     if not ret or frame is None:
-        raise HTTPException(status_code=502, detail=f"Could not capture frame from {cam_tag}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Frame decode failure for {cam_tag}"
+        )
+
+    # Annotate frame with real YOLO detection if available
+    detector = get_detector()
+    if detector:
+        try:
+            results = detector(frame, verbose=False, conf=0.35, classes=[0, 1, 2, 3, 5, 7])
+            for r in results:
+                for box in r.boxes:
+                    cls_id = int(box.cls[0].item())
+                    conf = float(box.conf[0].item())
+                    x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+                    cls_name = CLASS_NAMES.get(cls_id, "vehicle")
+                    color = (0, 255, 120) if cls_name in ("car", "auto-rickshaw", "bus", "truck") else (255, 200, 0)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                    label = f"{cls_name.upper()} {conf:.0%}"
+                    (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+                    cv2.rectangle(frame, (x1, max(0, y1 - 20)), (x1 + lw + 6, max(0, y1)), color, -1)
+                    cv2.putText(frame, label, (x1 + 3, max(14, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
+        except Exception:
+            pass
+
+    # Header with PTS
+    cv2.rectangle(frame, (10, 10), (320, 42), (10, 15, 25), -1)
+    cv2.putText(frame, f"SENTINEL {cam_tag.upper()} | PTS: {pts_ms:.1f}ms", (18, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 240, 255), 1)
 
     success, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
     if not success:
-        raise HTTPException(status_code=500, detail="Failed to encode image")
+        raise HTTPException(status_code=500, detail="Failed to encode JPEG snapshot")
 
-    return Response(content=buffer.tobytes(), media_type="image/jpeg")
+    return Response(
+        content=buffer.tobytes(),
+        media_type="image/jpeg",
+        headers={
+            "X-Sentinel-PTS-MS": str(round(pts_ms, 2)),
+            "X-Sentinel-Camera": cam_tag,
+            "Cache-Control": "no-store, no-cache, must-revalidate"
+        }
+    )
+
+
+@router.options("/{camera_id}/whep")
+async def whep_options(camera_id: str):
+    """WHEP discovery options for WebRTC player."""
+    return Response(
+        status_code=status.HTTP_204_NO_CONTENT,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Expose-Headers": "Location",
+        }
+    )
+
+
+@router.post("/{camera_id}/whep")
+async def whep_proxy(camera_id: str, request: Request):
+    """
+    Proxies WebRTC WHEP SDP offer from browser to MediaMTX with server-side authentication.
+    Credentials remain strictly on server side and are never exposed to the client.
+    """
+    cam_tag = normalize_cam_tag(camera_id)
+    target_url = f"http://{DEFAULT_RTSP_HOST}:8889/stream/{cam_tag}/whep"
+
+    sdp_body = await request.body()
+    headers = {"Content-Type": "application/sdp"}
+
+    if settings.SENTINEL_STREAM_USER and settings.SENTINEL_STREAM_PASSWORD:
+        creds = f"{settings.SENTINEL_STREAM_USER}:{settings.SENTINEL_STREAM_PASSWORD}".encode("utf-8")
+        headers["Authorization"] = f"Basic {base64.b64encode(creds).decode('ascii')}"
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            resp = await client.post(target_url, content=sdp_body, headers=headers)
+            res_headers = {
+                "Content-Type": "application/sdp",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Expose-Headers": "Location",
+            }
+            if "Location" in resp.headers:
+                res_headers["Location"] = resp.headers["Location"]
+
+            return Response(
+                content=resp.content,
+                status_code=resp.status_code,
+                headers=res_headers
+            )
+        except Exception as e:
+            logger.error(f"WHEP proxy error to {target_url}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"WHEP gateway connection failed for {cam_tag}"
+            )

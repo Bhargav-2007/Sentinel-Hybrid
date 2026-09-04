@@ -155,3 +155,18 @@ async def export_case_as_html_report(
     html_content = case_service.export_case_html_report(case)
     return HTMLResponse(content=html_content)
 
+
+@router.delete("/{case_id}", status_code=status.HTTP_200_OK)
+async def delete_case(
+    case_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    officer: Officer = Depends(require_permission(Permission.CASE_MANAGE)),
+):
+    """Permanently deletes a police investigation case dossier. Requires case.manage permission."""
+    client_ip = get_client_ip(request)
+    deleted = await case_service.delete_case(db, case_id, officer, ip_address=client_ip)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Case {case_id} not found.")
+    return {"deleted": True, "case_id": case_id, "message": "Case record successfully removed."}
+

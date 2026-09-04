@@ -17,7 +17,7 @@ async def get_audit_trail_logs(
     limit: int = Query(50, ge=1, le=200),
     action: Optional[str] = Query(None, description="Filter by action (e.g. OFFICER_LOGIN, BREAK_GLASS_ACTIVATED)"),
     db: AsyncSession = Depends(get_db),
-    officer: Officer = Depends(require_role([OfficerRole.ADMIN, OfficerRole.SUPERVISOR]))
+    officer: Officer = Depends(require_role([OfficerRole.ADMIN, OfficerRole.SUPERVISOR, OfficerRole.INVESTIGATOR]))
 ):
     """
     Queries immutable audit trail records with SHA-256 HMAC digital signatures.

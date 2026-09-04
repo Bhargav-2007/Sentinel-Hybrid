@@ -251,6 +251,26 @@ class CaseService:
 
         return case
 
+    async def delete_case(self, db: AsyncSession, case_id: str, officer: Officer, ip_address: str = "127.0.0.1") -> bool:
+        """Permanently deletes a case and records audit trail."""
+        case = await self.get_case_by_id(db, case_id)
+        if not case:
+            return False
+
+        await audit_service.log_action(
+            db=db,
+            officer=officer,
+            action="CASE_DELETED",
+            entity_type="CASE",
+            entity_id=case_id,
+            ip_address=ip_address,
+            details={"case_number": case.case_number, "title": case.title}
+        )
+
+        await db.delete(case)
+        await db.commit()
+        return True
+
     def export_case_json(self, case: Case) -> Dict[str, Any]:
         """Serializes complete case dossier and forensic chain of custody to JSON."""
         return {

@@ -100,6 +100,30 @@ class Settings(BaseSettings):
     CAMERA_TARGET_SCALE: int = 50  # Current sandbox deployment
     STATEWIDE_SCALE_MAX: int = 80000  # Full Gujarat scale target
 
+    # ── Stream Authentication (Runtime Centralized Credentials) ──
+    SENTINEL_STREAM_USER: str = ""
+    SENTINEL_STREAM_PASSWORD: str = ""
+
+    def get_authenticated_rtsp_url(self, cam_tag: str) -> str:
+        """
+        Constructs RTSP URL for stream ingestion.
+        URL-encodes '@' in username (e.g. alice%40example.com).
+        """
+        from urllib.parse import quote
+        host = self.SENTINEL_SANDBOX_HOST
+        port = 8554
+        if self.SENTINEL_STREAM_USER and self.SENTINEL_STREAM_PASSWORD:
+            encoded_user = quote(self.SENTINEL_STREAM_USER, safe="")
+            encoded_pass = quote(self.SENTINEL_STREAM_PASSWORD, safe="")
+            return f"rtsp://{encoded_user}:{encoded_pass}@{host}:{port}/stream/{cam_tag}"
+        return f"rtsp://{host}:{port}/stream/{cam_tag}"
+
+    def get_whep_endpoint(self, cam_tag: str) -> str:
+        return f"{self.SENTINEL_WHEP_BASE}/{cam_tag}/whep"
+
+    def get_hls_url(self, cam_tag: str) -> str:
+        return f"{self.SENTINEL_HLS_BASE}/{cam_tag}/index.m3u8"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

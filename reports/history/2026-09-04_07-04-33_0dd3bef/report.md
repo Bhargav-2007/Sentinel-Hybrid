@@ -1,25 +1,17 @@
 # Gujarat Police Innovation Challenge 2026 — Sentinel Evaluation Report
-**Evaluation ID**: `2026-09-04_07-31-44` | **Git Commit**: `0dd3bef` (`main`) | **Timestamp**: `2026-09-04T07:31:44.957994+00:00`
+**Evaluation ID**: `2026-09-04_07-04-33` | **Git Commit**: `0dd3bef` (`main`) | **Timestamp**: `2026-09-04T07:04:33.980297+00:00`
 
 ## 1. Executive Scorecard
 | Metric / Dimension | Score | Verdict |
 | :--- | :--- | :--- |
 | **Mandatory Compliance** | **100.0 / 100** | 8/8 Mandatory Requirements PASSED |
-| **Bonus Readiness** | **100.0 / 100** | 6/6 Bonus Capabilities Verified |
+| **Bonus Readiness** | **0.0 / 100** | 0/0 Bonus Capabilities Verified |
 | **Security & Evidence Integrity** | **100.0 / 100** | Section 65B & HMAC-SHA256 Hash Chain Verified |
 | **Performance & Latency** | **100.0 / 100** | Measured E2E: 69.05 ms / 14.5 FPS on CPU |
-| **OVERALL TECHNICAL READINESS** | **100.0 / 100** | **READY FOR SUBMISSION & DEMONSTRATION** |
+| **OVERALL TECHNICAL READINESS** | **80.0 / 100** | **READY FOR SUBMISSION & DEMONSTRATION** |
 
 ## 2. 'What Changed?' & Regression Analysis
 ✓ **Zero Regressions Detected** against prior baseline.
-
-### ✨ Improvements Verified
-- 🟢 New requirement verified: [B-001] Bonus B1: Innovative Hybrid Orchestration
-- 🟢 New requirement verified: [B-002] Bonus B2: Advanced Cross-Camera Movement Tracking
-- 🟢 New requirement verified: [B-003] Bonus B3: Additional Operational Analytics
-- 🟢 New requirement verified: [B-004] Bonus B4: Edge Processing & Bandwidth Optimization
-- 🟢 New requirement verified: [B-005] Bonus B5: Enhanced Cybersecurity & RBAC
-- 🟢 New requirement verified: [B-006] Bonus B6: Operational Dashboards & Real-Time APIs
 
 ### 🛡️ Preserved Components (Rule 51 Non-Destructive Policy)
 - 🔒 [M-001] Centralised CCTV Camera Registry & Master Catalog (Status: PASS — Intentionally preserved)
@@ -39,13 +31,7 @@
 | `M-005` | MANDATORY | VMS Federation Adapter Framework & Extensible SDK | `model3` | PASS 🟢 | 100.0% | Path verified: backend-model3/pom.xml | Path verified: backe... |
 | `M-006` | MANDATORY | Central VMS Storage, Recording & Clip Extraction | `model4` | PASS 🟢 | 100.0% | Path verified: backend-model4/go.mod | Path verified: backen... |
 | `M-007` | MANDATORY | Hybrid Orchestrator & APB Hotlist Watchlist Matching | `hybrid` | PASS 🟢 | 100.0% | Path verified: backend-orchestrator/app/services/ai_orchestr... |
-| `M-008` | MANDATORY | Section 65B Electronic Evidence Certification | `security` | PASS 🟢 | 100.0% | 8 passed in 15.61s... |
-| `B-001` | BONUS | Bonus B1: Innovative Hybrid Orchestration | `hybrid` | PASS 🟢 | 100.0% | Path verified: backend-orchestrator/app/services/ai_orchestr... |
-| `B-002` | BONUS | Bonus B2: Advanced Cross-Camera Movement Tracking | `ai` | PASS 🟢 | 100.0% | Path verified: backend-orchestrator/app/services/cross_camer... |
-| `B-003` | BONUS | Bonus B3: Additional Operational Analytics | `ai` | PASS 🟢 | 100.0% | Path verified: ai-detection/app/detectors/attributes.py | Pa... |
-| `B-004` | BONUS | Bonus B4: Edge Processing & Bandwidth Optimization | `ai` | PASS 🟢 | 100.0% | Path verified: ai-detection/app/utils/scheduler.py... |
-| `B-005` | BONUS | Bonus B5: Enhanced Cybersecurity & RBAC | `security` | PASS 🟢 | 100.0% | Path verified: ai-detection/app/utils/model_registry.py... |
-| `B-006` | BONUS | Bonus B6: Operational Dashboards & Real-Time APIs | `operations` | PASS 🟢 | 100.0% | Path verified: backend-orchestrator/app/api/v1/cameras.py | ... |
+| `M-008` | MANDATORY | Section 65B Electronic Evidence Certification | `security` | PASS 🟢 | 100.0% | 8 passed in 15.51s... |
 
 ## 4. Dynamic Project Inventory
 - **Discovered Services (8)**:
@@ -57,7 +43,7 @@
   - `backend-model4` (unknown/unknown) — Tests: `none`
   - `backend-orchestrator` (python/fastapi) — Tests: `pytest`
   - `frontend` (typescript/react) — Tests: `npm`
-- **Databases Detected**: MinIO S3 Object Storage, Redis, PostgreSQL/PostGIS, OpenSearch
+- **Databases Detected**: OpenSearch, MinIO S3 Object Storage, PostgreSQL/PostGIS, Redis
 - **Message Brokers**: Apache Kafka
 - **AI Models Found**: yolov8n.pt
 

@@ -85,41 +85,8 @@ export const CasesPage: React.FC = () => {
   const [officerBadge, setOfficerBadge] = useState(user?.badge_number || 'GJ-POL-8842');
   const [officerUnit, setOfficerUnit] = useState('State Cyber Crime Cell, Gujarat Police');
 
-  // Chronological Sighting Log & PTS Timestamps (Fully Editable)
-  const [sightings, setSightings] = useState<SightingRow[]>([
-    {
-      id: '1',
-      camera_name: 'Sarkhej Sanand Cross Roads',
-      district: 'Ahmedabad',
-      timestamp: '05:10:00 UTC (1000ms)',
-      speed_kmh: 42.0,
-      detections: 'Car (1), Person (2)',
-    },
-    {
-      id: '2',
-      camera_name: 'SG Highway Iskcon Jct',
-      district: 'Ahmedabad',
-      timestamp: '05:18:00 UTC (8000ms)',
-      speed_kmh: 68.2,
-      detections: 'Car [GJ01AB1234]',
-    },
-    {
-      id: '3',
-      camera_name: 'C.G. Road Crossroad',
-      district: 'Ahmedabad',
-      timestamp: '05:25:00 UTC (15000ms)',
-      speed_kmh: 35.0,
-      detections: 'Car (1), Auto (1)',
-    },
-    {
-      id: '4',
-      camera_name: 'Sector 10 Secretariat',
-      district: 'Gandhinagar',
-      timestamp: '05:32:00 UTC (22000ms)',
-      speed_kmh: 64.0,
-      detections: 'Car [GJ01AB1234], Bus (1)',
-    },
-  ]);
+  // Chronological Sighting Log & PTS Timestamps (Populated via live camera scan or verified selection)
+  const [sightings, setSightings] = useState<SightingRow[]>([]);
 
   // Real-time Cryptographic Signatures
   const [shaDigest, setShaDigest] = useState('8ec1e3b834551cde82d005379548437dfea4637f9e39dc7e56b79e214376b229');
@@ -284,15 +251,17 @@ export const CasesPage: React.FC = () => {
 
           return {
             id: String(idx + 1),
-            camera_id: pt.camera_id || `cam0${idx + 1}`,
+            camera_id: pt.camera_id || `cam${String(idx + 1).padStart(2, '0')}`,
             camera_name: `${camTitle} (${camCode})`,
             district: districtName,
-            timestamp: `${pt.sighted_at || new Date().toISOString().slice(11, 19)} (${pt.pts_ms || (idx + 1) * 2400}ms PTS)`,
-            speed_kmh: pt.speed_kmh || (50 + idx * 4.5),
-            detections: `${vehicleCategory} [${targetPlate}]${idx === 0 ? ', Person (1)' : idx === 1 ? ', Auto (1)' : ''}`,
-            latitude: pt.latitude || (matchedCam ? matchedCam.location.latitude : 23.0298 + idx * 0.02),
-            longitude: pt.longitude || (matchedCam ? matchedCam.location.longitude : 72.5074 + idx * 0.02),
-            pts_ms: pt.pts_ms || (idx + 1) * 7000,
+            timestamp: pt.pts_ms != null
+              ? `${pt.sighted_at || new Date().toISOString().slice(11, 19)} (${Number(pt.pts_ms).toFixed(1)}ms PTS)`
+              : `${pt.sighted_at || new Date().toISOString().slice(11, 19)}`,
+            speed_kmh: pt.speed_kmh != null ? Number(pt.speed_kmh) : 0.0,
+            detections: `${vehicleCategory || 'VEHICLE'} [${targetPlate}]`,
+            latitude: pt.latitude || matchedCam?.location?.latitude || 0.0,
+            longitude: pt.longitude || matchedCam?.location?.longitude || 0.0,
+            pts_ms: pt.pts_ms != null ? Number(pt.pts_ms) : 0.0,
           };
         });
       } else {
@@ -323,7 +292,6 @@ export const CasesPage: React.FC = () => {
   // Add Sighting Directly From Specific Camera Node
   const handleAddFromCamera = (cam: CameraNode) => {
     const nextId = String(sightings.length + 1);
-    const pts = 1000 + sightings.length * 2500;
     const timeStr = new Date().toISOString().slice(11, 19);
 
     const newRow: SightingRow = {
@@ -331,19 +299,19 @@ export const CasesPage: React.FC = () => {
       camera_id: cam.camera_id,
       camera_name: `${cam.name} (${cam.camera_id.toUpperCase()})`,
       district: cam.location.district,
-      timestamp: `${timeStr} UTC (${pts}ms PTS)`,
+      timestamp: `${timeStr} UTC`,
       speed_kmh: 0.0,
-      detections: `${vehicleCategory} [${targetPlate}]`,
+      detections: `${vehicleCategory || 'VEHICLE'} [${targetPlate || 'MANUAL_ATTACH'}]`,
       latitude: cam.location.latitude,
       longitude: cam.location.longitude,
-      pts_ms: pts,
+      pts_ms: 0.0,
     };
 
     const updated = [...sightings, newRow];
     setSightings(updated);
     syncFromScan(targetPlate, vehicleCategory, updated);
     setIsCameraPickerOpen(false);
-    setToastMessage(`✓ Added sighting at ${cam.name} (${cam.camera_id.toUpperCase()}) to 65B Log.`);
+    setToastMessage(`✓ Attached sighting at ${cam.name} (${cam.camera_id.toUpperCase()}) to Section 65B Dossier.`);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
@@ -724,11 +692,15 @@ export const CasesPage: React.FC = () => {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-black">
                     CHRONOLOGICAL SIGHTING LOG & CAMERA PTS TIMESTAMPS
                   </h4>
-                  {scanHitsCount !== null && (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-400 no-print">
-                      {scanHitsCount} Node(s) Verified
-                    </span>
-                  )}
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded font-bold border no-print ${
+                      sightings.length > 0
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
+                        : 'bg-slate-200 text-slate-600 border-slate-400'
+                    }`}
+                  >
+                    {new Set(sightings.map((s) => s.camera_id || s.camera_name).filter(Boolean)).size} Node(s) Verified
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-1.5 flex-wrap no-print">
@@ -842,8 +814,15 @@ export const CasesPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {sightings.map((s, idx) => (
-                    <tr key={s.id} className="hover:bg-slate-100">
+                  {sightings.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="border border-black p-4 text-center text-slate-500 font-mono text-xs">
+                        NO SIGHTINGS LOGGED FOR THIS CASE DOSSIER. USE &quot;CHECK ALL CAMERAS FOR TARGET&quot;, &quot;PICK CAMERA NODE&quot;, OR &quot;ADD MANUAL ROW&quot; TO RECORD SIGHTINGS.
+                      </td>
+                    </tr>
+                  ) : (
+                    sightings.map((s, idx) => (
+                      <tr key={s.id} className="hover:bg-slate-100">
                       <td className="border border-black p-1.5 text-center font-bold">{idx + 1}</td>
                       <td className="border border-black p-1">
                         <input
@@ -897,7 +876,8 @@ export const CasesPage: React.FC = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    )))
+                  }
                 </tbody>
               </table>
             </div>

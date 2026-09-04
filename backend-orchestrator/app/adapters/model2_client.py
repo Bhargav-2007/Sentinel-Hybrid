@@ -48,11 +48,15 @@ class Model2Client(BaseServiceClient):
     async def get_anpr_statistics(self) -> Dict[str, Any]:
         """Fetches detection totals, plate count, and model accuracy from Model 2."""
         data = await self.get("/anpr/stats")
-        return data or {
-            "total_detections": 184300,
-            "unique_plates": 42100,
-            "avg_confidence": 0.986,
-            "active_anpr_feeds": 30
+        if data and isinstance(data, dict):
+            return data
+        return {
+            "total_detections": 0,
+            "unique_plates": 0,
+            "avg_confidence": 0.0,
+            "active_anpr_feeds": 0,
+            "status": "OFFLINE",
+            "message": "AI Detection service offline or unreachable"
         }
 
 

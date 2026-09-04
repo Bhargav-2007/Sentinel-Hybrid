@@ -12,6 +12,8 @@ import { SystemStatusPage } from '../features/system-status/SystemStatusPage';
 import { UserManagementPage } from '../features/users/UserManagementPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { HelpDocsPage } from '../features/help/HelpDocsPage';
+import { AnalyticsPage } from '../features/analytics/AnalyticsPage';
+import { AuditLedgerPage } from '../features/audit/AuditLedgerPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RoleGuard } from '../core/auth/RoleGuard';
 import { PERMISSIONS } from '../core/auth/permissions';
@@ -75,11 +77,15 @@ export const router = createBrowserRouter([
       },
       {
         path: 'audit',
-        element: <Navigate to="/system-status" replace />,
+        element: (
+          <RoleGuard roles={PERMISSIONS.VIEW_AUDIT_LOGS} fallback={<Navigate to="/live" replace />}>
+            <AuditLedgerPage />
+          </RoleGuard>
+        ),
       },
       {
         path: 'analytics',
-        element: <Navigate to="/system-status" replace />,
+        element: <AnalyticsPage />,
       },
       {
         path: 'system-status',

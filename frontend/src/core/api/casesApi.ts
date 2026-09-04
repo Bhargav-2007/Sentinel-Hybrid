@@ -27,7 +27,7 @@ export const casesApi = {
     });
   },
 
-  exportReportUrl: (caseId: string) => `http://localhost:8000/api/v1/cases/${caseId}/export/report`,
-  exportJsonUrl: (caseId: string) => `http://localhost:8000/api/v1/cases/${caseId}/export/json`,
-  exportCsvUrl: (caseId: string) => `http://localhost:8000/api/v1/cases/${caseId}/export/csv`,
+  exportReportUrl: (caseId: string) => `/api/v1/cases/${caseId}/export/report`,
+  exportJsonUrl: (caseId: string) => `/api/v1/cases/${caseId}/export/json`,
+  exportCsvUrl: (caseId: string) => `/api/v1/cases/${caseId}/export/csv`,
 };

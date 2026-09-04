@@ -9,6 +9,8 @@ import {
   Camera,
   ListOrdered,
   Activity,
+  BarChart3,
+  Shield,
   Users,
   Settings,
   HelpCircle,
@@ -69,6 +71,18 @@ export const Sidebar: React.FC = () => {
       label: 'System Status',
       icon: Activity,
       allowed: true,
+    },
+    {
+      to: '/analytics',
+      label: 'AI Analytics',
+      icon: BarChart3,
+      allowed: true,
+    },
+    {
+      to: '/audit',
+      label: 'Section 65B Audit',
+      icon: Shield,
+      allowed: hasPermission(role, PERMISSIONS.VIEW_AUDIT_LOGS),
     },
     {
       to: '/users',

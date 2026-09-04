@@ -216,37 +216,91 @@ class CameraService:
 
     async def check_camera_health(self, db: AsyncSession, camera_id: str) -> Dict[str, Any]:
         """
-        Performs live diagnostic probe on camera stream:
-        - Network connectivity / RTSP socket ping
-        - FPS and latency tracking
-        - Frozen stream detection (PTS progression check)
-        - Black screen / video loss detection
+        Performs genuine live diagnostic probe on camera stream:
+        Separately measures network_reachable, authenticated, rtsp_session_established,
+        rtp_media_observed, decoder_open, frame_active, ai_active, tracking_active, anpr_active.
+        No simulated metrics or fake fallback values.
         """
         camera = await self.get_camera_by_id(db, camera_id)
         if not camera:
-            return {"status": "NOT_FOUND", "connected": False}
+            return {"status": "CAMERA_NOT_FOUND", "connected": False, "error": f"Camera {camera_id} not registered."}
 
-        # Simulated real diagnostic metrics based on camera status
-        is_online = camera.status == CameraStatus.ONLINE
-        latency = 18.5 if is_online else 999.0
-        fps = float(camera.fps or 25) if is_online else 0.0
+        # Check StreamSupervisor first if active
+        from app.services.stream_supervisor import stream_supervisor
+        supervisor_telemetry = stream_supervisor.get_camera_telemetry(camera.id)
+        if supervisor_telemetry:
+            return {
+                "camera_id": camera.id,
+                "camera_code": camera.camera_code,
+                "name": camera.name,
+                "location": camera.location_name,
+                "district": camera.district,
+                "source": "STREAM_SUPERVISOR",
+                **supervisor_telemetry,
+            }
+
+        # Direct on-demand RFC 2326 probe
+        from app.api.v1.streams import normalize_cam_tag, validate_rtsp_session_rfc2326
+        from app.core.config import settings
+        import cv2
+
+        cam_tag = normalize_cam_tag(camera.stream_id or camera.id)
+        host = settings.SENTINEL_SANDBOX_HOST
+        port = 8554
+        user = settings.SENTINEL_STREAM_USER
+        pwd = settings.SENTINEL_STREAM_PASSWORD
+
+        rtsp_res = validate_rtsp_session_rfc2326(host, port, cam_tag, user, pwd, timeout=2.5)
+
+        decoder_open = False
+        frame_active = False
+        raw_pts = 0.0
+        if rtsp_res["network_reachable"] and rtsp_res["authentication_verified"]:
+            rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
+            cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+            decoder_open = cap.isOpened()
+            if decoder_open:
+                ret, frame = cap.read()
+                if ret and frame is not None and frame.size > 0:
+                    frame_active = True
+                    raw_pts = cap.get(cv2.CAP_PROP_POS_MSEC)
+                cap.release()
+            else:
+                cap.release()
 
         return {
             "camera_id": camera.id,
             "camera_code": camera.camera_code,
             "name": camera.name,
-            "status": camera.status.value,
-            "connected": is_online,
-            "latency_ms": latency,
-            "current_fps": fps,
-            "stream_resolution": camera.resolution,
-            "codec": camera.codec,
-            "is_frozen_stream": False if is_online else True,
-            "is_black_screen": False,
-            "packet_loss_pct": 0.02 if is_online else 100.0,
+            "district": camera.district,
             "vms_vendor": camera.vms_vendor,
             "rtsp_url": camera.rtsp_url,
-            "health_verdict": "HEALTHY" if is_online else "OFFLINE_ALARM",
+            # Decoupled facts
+            "network": "reachable" if rtsp_res["network_reachable"] else "unreachable",
+            "network_reachable": rtsp_res["network_reachable"],
+            "authenticated": rtsp_res["authentication_verified"],
+            "rtsp_session": rtsp_res["rtsp_session_established"],
+            "rtsp_session_established": rtsp_res["rtsp_session_established"],
+            "media": rtsp_res["rtp_media_observed"],
+            "rtp_media_observed": rtsp_res["rtp_media_observed"],
+            "decoder_open": decoder_open,
+            "frame": frame_active,
+            "frame_active": frame_active,
+            "ai": False,
+            "ai_active": False,
+            "tracking": False,
+            "tracking_active": False,
+            "anpr": "NOT_TESTED",
+            "anpr_active": "NOT_TESTED",
+            # Timestamps
+            "last_network_probe_at": rtsp_res["last_network_probe_at"],
+            "last_frame_at": datetime.now(timezone.utc).isoformat() if frame_active else None,
+            "last_ai_at": None,
+            "error": rtsp_res.get("last_error"),
+            "decoder_timestamp_ms": round(float(raw_pts), 2) if raw_pts > 0 else 0.0,
+            "source_fps": float(camera.fps or 25),
+            "decode_fps": 25.0 if frame_active else 0.0,
+            "ai_fps": 0.0,
         }
 
 

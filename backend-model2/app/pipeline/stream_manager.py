@@ -305,26 +305,9 @@ class StreamManager:
             except Exception as err:
                 logger.debug("stream_discovery_source_failed", source=src, error=str(err))
 
-        # Fallback: standard 30 live Gujarat cameras
-        logger.warning("using_fallback_stream_catalogue")
-        fallback_streams = []
-        for i in range(1, 31):
-            fallback_streams.append({
-                "id": str(i),
-                "stream_id": i,
-                "name": f"Camera {i}",
-                "location": f"Gujarat Highway Junction {i}",
-                "codec": "h265" if i % 4 == 0 else "h264",
-                "live": True,
-                "width": 1920,
-                "height": 1080,
-                "fps": 25.0,
-                "bitrate_kbps": 2048 if i % 4 == 0 else 4096,
-                "rtsp_url": f"rtsp://live.corp8.cloud:8554/stream/{i}",
-                "webrtc_url": f"http://live.corp8.cloud:8889/stream/{i}/whep",
-                "hls_live_url": f"/live/stream/{i}/index.m3u8",
-            })
-        return fallback_streams
+        # If discovery sources fail, do not synthesize fake cameras with live=True
+        logger.warning("stream_discovery_failed_no_catalogue_found")
+        return []
 
     @staticmethod
     def _normalise_ingest_record(raw: dict[str, Any]) -> dict[str, Any]:

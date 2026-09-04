@@ -172,18 +172,7 @@ export const CameraManagementPage: React.FC = () => {
             <tbody className="divide-y divide-slate-800/60">
               {filtered.map((cam: CameraNode) => {
                 const isOnline = cam.status === 'ONLINE';
-                const camNum = parseInt(cam.camera_id.replace(/\D/g, '') || '1', 10);
-                const deptName =
-                  cam.department_name ||
-                  (camNum % 5 === 0
-                    ? 'Panchayat & Rural'
-                    : camNum % 4 === 0
-                    ? 'Health Dept'
-                    : camNum % 3 === 0
-                    ? 'Municipal Corp'
-                    : camNum % 2 === 0
-                    ? 'GSRTC Transport'
-                    : 'Police / Home');
+                const deptName = cam.department_name || 'Police / Home';
 
                 return (
                   <tr key={cam.camera_id} className="hover:bg-slate-800/40 transition-colors">
@@ -210,15 +199,21 @@ export const CameraManagementPage: React.FC = () => {
                       </code>
                     </td>
                     <td className="p-3">
-                      <div className="flex items-center gap-1.5">
-                        {isOnline ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-cyber-crimson" />
-                        )}
-                        <span className={`font-bold ${isOnline ? 'text-emerald-400' : 'text-cyber-crimson'}`}>
-                          {cam.status}
-                        </span>
+                      <div className="flex flex-col gap-1 font-mono text-[10px]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-bold">NET:OK</span>
+                          <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-bold">AUTH:OK</span>
+                          <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 font-bold">RTSP:OK</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 font-bold">RTP:OK</span>
+                          <span className={`px-1.5 py-0.2 rounded font-bold border ${isOnline ? 'bg-emerald-950 text-emerald-400 border-emerald-800/60' : 'bg-slate-900 text-slate-400 border-slate-700'}`}>
+                            DEC:{isOnline ? 'ACTIVE' : 'STANDBY'}
+                          </span>
+                          <span className={`px-1.5 py-0.2 rounded font-bold border ${isOnline ? 'bg-emerald-950 text-emerald-400 border-emerald-800/60' : 'bg-amber-950 text-amber-400 border-amber-800/60'}`}>
+                            AI:{isOnline ? 'ACTIVE' : 'STANDBY'}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td className="p-3 text-right">

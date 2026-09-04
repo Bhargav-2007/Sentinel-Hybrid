@@ -77,7 +77,7 @@ export const Topbar: React.FC = () => {
         {/* System Pulse Indicator */}
         <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 font-mono text-xs text-slate-300">
           <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-          <span className="text-emerald-400 font-bold">100% ONLINE</span>
+          <span className="text-emerald-400 font-bold">SYSTEM OPERATIONAL</span>
           <span className="text-slate-600">|</span>
           <span>{timeStr || '11:35:00 IST'}</span>
         </div>

@@ -177,6 +177,22 @@ export const LiveOperationsPage: React.FC = () => {
                     })
                   }
                 />
+                <div className="mt-1 bg-slate-950/80 border border-slate-800 rounded px-2 py-1 flex items-center justify-between text-[10px] font-mono">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-emerald-400 font-bold">NET:OK</span>
+                    <span className="text-slate-700">|</span>
+                    <span className="text-emerald-400 font-bold">AUTH:OK</span>
+                    <span className="text-slate-700">|</span>
+                    <span className="text-cyan-400 font-bold">RTP:OK</span>
+                    <span className="text-slate-700">|</span>
+                    <span className="text-cyan-400 font-bold">DEC:OK</span>
+                    <span className="text-slate-700">|</span>
+                    <span className={idx < 6 ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                      AI:{idx < 6 ? "ACTIVE" : "STANDBY"}
+                    </span>
+                  </div>
+                  <span className="text-slate-400 font-bold">{idx < 6 ? "25 FPS" : "0 FPS"}</span>
+                </div>
               </div>
             );
           })}

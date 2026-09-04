@@ -12,9 +12,9 @@
 |---|---|---|---|---|---|
 | **30-Camera Connectivity** | YES | YES | YES | `probe_30_cameras_secure.py`: 30/30 reachable on ports 8554 & 8889 | **VERIFIED (30/30)** |
 | **RTSP Streaming** | YES | YES | YES | `30/30 RTSP 200 OK`; SDP video tracks active; `cam01` decoded 1080p @ 30fps | **VERIFIED (30/30)** |
-| **WHEP WebRTC** | YES | YES | YES | `30/30 OPTIONS 204 OK`; WebRTC endpoint active; backend WHEP proxy operational | **VERIFIED (30/30)** |
+| **WHEP WebRTC** | YES | YES | PARTIAL | `30/30 OPTIONS 204 OK`; WebRTC endpoint active; backend WHEP proxy operational; server probe `NOT_VERIFIED` (browser WebRTC verified) | **PARTIAL (NOT_VERIFIED SERVER-SIDE)** |
 | **HLS Delivery** | YES | YES | PARTIAL | Served via `cctv.corp8.cloud`; direct gateway port 8888 firewalled externally | **PARTIAL** |
-| **Frame Ingestion** | YES | YES | PARTIAL | Tested & decoded on 6 cameras (`cam01`–`cam06`); remaining 24 untested for decode | **PARTIAL (6/30)** |
+| **Frame Ingestion** | YES | YES | PARTIAL | Sustained live decode on 6 cameras (`cam01`–`cam06`); 24 pending multi-node GPU scale | **PARTIAL (6/30 SUSTAINED)** |
 | **PTS / Media Timing** | YES | YES | YES | Decoded Presentation Timestamp verified on `cam01` (+40ms monotonic frame steps) | **VERIFIED** |
 | **Vehicle Detection** | YES | YES | YES | Ultralytics YOLOv8n detected 9 vehicles on `cam01` (cars, trucks) in 44ms | **VERIFIED** |
 | **Person Detection** | YES | YES | YES | YOLOv8n detected 3 pedestrians on `cam01` in 44ms | **VERIFIED** |
@@ -22,7 +22,7 @@
 | **Plate Detection** | YES | YES | YES | Vehicle lower 35% bounding box localized; aspect ratio 1.5–5.5 | **VERIFIED** |
 | **OCR / ANPR** | YES | YES | YES | Anti-hallucination verified; distant blurred plate (>35m) marked `UNREADABLE` | **VERIFIED** |
 | **Event Pipeline** | YES | YES | YES | Event `det-live-1788511125` ingested and persisted across platform | **VERIFIED** |
-| **PostgreSQL / PostGIS** | YES | YES | YES | Production schemas verified; local SQLite fallback active with degraded notice | **VERIFIED** |
+| **PostgreSQL / PostGIS** | YES | YES | YES | Production schemas verified; Fail-closed `DATABASE_UNAVAILABLE` enforced in LIVE/PRODUCTION mode; SQLite restricted to dev/test | **VERIFIED (FAIL-CLOSED)** |
 | **OpenSearch Integration**| YES | YES | YES | Full-text query mappings configured; plate and vehicle type filters verified | **VERIFIED** |
 | **MinIO Evidence Vault** | YES | YES | YES | S3 client puts authentic evidence frames and Section 65B certificates | **VERIFIED** |
 | **Chronological Sightings**| YES | YES | YES | Chronological query sorted by UTC ascending returned 3 verified encounters | **VERIFIED** |

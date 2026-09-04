@@ -178,30 +178,52 @@ class NativeRTSPAdapter(BaseVMSAdapter):
     """Native RTSP / HLS Direct Stream Ingestion Adapter."""
 
     async def discover_cameras(self) -> List[DiscoveredCamera]:
-        return [
-            DiscoveredCamera(
-                camera_id=f"RTSP-CAM-{i}",
-                name=f"Gujarat Highway Stream {i}",
-                ip_address="live.corp8.cloud",
-                port=8554,
-                vms_vendor="NATIVE_RTSP",
-                rtsp_uri=f"rtsp://live.corp8.cloud:8554/stream_{i}",
-                resolution="1920x1080",
-                has_ptz=False,
-                status="ONLINE",
+        from app.core.config import settings
+        from app.adapters.sentinel_feed_adapter import sentinel_feed_adapter
+        
+        # Authoritative discovery from official preconfigured registry
+        registry_cameras = sentinel_feed_adapter.get_preconfigured_50_cameras()
+        discovered = []
+        for c in registry_cameras:
+            discovered.append(
+                DiscoveredCamera(
+                    camera_id=c["id"],
+                    name=c["name"],
+                    ip_address=settings.SENTINEL_SANDBOX_HOST,
+                    port=8554,
+                    vms_vendor="NATIVE_RTSP",
+                    rtsp_uri=settings.get_authenticated_rtsp_url(f"cam{int(c['stream_id']):02d}"),
+                    resolution=c.get("resolution", "1920x1080"),
+                    has_ptz=False,
+                    status="CONFIGURED",
+                )
             )
-            for i in range(1, 31)
-        ]
+        return discovered
 
     async def test_connection(self) -> Dict[str, Any]:
+        from app.core.config import settings
+        import socket
+        
+        host = settings.SENTINEL_SANDBOX_HOST
+        port = 8554
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(2.0)
+        connected = False
+        try:
+            connected = (s.connect_ex((host, port)) == 0)
+        except Exception:
+            connected = False
+        finally:
+            s.close()
+            
         return {
-            "vms_vendor": "NATIVE_RTSP_CLUSTER",
+            "vms_vendor": "NATIVE_RTSP_GATEWAY",
             "protocol": "RTSP over TCP (RFC 2326 / RFC 7826)",
-            "connected": True,
-            "latency_ms": 28.5,
-            "cluster_host": "live.corp8.cloud:8554",
+            "connected": connected,
+            "cluster_host": f"{host}:{port}",
             "integration_type": "DIRECT_REAL_DATA_FEED",
         }
 
     async def get_stream_uri(self, channel_id: str) -> str:
-        return f"rtsp://live.corp8.cloud:8554/stream_{channel_id}"
+        from app.core.config import settings
+        return settings.get_authenticated_rtsp_url(channel_id)

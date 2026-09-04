@@ -104,8 +104,15 @@ def _resolve_input_frame(
             detail=f"Unable to capture live frame from stream '{payload.stream_url}'. Stream unreachable or authentication required.",
         )
 
-    # Baseline frame for test calls when no image input provided
-    return np.zeros((720, 1280, 3), dtype=np.uint8)
+    # Strictly isolate synthetic frames to test environments; prohibit in live/production
+    if os.getenv("PYTEST_CURRENT_TEST") or getattr(settings, "ENVIRONMENT", "").lower() == "test":
+        logger.debug("Test environment detected with no payload image; providing synthetic test frame.")
+        return np.zeros((720, 1280, 3), dtype=np.uint8)
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Image input missing. Live/production AI inference requires a valid frame or reachable stream URL; synthetic test frames are strictly prohibited in LIVE/PRODUCTION mode.",
+    )
 
 
 @app.get("/", tags=["General"])

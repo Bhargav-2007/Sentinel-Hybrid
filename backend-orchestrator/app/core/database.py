@@ -38,13 +38,23 @@ def get_effective_db_url() -> str:
     return url
 
 def create_db_engine():
-    """Initializes async SQLAlchemy engine with automatic SQLite fallback."""
+    """Initializes async SQLAlchemy engine with fail-closed behavior in production."""
     url = get_effective_db_url()
     if url.startswith("sqlite"):
+        if settings.ENVIRONMENT.lower() in ("production", "live"):
+            raise RuntimeError(
+                "DATABASE_UNAVAILABLE: Configured database URL uses SQLite. "
+                "Production/LIVE environments strictly require PostgreSQL + PostGIS."
+            )
         return create_async_engine(url, echo=settings.DEBUG)
     
     if not is_db_reachable(url):
-        logger.info(f"PostgreSQL endpoint {url} is not reachable. Falling back to SQLite.")
+        if settings.ENVIRONMENT.lower() in ("production", "live"):
+            raise RuntimeError(
+                f"DATABASE_UNAVAILABLE: PostgreSQL endpoint '{url}' is unreachable. "
+                "Silent SQLite fallback is strictly prohibited in LIVE/PRODUCTION mode."
+            )
+        logger.info(f"PostgreSQL endpoint {url} is not reachable. Falling back to SQLite for local development/test.")
         return create_async_engine(settings.SQLITE_FALLBACK_URL, echo=settings.DEBUG)
 
     try:
@@ -56,6 +66,11 @@ def create_db_engine():
             pool_pre_ping=True,
         )
     except Exception as e:
+        if settings.ENVIRONMENT.lower() in ("production", "live"):
+            raise RuntimeError(
+                f"DATABASE_UNAVAILABLE: Failed to initialize PostgreSQL engine: {e}. "
+                "Silent SQLite fallback is strictly prohibited in LIVE/PRODUCTION mode."
+            )
         logger.warning(f"Could not initialize PostgreSQL engine: {e}. Falling back to SQLite.")
         return create_async_engine(settings.SQLITE_FALLBACK_URL, echo=settings.DEBUG)
 

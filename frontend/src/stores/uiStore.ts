@@ -19,6 +19,7 @@ interface UIState {
     alert?: ThreatAlert;
     camera?: CameraNode;
     plate?: string;
+    health?: any;
   } | null;
   openContextDrawer: (data: UIState['contextData']) => void;
   closeContextDrawer: () => void;

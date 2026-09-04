@@ -245,7 +245,31 @@ class CameraWorker:
                     raw_pts = cap.get(cv2.CAP_PROP_POS_MSEC)
                     decoded_pts = round(float(raw_pts), 2) if raw_pts > 0 else 0.0
                     h, w = frame.shape[:2]
-                    self.telemetry.codec_observed = "H264" if w > 0 else None
+
+                    # Detect actual codec from VideoCapture — not guessed from frame dimensions
+                    if self.telemetry.codec_observed is None:
+                        try:
+                            fourcc_int = int(cap.get(cv2.CAP_PROP_FOURCC))
+                            if fourcc_int > 0:
+                                fourcc_chars = (
+                                    chr(fourcc_int & 0xFF) +
+                                    chr((fourcc_int >> 8) & 0xFF) +
+                                    chr((fourcc_int >> 16) & 0xFF) +
+                                    chr((fourcc_int >> 24) & 0xFF)
+                                )
+                                codec_str = fourcc_chars.strip().upper().replace('\x00', '')
+                                if codec_str in ('H264', 'AVC1', 'X264'):
+                                    self.telemetry.codec_observed = 'H264'
+                                elif codec_str in ('HEVC', 'H265', 'HVC1', 'HEV1'):
+                                    self.telemetry.codec_observed = 'H265'
+                                elif codec_str:
+                                    self.telemetry.codec_observed = codec_str
+                                else:
+                                    self.telemetry.codec_observed = 'UNKNOWN'
+                            else:
+                                self.telemetry.codec_observed = 'UNKNOWN'
+                        except Exception:
+                            self.telemetry.codec_observed = 'UNKNOWN'
 
                     pkt = FramePacket(
                         camera_id=self.camera_id,
@@ -383,7 +407,7 @@ class AIWorkerPool:
         logger.info("AI Worker Pool stopped.")
 
     def _worker_loop(self):
-        client = httpx.Client(timeout=10.0)
+        client = httpx.Client(timeout=20.0)  # 20s for CPU inference under 30-camera load
         consecutive_conn_errors = 0
 
         while not self._stop_signal.is_set():
@@ -537,7 +561,7 @@ class AIWorkerPool:
                     pass
                 backoff = min(2.0, 0.1 * (2 ** consecutive_conn_errors))
                 time.sleep(backoff)
-                client = httpx.Client(timeout=10.0)
+                client = httpx.Client(timeout=20.0)
                 logger.warning(f"AI pool recreated client after connection error (attempt {consecutive_conn_errors})")
 
             except Exception as e:

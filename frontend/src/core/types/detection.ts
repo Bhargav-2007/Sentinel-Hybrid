@@ -43,4 +43,7 @@ export interface LiveDetectionEvent {
   speed_kmh?: number;
   threat_score?: number;
   district?: string;
+  vehicle_type?: string | null;
+  is_person?: boolean;
+  plate_text?: string;
 }

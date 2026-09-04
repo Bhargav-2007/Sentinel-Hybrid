@@ -69,8 +69,8 @@ async def lifespan(app: FastAPI):
                 priority=CameraPriority.NORMAL,
             )
 
-        # Start with AI pool size of 4 (CPU-bound: ~16 inf/s; 2 FPS × 8 cams)
-        ai_pool_size = int(os.environ.get("SENTINEL_AI_POOL_SIZE", "4"))
+        # Start with AI pool size of 8 (CPU-bound: handles 30 cam × 2 FPS = 60 fps demand)
+        ai_pool_size = int(os.environ.get("SENTINEL_AI_POOL_SIZE", "8"))
         stream_supervisor.start_all(pool_size=ai_pool_size)
         logger.info(
             f"✓ Stream Supervisor started: {len(cam_ids)} cameras registered, "

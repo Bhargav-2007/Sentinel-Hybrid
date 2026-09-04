@@ -41,6 +41,8 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3001",
         "http://127.0.0.1:5173",
         "https://sentinel.gujarat.gov.in",
+        "https://cctv.corp8.cloud",
+        "https://www.cctv.corp8.cloud",
     ]
     
     # ── Database: PostgreSQL 16 + PostGIS ──

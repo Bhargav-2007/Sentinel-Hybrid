@@ -48,20 +48,28 @@ class CaseService:
             "note": case_in.description or f"Case opened for target {case_in.target_plate or 'suspect'}.",
         }
 
-        # Default sightings from alert or empty
+        # Real sightings lookup or empty
         sightings_data = case_in.sightings or []
         if not sightings_data and case_in.target_plate:
-            sightings_data = [
-                {
-                    "camera_id": "1",
-                    "camera_name": "SG Highway — Prahladnagar Junction",
-                    "timestamp": now.isoformat(),
-                    "pts_timestamp_ms": 142050,
-                    "speed_kmh": 68.2,
-                    "latitude": case_in.primary_latitude or 23.0125,
-                    "longitude": case_in.primary_longitude or 72.5085,
-                }
-            ]
+            from app.models.detection import Detection
+            clean = "".join(ch for ch in case_in.target_plate if ch.isalnum()).upper()
+            det_stmt = select(Detection).where(
+                or_(Detection.clean_plate == clean, Detection.detected_plate == case_in.target_plate)
+            ).order_by(Detection.detected_at.asc()).limit(20)
+            det_res = await db.execute(det_stmt)
+            real_dets = det_res.scalars().all()
+            for det in real_dets:
+                sightings_data.append({
+                    "camera_id": det.camera_id,
+                    "camera_name": getattr(det.camera, "name", f"Camera {det.camera_id}") if hasattr(det, "camera") and det.camera else f"Camera {det.camera_id}",
+                    "timestamp": det.detected_at.isoformat() if det.detected_at else now.isoformat(),
+                    "pts_timestamp_ms": det.pts_timestamp_ms,
+                    "speed_kmh": None,
+                    "latitude": det.camera.latitude if hasattr(det, "camera") and det.camera else case_in.primary_latitude,
+                    "longitude": det.camera.longitude if hasattr(det, "camera") and det.camera else case_in.primary_longitude,
+                    "confidence": det.confidence_score,
+                    "snapshot_url": det.snapshot_url,
+                })
 
         # Initial HMAC Hash
         canonical_str = f"{case_number}:{case_in.target_plate}:{case_in.fir_number}:{now.isoformat()}"
@@ -93,26 +101,13 @@ class CaseService:
             assigned_officer_badge=officer.badge_number,
             assigned_officer_name=officer.full_name,
             supervisor_id=None,
-            supervisor_badge=None,
-            supervisor_name=None,
-            sightings=case_in.sightings or [],
+            sightings=sightings_data,
             evidence_packages=[],
             snapshots=[],
             video_clips=[],
             section65b_certificate_id=None,
             hmac_sha256_signature=hmac_sig,
-            case_notes=[
-                CaseNote(
-                    note_id=f"NOTE-{uuid.uuid4().hex[:8].upper()}",
-                    author_id=officer.id,
-                    author_badge=officer.badge_number,
-                    author_name=officer.full_name,
-                    action="CASE_CREATED",
-                    note=f"Formal Section 65B case file opened by {officer.full_name} ({officer.badge_number}).",
-                    timestamp=now,
-                    ip_address=ip_address,
-                )
-            ],
+            case_notes=[initial_note],
             created_at=now,
             updated_at=now,
         )

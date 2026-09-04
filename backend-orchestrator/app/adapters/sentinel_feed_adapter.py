@@ -121,12 +121,12 @@ class SentinelFeedAdapter:
                 "rtsp_url": cls.get_rtsp_url(stream_id),
                 "webrtc_url": cls.get_webrtc_url(stream_id),
                 "hls_url": cls.get_hls_url(stream_id),
-                "codec": "h264",
-                "fps": 25,
-                "resolution": "1920x1080",
-                "bitrate_kbps": 4000,
-                "status": "ONLINE",
-                "is_live": True,
+                "codec": None,
+                "fps": None,
+                "resolution": None,
+                "bitrate_kbps": None,
+                "status": "OFFLINE",
+                "is_live": False,
                 "department_id": c["dept"],
             })
         return result

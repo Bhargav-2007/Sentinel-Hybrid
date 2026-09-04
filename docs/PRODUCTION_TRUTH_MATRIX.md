@@ -21,8 +21,48 @@ This document establishes the verified state of every architectural component, A
 ## 2. Real-Time Video & CCTV Streaming Specification
 
 - **Streaming Source**: Live CCTV media gateway at `rtsp://103.250.160.189:8554/stream/{id}` and `http://103.250.160.189:8889/stream/{id}/whep`.
-- **Offline / Auth Handling**: External MediaMTX RTSP streams require authorized challenge tokens. In unauthenticated environments, the video player displays real connecting states (`Connecting to 103.250.160.189:8554...`) rather than fabricating fake canvas animations or looping canned stock clips.
-- **PTS Timestamp Fidelity**: Video frames carry embedded Presentation Time Stamp (PTS) deltas used for exact speed calculation ($v = \Delta d / \Delta t$) compliant with Section 65B of the Indian Evidence Act.
+- **Authenticated Runtime Credentials**: Basic Auth `bhargav.umetiya@gmail.com:PJMN-KC93-T648`.
+- **Empirical 30-Camera Gateway Audit (September 4, 2026)**:
+  - Total Cameras Probed: 30/30 (`cam01` through `cam30`).
+  - Reachability: `30/30 NETWORK_REACHABLE` (TCP ports 8554 & 8889 active).
+  - Authentication: `30/30 AUTHENTICATED` via HTTP/RTSP Basic Auth credentials.
+  - Media & Tracks: `30/30 MEDIA_ACTIVE` (Active SDP with video payload).
+  - Codecs: **24 cameras encoded in H.264**; **6 cameras encoded in H.265 (HEVC)** (`cam06`, `cam12`, `cam17`, `cam18`, `cam22`, `cam26`).
+
+| Camera ID | Media Server Stream Name | RTSP Status | Video Codec | State Classification |
+|---|---|---|---|---|
+| `cam01` | Chiman bhai Bridge CSITMS-32_PTZ2 2026-06-13 20:59:59 | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam02` | Janpath T CSITMS-10_PTZ2 2026-06-13 20:59:59 | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam03` | O.N.G.C. Office BS-103_B1 2026-06-13 20:59:59 | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam04` | Paldi Circle CSITMS-07_PTZ1 2026-06-13 20:59:59 | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam05` | Visat teen Rasta CSITMS-31_PTZ1 2026-06-13 20:59:59 | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam06` | No Name | `200 OK` | `H265/90000` (HEVC) | `MEDIA_ACTIVE` |
+| `cam07` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam08` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam09` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam10` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam11` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam12` | No Name | `200 OK` | `H265/90000` (HEVC) | `MEDIA_ACTIVE` |
+| `cam13` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam14` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam15` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam16` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam17` | No Name | `200 OK` | `H265/90000` (HEVC) | `MEDIA_ACTIVE` |
+| `cam18` | No Name | `200 OK` | `H265/90000` (HEVC) | `MEDIA_ACTIVE` |
+| `cam19` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam20` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam21` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam22` | No Name | `200 OK` | `H265/90000` (HEVC) | `MEDIA_ACTIVE` |
+| `cam23` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam24` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam25` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam26` | No Name | `200 OK` | `H265/90000` (HEVC) | `MEDIA_ACTIVE` |
+| `cam27` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam28` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam29` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+| `cam30` | No Name | `200 OK` | `H264/90000` | `MEDIA_ACTIVE` |
+
+- **PTS Timestamp Fidelity**: Video frames carry embedded Presentation Time Stamp (PTS) deltas directly parsed from hardware video captures for exact Section 65B forensic tracking.
 
 ---
 

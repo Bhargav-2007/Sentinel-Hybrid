@@ -15,6 +15,19 @@ class Base(DeclarativeBase):
 
 
 import os
+import socket
+from urllib.parse import urlparse
+
+def is_db_reachable(url: str, timeout: float = 0.5) -> bool:
+    """Fast check if database TCP port is open."""
+    try:
+        parsed = urlparse(url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 5432
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
 
 def get_effective_db_url() -> str:
     """Returns working database URL with automatic container vs host resolution."""
@@ -29,6 +42,11 @@ def create_db_engine():
     url = get_effective_db_url()
     if url.startswith("sqlite"):
         return create_async_engine(url, echo=settings.DEBUG)
+    
+    if not is_db_reachable(url):
+        logger.info(f"PostgreSQL endpoint {url} is not reachable. Falling back to SQLite.")
+        return create_async_engine(settings.SQLITE_FALLBACK_URL, echo=settings.DEBUG)
+
     try:
         return create_async_engine(
             url,
@@ -79,6 +97,17 @@ async def init_db() -> None:
 
         # Create all tables
         await conn.run_sync(Base.metadata.create_all)
+        
+        # Ensure SQLite backward-compatibility columns
+        try:
+            await conn.execute(text("ALTER TABLE officers ADD COLUMN jurisdiction VARCHAR(128);"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE officers ADD COLUMN custom_permissions JSON DEFAULT '[]';"))
+        except Exception:
+            pass
+
         logger.info("All Sentinel platform database tables initialized successfully.")
 
 

@@ -322,12 +322,12 @@ export const CasesPage: React.FC = () => {
       camera_id: 'cam01',
       camera_name: 'SG Highway Iskcon Jct (CAM01)',
       district: 'Ahmedabad City',
-      timestamp: `${new Date().toISOString().slice(11, 19)} UTC (${(sightings.length + 1) * 2000}ms PTS)`,
-      speed_kmh: 45.0,
-      detections: `${vehicleCategory} [${targetPlate}]`,
+      timestamp: `${new Date().toISOString().slice(11, 19)} UTC`,
+      speed_kmh: 0.0,
+      detections: `${vehicleCategory || 'VEHICLE'} [${targetPlate || 'TARGET'}]`,
       latitude: 23.0298,
       longitude: 72.5074,
-      pts_ms: (sightings.length + 1) * 2000,
+      pts_ms: 0.0,
     };
     const updated = [...sightings, newRow];
     setSightings(updated);

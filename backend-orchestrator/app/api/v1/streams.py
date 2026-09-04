@@ -11,11 +11,14 @@ from typing import Any, Dict, Generator, List, Optional
 
 import cv2
 import httpx
-from fastapi import APIRouter, HTTPException, Query, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import base64
 from app.core.config import settings
+from app.core.database import get_db
+from app.services.camera_service import camera_service
 
 # Force RTSP over TCP
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
@@ -64,26 +67,40 @@ def normalize_cam_tag(camera_id: str) -> str:
         return "cam01" if not camera_id.startswith("cam") else camera_id.lower()
 
 
+def get_stream_tag_for_camera(cam) -> str:
+    """Derives stream tag (e.g. cam01) from authoritative camera record."""
+    sid = getattr(cam, "stream_id", None) or getattr(cam, "id", "1")
+    return normalize_cam_tag(str(sid))
+
+
 @router.get("")
-async def list_stream_catalogue():
-    """Returns dynamic stream catalogue mapped directly to Sentinel Camera Grid."""
+async def list_stream_catalogue(db: AsyncSession = Depends(get_db)):
+    """
+    Returns stream catalogue mapped directly to the authoritative Camera Registry in the database.
+    Zero synthetic metadata: camera properties, codec, resolution, and FPS reflect actual database records.
+    """
+    cameras = await camera_service.get_all_cameras(db, limit=100)
     streams = []
-    for i in range(1, 31):
-        cam_tag = f"cam{i:02d}"
+    for cam in cameras:
+        cam_tag = get_stream_tag_for_camera(cam)
+        cam_status = cam.status.value if hasattr(cam.status, "value") else str(cam.status)
         streams.append({
-            "id": str(i),
-            "camera_id": f"CAM-GJ-{i:02d}",
-            "name": f"Gujarat CCTV Checkpoint #{i:02d} ({cam_tag.upper()})",
-            "status": "ONLINE",
-            "rtsp_url": f"rtsp://{DEFAULT_RTSP_HOST}:{DEFAULT_RTSP_PORT}/stream/{cam_tag}",
+            "id": str(cam.id),
+            "camera_id": cam.camera_code,
+            "name": cam.name,
+            "location_name": cam.location_name,
+            "district": cam.district,
+            "status": cam_status,
+            "rtsp_url": settings.get_authenticated_rtsp_url(cam_tag),
             "webrtc_url": f"/api/v1/streams/{cam_tag}/whep",
             "webrtc_direct_url": f"http://{DEFAULT_RTSP_HOST}:8889/stream/{cam_tag}/whep",
             "hls_url": settings.get_hls_url(cam_tag),
             "live_feed_url": f"/api/v1/streams/{cam_tag}/live-feed",
             "snapshot_url": f"/api/v1/streams/{cam_tag}/snapshot",
-            "codec": "h264" if i % 4 != 0 else "h265",
-            "resolution": "1920x1080",
-            "fps": 25.0,
+            "codec": cam.codec,
+            "resolution": cam.resolution,
+            "fps": float(cam.fps) if cam.fps else None,
+            "department_id": cam.department_id,
         })
     return {"total": len(streams), "streams": streams}
 
@@ -141,10 +158,10 @@ def generate_live_stream_frames(cam_tag: str):
                             detections.append({
                                 "class": cls_name,
                                 "conf": conf,
-                                "box": (x1, y1, x2, y2)
+                                "box": (x1, y1, x2, y2),
                             })
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Detection inference exception on {cam_tag}: {e}")
 
             # Draw HUD Overlays onto frame
             for det in detections:
@@ -248,25 +265,29 @@ async def get_camera_snapshot(camera_id: str):
                     (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
                     cv2.rectangle(frame, (x1, max(0, y1 - 20)), (x1 + lw + 6, max(0, y1)), color, -1)
                     cv2.putText(frame, label, (x1 + 3, max(14, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Detection inference exception on snapshot for {cam_tag}: {e}")
 
     # Header with PTS
-    cv2.rectangle(frame, (10, 10), (320, 42), (10, 15, 25), -1)
-    cv2.putText(frame, f"SENTINEL {cam_tag.upper()} | PTS: {pts_ms:.1f}ms", (18, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 240, 255), 1)
+    has_hw_pts = pts_ms > 0
+    pts_display = f"PTS: {pts_ms:.1f}ms" if has_hw_pts else "PTS: HARDWARE CLOCK UNAVAILABLE"
+    cv2.rectangle(frame, (10, 10), (360, 42), (10, 15, 25), -1)
+    cv2.putText(frame, f"SENTINEL {cam_tag.upper()} | {pts_display}", (18, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (0, 240, 255), 1)
 
     success, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
     if not success:
         raise HTTPException(status_code=500, detail="Failed to encode JPEG snapshot")
 
+    headers = {
+        "X-Sentinel-PTS-MS": str(round(pts_ms, 2)) if has_hw_pts else "UNAVAILABLE",
+        "X-Sentinel-PTS-Available": "true" if has_hw_pts else "false",
+        "X-Sentinel-Camera": cam_tag,
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+    }
     return Response(
         content=buffer.tobytes(),
         media_type="image/jpeg",
-        headers={
-            "X-Sentinel-PTS-MS": str(round(pts_ms, 2)),
-            "X-Sentinel-Camera": cam_tag,
-            "Cache-Control": "no-store, no-cache, must-revalidate"
-        }
+        headers=headers,
     )
 
 
@@ -322,3 +343,148 @@ async def whep_proxy(camera_id: str, request: Request):
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=f"WHEP gateway connection failed for {cam_tag}"
             )
+
+
+@router.get("/{camera_id}/probe")
+async def probe_camera_stream(camera_id: str):
+    """
+    Performs empirical multi-layer probe of camera stream and returns truthful diagnostic state:
+    NETWORK_REACHABLE, AUTHENTICATED, MEDIA_ACTIVE, FRAME_ACTIVE, AI_ACTIVE,
+    OFFLINE, AUTH_ERROR, STREAM_ERROR, AI_ERROR.
+    """
+    import socket
+    cam_tag = normalize_cam_tag(camera_id)
+    host = settings.SENTINEL_SANDBOX_HOST
+    rtsp_port = 8554
+    whep_port = 8889
+
+    # Layer 1: Network Reachability (TCP 8554 / 8889)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(2.5)
+    tcp_reachable = False
+    try:
+        res = s.connect_ex((host, rtsp_port))
+        tcp_reachable = (res == 0)
+    except Exception as e:
+        logger.warning(f"TCP probe failed for {host}:{rtsp_port} - {e}")
+    finally:
+        s.close()
+
+    if not tcp_reachable:
+        return {
+            "camera_id": camera_id,
+            "cam_tag": cam_tag,
+            "status": "OFFLINE",
+            "details": f"TCP port {rtsp_port} unreachable on {host}",
+            "network_reachable": False,
+            "authenticated": False,
+            "media_active": False,
+            "frame_active": False,
+            "ai_active": False,
+        }
+
+    # Layer 2: Authentication & Stream Protocol Check
+    target_whep = f"http://{host}:{whep_port}/stream/{cam_tag}/whep"
+    headers = {"Content-Type": "application/sdp"}
+    creds_configured = bool(settings.SENTINEL_STREAM_USER and settings.SENTINEL_STREAM_PASSWORD)
+
+    if creds_configured:
+        creds = f"{settings.SENTINEL_STREAM_USER}:{settings.SENTINEL_STREAM_PASSWORD}".encode("utf-8")
+        headers["Authorization"] = f"Basic {base64.b64encode(creds).decode('ascii')}"
+
+    auth_success = False
+    whep_status_code = None
+    async with httpx.AsyncClient(timeout=4.0) as client:
+        try:
+            r = await client.post(target_whep, content=b"v=0", headers=headers)
+            whep_status_code = r.status_code
+            if r.status_code in (200, 201):
+                auth_success = True
+            elif r.status_code == 401:
+                auth_success = False
+        except Exception as e:
+            logger.warning(f"WHEP HTTP probe error for {cam_tag}: {e}")
+
+    # Layer 3: RTSP Capture & Frame Decoding
+    rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
+    cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+    cap_opened = cap.isOpened()
+
+    frame_decoded = False
+    pts_ms = None
+    hw_pts = False
+    frame_shape = None
+
+    if cap_opened:
+        ret, frame = cap.read()
+        if ret and frame is not None:
+            frame_decoded = True
+            frame_shape = frame.shape
+            raw_pts = cap.get(cv2.CAP_PROP_POS_MSEC)
+            if raw_pts > 0:
+                pts_ms = round(raw_pts, 2)
+                hw_pts = True
+            else:
+                pts_ms = 0.0
+                hw_pts = False
+        cap.release()
+    else:
+        cap.release()
+
+    # Layer 4: AI Inference on Decoded Frame
+    ai_success = False
+    ai_error_msg = None
+    detections_found = []
+    if frame_decoded:
+        detector = get_detector()
+        if detector:
+            try:
+                results = detector(frame, verbose=False, conf=0.35, classes=[0, 1, 2, 3, 5, 7])
+                ai_success = True
+                for r in results:
+                    for box in r.boxes:
+                        detections_found.append({
+                            "class": CLASS_NAMES.get(int(box.cls[0].item()), "vehicle"),
+                            "conf": round(float(box.conf[0].item()), 3),
+                        })
+            except Exception as e:
+                ai_error_msg = str(e)
+                logger.error(f"AI inference error on {cam_tag}: {e}")
+
+    # Classify State Deterministically
+    if not tcp_reachable:
+        final_status = "OFFLINE"
+    elif whep_status_code == 401 and not cap_opened:
+        final_status = "AUTH_ERROR"
+    elif not cap_opened and not auth_success:
+        final_status = "AUTH_ERROR" if whep_status_code == 401 else "STREAM_ERROR"
+    elif cap_opened and not frame_decoded:
+        final_status = "STREAM_ERROR"
+    elif frame_decoded and not ai_success and ai_error_msg:
+        final_status = "AI_ERROR"
+    elif frame_decoded and ai_success:
+        final_status = "AI_ACTIVE"
+    elif frame_decoded:
+        final_status = "FRAME_ACTIVE"
+    elif auth_success:
+        final_status = "AUTHENTICATED"
+    else:
+        final_status = "NETWORK_REACHABLE"
+
+    return {
+        "camera_id": camera_id,
+        "cam_tag": cam_tag,
+        "status": final_status,
+        "network_reachable": tcp_reachable,
+        "authenticated": auth_success,
+        "credentials_configured": creds_configured,
+        "whep_http_code": whep_status_code,
+        "media_active": cap_opened or auth_success,
+        "frame_active": frame_decoded,
+        "ai_active": ai_success,
+        "hardware_pts_detected": hw_pts,
+        "pts_timestamp_ms": pts_ms,
+        "frame_shape": list(frame_shape) if frame_shape else None,
+        "detections_count": len(detections_found),
+        "detections": detections_found,
+    }

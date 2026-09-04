@@ -39,7 +39,7 @@ class Camera(Base):
     longitude = Column(Float, nullable=False, index=True)
     
     # State & Capabilities
-    status = Column(Enum(CameraStatus), default=CameraStatus.ONLINE, index=True)
+    status = Column(Enum(CameraStatus), default=CameraStatus.OFFLINE, index=True)
     camera_type = Column(Enum(CameraType), default=CameraType.ANPR, index=True)
     vms_vendor = Column(String(64), default="CORP8_LIVE_GATEWAY")       # HIKVISION, DAHUA, CORP8_LIVE_GATEWAY
     
@@ -49,11 +49,11 @@ class Camera(Base):
     hls_url = Column(String(512), nullable=False)                      # https://live.corp8.cloud/live/stream/{id}/index.m3u8
     
     # Technical Parameters
-    codec = Column(String(32), default="h264")                         # h264, h265
-    fps = Column(Integer, default=25)
-    resolution = Column(String(32), default="1920x1080")
-    bitrate_kbps = Column(Integer, default=4000)
-    is_live = Column(Boolean, default=True)
+    codec = Column(String(32), nullable=True, default=None)            # h264, h265
+    fps = Column(Integer, nullable=True, default=None)
+    resolution = Column(String(32), nullable=True, default=None)
+    bitrate_kbps = Column(Integer, nullable=True, default=None)
+    is_live = Column(Boolean, default=False)
     
     # Department Association
     department_id = Column(String(64), ForeignKey("departments.id"), nullable=True, index=True)

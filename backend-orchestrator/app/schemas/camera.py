@@ -57,10 +57,10 @@ class CameraResponse(CameraBase):
     rtsp_url: str
     webrtc_url: str
     hls_url: str
-    codec: str
-    fps: int
-    resolution: str
-    bitrate_kbps: int
+    codec: Optional[str] = None
+    fps: Optional[int] = None
+    resolution: Optional[str] = None
+    bitrate_kbps: Optional[int] = None
     is_live: bool
     created_at: datetime
     updated_at: datetime

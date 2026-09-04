@@ -31,29 +31,34 @@ def _is_stream_reachable(stream_url: str, timeout: float = 0.5) -> bool:
 
 def capture_frame_from_stream(stream_url: str, timeout_seconds: int = 2) -> Optional[np.ndarray]:
     """
-    Connects to an RTSP / HLS / HTTP camera feed from live.corp8.cloud and grabs a single frame.
-    Forces TCP transport for RTSP to prevent packet drop on police WANs.
-    If unreachable in local/sandbox test mode, returns a representative synthetic surveillance frame.
+    Connects to an RTSP / HLS / HTTP camera feed and grabs a single frame.
+    Forces TCP transport for RTSP to prevent packet drop.
+    Returns None if stream is unreachable or fails to decode. Zero synthetic fallback frames.
     """
     if cv2 is None:
         logger.warning("OpenCV is not available in current environment.")
-        return np.zeros((720, 1280, 3), dtype=np.uint8)
+        return None
 
-    # Fast TCP connectivity pre-check to prevent blocking on offline/sandbox endpoints
-    if not _is_stream_reachable(stream_url, timeout=0.5):
-        logger.debug(f"Camera endpoint {stream_url} not immediately reachable; using representative test frame.")
-        synth_frame = np.zeros((720, 1280, 3), dtype=np.uint8)
-        cv2.rectangle(synth_frame, (320, 300), (960, 620), (45, 55, 65), -1)
-        cv2.rectangle(synth_frame, (520, 520), (760, 580), (255, 255, 255), -1)
-        cv2.putText(synth_frame, "GJ 01 AB 1234", (530, 565), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2)
-        cv2.putText(synth_frame, f"SENTINEL LIVE GRID: {stream_url}", (30, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 200), 2)
-        return synth_frame
+    # Fast TCP connectivity pre-check to prevent blocking on offline endpoints
+    if not _is_stream_reachable(stream_url, timeout=1.0):
+        logger.warning(f"Camera endpoint {stream_url} is not reachable over TCP.")
+        return None
 
-    # Configure OpenCV VideoCapture with TCP transport and short timeout
     import os
-    os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;1500000|timeout;1500000"
+    import urllib.parse
+
+    user = os.getenv("SENTINEL_STREAM_USER")
+    password = os.getenv("SENTINEL_STREAM_PASSWORD")
+    if user and password and "@" not in stream_url.split("://")[-1]:
+        scheme, rest = stream_url.split("://", 1)
+        enc_u = urllib.parse.quote(user, safe="")
+        enc_p = urllib.parse.quote(password, safe="")
+        stream_url = f"{scheme}://{enc_u}:{enc_p}@{rest}"
+
+    os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;2000000|timeout;2000000"
 
     frame = None
+    cap = None
     try:
         cap = cv2.VideoCapture(stream_url, cv2.CAP_FFMPEG)
         cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -67,17 +72,13 @@ def capture_frame_from_stream(stream_url: str, timeout_seconds: int = 2) -> Opti
                 frame = current_frame
                 break
             time.sleep(0.05)
-        cap.release()
     except Exception as e:
         logger.warning(f"Live stream capture notice for {stream_url}: {e}")
+    finally:
+        if cap is not None:
+            cap.release()
 
-    if frame is None:
-        synth_frame = np.zeros((720, 1280, 3), dtype=np.uint8)
-        cv2.rectangle(synth_frame, (320, 300), (960, 620), (45, 55, 65), -1)
-        cv2.rectangle(synth_frame, (520, 520), (760, 580), (255, 255, 255), -1)
-        cv2.putText(synth_frame, "GJ 01 AB 1234", (530, 565), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2)
-        cv2.putText(synth_frame, f"SENTINEL LIVE GRID: {stream_url}", (30, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 200), 2)
-        return synth_frame
+    return frame
 
     return frame
 

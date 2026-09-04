@@ -98,29 +98,10 @@ class PersonVehicleDetector:
                             bbox=bbox,
                             track_id=None,
                         ))
-                if detected_objects:
-                    return detected_objects
+                return detected_objects
             except Exception as e:
                 logger.error(f"YOLO inference error: {e}")
 
-        # Fallback simulation detector for test pipelines or blank synthetic frames
-        h, w = frame.shape[:2] if hasattr(frame, "shape") else (720, 1280)
-        detected_objects.append(DetectedObject(
-            class_id=2,
-            class_name="car",
-            confidence=0.965,
-            bbox=BoundingBox(
-                x1=round(w * 0.25, 2),
-                y1=round(h * 0.40, 2),
-                x2=round(w * 0.75, 2),
-                y2=round(h * 0.85, 2),
-                width=round(w * 0.50, 2),
-                height=round(h * 0.45, 2),
-                center_x=round(w * 0.50, 2),
-                center_y=round(h * 0.625, 2),
-            ),
-            track_id=None
-        ))
         return detected_objects
 
 

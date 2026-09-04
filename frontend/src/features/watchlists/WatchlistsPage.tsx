@@ -44,12 +44,12 @@ export const WatchlistsPage: React.FC = () => {
   const [category, setCategory] = useState('STOLEN_VEHICLE');
   const [priority, setPriority] = useState('CRITICAL');
   const [vehicleCategory, setVehicleCategory] = useState('Car / SUV');
-  const [vehicleMake, setVehicleMake] = useState('Toyota');
-  const [vehicleModel, setVehicleModel] = useState('Fortuner 4x4');
-  const [vehicleColor, setVehicleColor] = useState('White');
-  const [firNumber, setFirNumber] = useState(`FIR-2026-CR-${Math.floor(1000 + Math.random() * 9000)}`);
-  const [policeStation, setPoliceStation] = useState('Navrangpura Police Station, Ahmedabad');
-  const [assignedOfficer, setAssignedOfficer] = useState('Inspector R.K. Jadeja');
+  const [vehicleMake, setVehicleMake] = useState('');
+  const [vehicleModel, setVehicleModel] = useState('');
+  const [vehicleColor, setVehicleColor] = useState('');
+  const [firNumber, setFirNumber] = useState('');
+  const [policeStation, setPoliceStation] = useState('');
+  const [assignedOfficer, setAssignedOfficer] = useState('');
 
   const { data: watchlistData, isLoading } = useQuery({
     queryKey: ['watchlist'],

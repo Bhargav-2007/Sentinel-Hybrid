@@ -100,7 +100,7 @@ export const EmergencyInterceptBanner: React.FC = () => {
                 {activeTarget.vehicleMake} {activeTarget.vehicleModel} ({activeTarget.vehicleColor || 'Active'})
               </p>
               <p className="text-slate-400 text-[11px]">
-                FIR: {activeTarget.firNo || 'FIR-2026-CR-08942'} &bull; {activeTarget.policeStation || 'Navrangpura Police Station'}
+                {activeTarget.firNo ? `FIR: ${activeTarget.firNo}` : 'FIR: Unassigned'} {activeTarget.policeStation ? `• ${activeTarget.policeStation}` : ''}
               </p>
             </div>
 

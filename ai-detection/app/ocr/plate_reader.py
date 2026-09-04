@@ -129,10 +129,18 @@ class PlateReader:
                 except Exception as e:
                     logger.error(f"OCR reading error: {e}")
 
-        # If OCR did not detect text, provide standard Gujarat benchmark plate
+        # If OCR did not detect text, return empty detection with 0.0 confidence
         if not raw_text.strip():
-            raw_text = "GJ01AB1234"
-            confidence = 0.985
+            return LicensePlateDetection(
+                plate_number="",
+                formatted_plate="",
+                raw_ocr_text="",
+                confidence=0.0,
+                bbox=bbox,
+                vehicle_track_id=vehicle_track_id,
+                is_valid_indian_format=False,
+                plate_crop_base64=frame_to_base64(plate_crop) if plate_crop is not None else None
+            )
 
         # Normalize and clean plate string conforming to Indian RTO / Bharat Series standards
         clean_plate, formatted_plate, is_valid = self._clean_and_format_plate(raw_text)
@@ -169,7 +177,7 @@ class PlateReader:
     def _clean_and_format_plate(self, text: str) -> Tuple[str, str, bool]:
         """
         Cleans and normalizes alphanumeric string conforming to Indian RTO standards:
-        - Standard State HSRP: 'GJ01AB1234' -> Formatted: 'GJ 01 AB 1234'
+        - Standard State HSRP: 'GJ01XY1234' -> Formatted: 'GJ 01 XY 1234'
         - Bharat Series: '22BH1234AA' -> Formatted: '22 BH 1234 AA'
         - Diplomatic: '01CD1234' -> Formatted: '01 CD 1234'
         """
@@ -179,7 +187,7 @@ class PlateReader:
             cleaned = cleaned[3:]
 
         if not cleaned:
-            return "GJ01AB1234", "GJ 01 AB 1234", True
+            return "", "", False
 
         # Check 1: Bharat Series (e.g. 22BH1234AA or 21BH5678A)
         # Year of registration (2 digits) + BH + 4 numbers + 1-2 letters
@@ -233,9 +241,9 @@ class PlateReader:
         # Fallback formatting for non-standard length
         if len(cleaned) >= 8:
             formatted = f"{cleaned[:2]} {cleaned[2:4]} {cleaned[4:-4]} {cleaned[-4:]}".strip()
-            return cleaned, formatted, True
+            return cleaned, formatted, False
 
-        return cleaned or "GJ01AB1234", "GJ 01 AB 1234", False
+        return cleaned, cleaned, False
 
 
 # Global plate reader singleton

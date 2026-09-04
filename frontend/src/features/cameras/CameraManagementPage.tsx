@@ -34,6 +34,18 @@ export const CameraManagementPage: React.FC = () => {
     return matchesSearch && matchesDept;
   });
 
+  const getDeptCount = (deptId: string) => {
+    return cameras.filter((c) => {
+      const dept = (c.department_name || c.department_id || 'Police').toLowerCase();
+      if (deptId === 'POLICE') return dept.includes('police') || dept.includes('home');
+      if (deptId === 'GSRTC') return dept.includes('transport') || dept.includes('gsrtc');
+      if (deptId === 'MUNICIPAL') return dept.includes('municipal') || dept.includes('urban');
+      if (deptId === 'HEALTH') return dept.includes('health');
+      if (deptId === 'PANCHAYAT') return dept.includes('panchayat') || dept.includes('rural');
+      return true;
+    }).length;
+  };
+
   return (
     <div className="space-y-4 font-mono">
       {/* Header */}
@@ -64,11 +76,11 @@ export const CameraManagementPage: React.FC = () => {
       {/* Department Quick Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
         {[
-          { label: 'Police / Home', count: '12 Nodes', icon: <Shield className="w-3.5 h-3.5 text-cyber-cyan" />, id: 'POLICE' },
-          { label: 'GSRTC Transport', count: '6 Nodes', icon: <Bus className="w-3.5 h-3.5 text-yellow-400" />, id: 'GSRTC' },
-          { label: 'Municipal Corp', count: '5 Nodes', icon: <Building2 className="w-3.5 h-3.5 text-blue-400" />, id: 'MUNICIPAL' },
-          { label: 'Health Dept', count: '4 Nodes', icon: <HeartPulse className="w-3.5 h-3.5 text-emerald-400" />, id: 'HEALTH' },
-          { label: 'Panchayat & Rural', count: '3 Nodes', icon: <Landmark className="w-3.5 h-3.5 text-purple-400" />, id: 'PANCHAYAT' },
+          { label: 'Police / Home', count: `${getDeptCount('POLICE')} Nodes`, icon: <Shield className="w-3.5 h-3.5 text-cyber-cyan" />, id: 'POLICE' },
+          { label: 'GSRTC Transport', count: `${getDeptCount('GSRTC')} Nodes`, icon: <Bus className="w-3.5 h-3.5 text-yellow-400" />, id: 'GSRTC' },
+          { label: 'Municipal Corp', count: `${getDeptCount('MUNICIPAL')} Nodes`, icon: <Building2 className="w-3.5 h-3.5 text-blue-400" />, id: 'MUNICIPAL' },
+          { label: 'Health Dept', count: `${getDeptCount('HEALTH')} Nodes`, icon: <HeartPulse className="w-3.5 h-3.5 text-emerald-400" />, id: 'HEALTH' },
+          { label: 'Panchayat & Rural', count: `${getDeptCount('PANCHAYAT')} Nodes`, icon: <Landmark className="w-3.5 h-3.5 text-purple-400" />, id: 'PANCHAYAT' },
         ].map((d) => (
           <button
             key={d.id}

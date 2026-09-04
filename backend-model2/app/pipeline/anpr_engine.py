@@ -235,8 +235,8 @@ class ANPREngine:
     def _detect_vehicles(self, frame: np.ndarray) -> list[dict[str, Any]]:
         """Run YOLOv8n vehicle detection on frame."""
         if self._yolo_model is None:
-            # Fallback: mock detector for demo (returns random vehicles)
-            return self._mock_detect_vehicles(frame)
+            logger.warning("YOLO model not loaded; vehicle detection returning empty.")
+            return []
 
         results = self._yolo_model(
             frame,
@@ -260,16 +260,6 @@ class ANPREngine:
                 })
 
         return vehicles
-
-    def _mock_detect_vehicles(self, frame: np.ndarray) -> list[dict[str, Any]]:
-        """Mock vehicle detector for when YOLO is unavailable."""
-        h, w = frame.shape[:2]
-        # Return the bottom-center area as a "vehicle"
-        return [{
-            "bbox": (w // 4, h // 2, w // 2, h // 3),
-            "type": "car",
-            "confidence": 0.85,
-        }]
 
     def _read_plates(
         self, vehicle_crop: np.ndarray

@@ -18,12 +18,12 @@ class IngestDetectionRequest(BaseModel):
     district: str = Field(..., examples=["Ahmedabad City"])
     latitude: float = Field(..., examples=[23.0125])
     longitude: float = Field(..., examples=[72.5085])
-    detected_plate: str = Field(..., examples=["GJ01AB1234"])
+    detected_plate: str = Field(..., examples=["GJ01AA0001"])
     confidence_score: float = Field(0.985, ge=0.0, le=1.0)
     vehicle_type: str = Field("CAR", examples=["CAR"])
-    vehicle_make: Optional[str] = "Toyota"
-    vehicle_model: Optional[str] = "Fortuner"
-    vehicle_color: Optional[str] = "Black"
+    vehicle_make: Optional[str] = None
+    vehicle_model: Optional[str] = None
+    vehicle_color: Optional[str] = None
     pts_timestamp_ms: Optional[int] = None
     snapshot_url: Optional[str] = None
 

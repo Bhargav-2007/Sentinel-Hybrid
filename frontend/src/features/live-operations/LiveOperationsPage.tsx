@@ -168,15 +168,12 @@ export const LiveOperationsPage: React.FC = () => {
           {activeCameras.map((cam: CameraNode, idx: number) => {
             const camNumber = idx + 1;
             const camTag = `cam${String(camNumber).padStart(2, '0')}`;
-            const isSuspectSpotting = camNumber === 1 || camNumber === 4;
-
             return (
               <div
                 key={cam.camera_id}
                 onClick={() =>
                   openContextDrawer({
                     camera: cam,
-                    plate: isSuspectSpotting ? 'GJ01AB1234' : undefined,
                   })
                 }
                 className="cursor-pointer"
@@ -184,12 +181,11 @@ export const LiveOperationsPage: React.FC = () => {
                 <VideoPlayer
                   cameraId={camTag}
                   cameraName={`${cam.name}`}
-                  isThreat={isSuspectSpotting}
-                  overlayText={`NODE ${camTag.toUpperCase()} (YOLOv8)`}
+                  isThreat={cam.metadata?.live_status === 'ALERT'}
+                  overlayText={`NODE ${camTag.toUpperCase()}`}
                   onInspect={() =>
                     openContextDrawer({
                       camera: cam,
-                      plate: isSuspectSpotting ? 'GJ01AB1234' : undefined,
                     })
                   }
                 />

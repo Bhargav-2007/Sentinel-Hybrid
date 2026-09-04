@@ -63,6 +63,7 @@ class MockDataScanner:
         # Suspicious patterns in production code
         self.suspicious_regexes = [
             (r"\b_mock_read_plates\b", "Fake AI/OCR generator"),
+            (r"\b_mock_detect_vehicles\b", "Fake AI vehicle generator"),
             (r"\bmockEntities\b", "Hardcoded UI search entities"),
             (r"\bMath\.random\(\)\s*\*\s*\d+", "Artificial numerical generation"),
             (r"\brandom\.uniform\(\s*0\.\d+\s*,\s*0\.\d+\s*\)", "Fabricated AI confidence/speed"),
@@ -71,6 +72,9 @@ class MockDataScanner:
             (r"\bvar\s+mock[A-Z]\w*\s*=", "Hardcoded frontend mock data"),
             (r"\blet\s+mock[A-Z]\w*\s*=", "Hardcoded frontend mock data"),
             (r"return\s+\[\{\s*[\"']camera_id[\"']:\s*[\"']1[\"'].*confidence[\"']:\s*0\.98", "Fabricated route sightings"),
+            (r"[\"']GJ01AB1234[\"']", "Hardcoded suspect plate benchmark string"),
+            (r"[\"']GJ09SS4567[\"']", "Hardcoded suspect plate benchmark string"),
+            (r"[\"']FIR-2026-CR-08942[\"']", "Hardcoded suspect FIR reference"),
         ]
 
     def is_isolated_path(self, rel_path: str) -> bool:

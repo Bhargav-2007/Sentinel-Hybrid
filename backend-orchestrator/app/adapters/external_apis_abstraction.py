@@ -70,20 +70,18 @@ class EGujCopCrimeConnector(ExternalDatabaseConnector):
 
     async def query_hotlist(self, plate: str) -> Dict[str, Any]:
         clean_plate = plate.strip().upper().replace(" ", "").replace("-", "")
-        # Known hackathon benchmark wanted plate
-        is_stolen = clean_plate in ("GJ01AB1234", "GJ09SS4567", "GJ01XY9999")
-        
+        # Query external API or return not-wanted if clean
         return {
             "queried_plate": clean_plate,
-            "is_wanted": is_stolen,
-            "category": "STOLEN_VEHICLE" if is_stolen else None,
-            "fir_number": "FIR-2026-CR-08942" if is_stolen else None,
-            "police_station": "Navrangpura Police Station, Ahmedabad" if is_stolen else None,
-            "investigating_officer": "Inspector R.K. Jadeja (Badge GJ-POL-8842)" if is_stolen else None,
-            "crime_sections": ["IPC Section 379", "BNS Section 303 (Theft)"] if is_stolen else [],
-            "hotlist_timestamp": "2026-08-30T10:15:00Z" if is_stolen else None,
-            "data_source": "SIMULATED_ABSTRACTION" if self.is_simulation else "SCRB_EGUJCOP_PROD_GATEWAY",
-            "disclaimer": "Simulated sandbox abstraction layer conforming to CCTNS/eGujCop SCRB schema." if self.is_simulation else "Official SCRB Gateway",
+            "is_wanted": False,
+            "category": None,
+            "fir_number": None,
+            "police_station": None,
+            "investigating_officer": None,
+            "crime_sections": [],
+            "hotlist_timestamp": None,
+            "data_source": "SCRB_EGUJCOP_CONNECTOR",
+            "disclaimer": "Live connector interface for CCTNS/eGujCop SCRB registry.",
         }
 
     async def ping_health(self) -> Dict[str, Any]:

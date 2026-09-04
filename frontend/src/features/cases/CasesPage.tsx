@@ -296,52 +296,24 @@ export const CasesPage: React.FC = () => {
           };
         });
       } else {
-        // Dynamic Corridor Matching for Any Custom Plate
-        const isAhmd = cleanPlate.includes('GJ01') || cleanPlate.includes('GJ27') || !cleanPlate.startsWith('GJ');
-        const isSurat = cleanPlate.includes('GJ05') || cleanPlate.includes('GJ28');
-        const isVad = cleanPlate.includes('GJ06');
-        const isRajkot = cleanPlate.includes('GJ03');
-
-        const candidateCams = camerasList.filter((c) => {
-          const d = c.location.district.toLowerCase();
-          if (isAhmd) return d.includes('ahmedabad') || d.includes('gandhinagar');
-          if (isSurat) return d.includes('surat') || d.includes('navsari');
-          if (isVad) return d.includes('vadodara') || d.includes('anand') || d.includes('bharuch');
-          if (isRajkot) return d.includes('rajkot') || d.includes('jamnagar') || d.includes('bhavnagar');
-          return true;
-        }).slice(0, 4);
-
-        const activeCams = candidateCams.length > 0 ? candidateCams : camerasList.slice(0, 4);
-
-        discoveredSightings = activeCams.map((c, idx) => {
-          const pts = 1200 + idx * 3400;
-          const minsAgo = (activeCams.length - idx) * 7;
-          const timeStr = new Date(Date.now() - minsAgo * 60000).toISOString().slice(11, 19);
-
-          return {
-            id: String(idx + 1),
-            camera_id: c.camera_id,
-            camera_name: `${c.name} (${c.camera_id.toUpperCase()})`,
-            district: c.location.district,
-            timestamp: `${timeStr} UTC (${pts}ms PTS)`,
-            speed_kmh: Math.round((48.0 + idx * 6.2 + Math.random() * 5) * 10) / 10,
-            detections: `${vehicleCategory} [${targetPlate}]${idx === 0 ? ', Person (2)' : ''}`,
-            latitude: c.location.latitude,
-            longitude: c.location.longitude,
-            pts_ms: pts,
-          };
-        });
+        discoveredSightings = [];
       }
 
       setSightings(discoveredSightings);
       setScanHitsCount(discoveredSightings.length);
       syncFromScan(targetPlate, vehicleCategory, discoveredSightings);
-      setToastMessage(
-        `✓ Scan Complete: Identified ${discoveredSightings.length} camera sighting(s) for [${targetPlate}] across 30 CCTV nodes & synced across GIS Map and Threat Dispatch!`
-      );
+      if (discoveredSightings.length > 0) {
+        setToastMessage(
+          `✓ Scan Complete: Identified ${discoveredSightings.length} verified camera sighting(s) for [${targetPlate}] from CCTV detection records.`
+        );
+      } else {
+        setToastMessage(
+          `ℹ️ Scan Complete: No verified camera sightings recorded for plate [${targetPlate}].`
+        );
+      }
       setTimeout(() => setToastMessage(null), 5000);
     } catch (err) {
-      setToastMessage('⚠️ Camera scan completed with corridor match.');
+      setToastMessage(`ℹ️ No sightings found or error connecting to tracking database for [${targetPlate}].`);
       setTimeout(() => setToastMessage(null), 3500);
     } finally {
       setIsScanning(false);
@@ -360,7 +332,7 @@ export const CasesPage: React.FC = () => {
       camera_name: `${cam.name} (${cam.camera_id.toUpperCase()})`,
       district: cam.location.district,
       timestamp: `${timeStr} UTC (${pts}ms PTS)`,
-      speed_kmh: Math.round((52.0 + Math.random() * 15) * 10) / 10,
+      speed_kmh: 0.0,
       detections: `${vehicleCategory} [${targetPlate}]`,
       latitude: cam.location.latitude,
       longitude: cam.location.longitude,

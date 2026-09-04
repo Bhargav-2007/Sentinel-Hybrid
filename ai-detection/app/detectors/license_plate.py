@@ -104,18 +104,6 @@ class LicensePlateDetector:
                     )
                     detected_plates.append((plate_bbox, plate_crop, 0.94))
 
-        # Default fallback plate box on frame if no vehicles provided
-        if not detected_plates:
-            px1, py1 = int(w * 0.35), int(h * 0.65)
-            px2, py2 = int(w * 0.65), int(h * 0.80)
-            crop = frame[py1:py2, px1:px2]
-            bbox = BoundingBox(
-                x1=float(px1), y1=float(py1), x2=float(px2), y2=float(py2),
-                width=float(px2 - px1), height=float(py2 - py1),
-                center_x=float((px1 + px2) / 2.0), center_y=float((py1 + py2) / 2.0)
-            )
-            detected_plates.append((bbox, crop, 0.92))
-
         return detected_plates
 
 

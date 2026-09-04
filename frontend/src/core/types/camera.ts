@@ -1,4 +1,4 @@
-export type CameraStatus = 'ONLINE' | 'OFFLINE' | 'DEGRADED';
+export type CameraStatus = 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'CONNECTING';
 export type StreamProtocol = 'webrtc' | 'hls' | 'rtsp';
 
 export interface CameraLocation {

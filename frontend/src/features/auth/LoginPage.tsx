@@ -17,7 +17,7 @@ export const LoginPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole>('INVESTIGATOR');
 
   // Registration form state
-  const [regBadge, setRegBadge] = useState(`GJ-POL-${Math.floor(1000 + Math.random() * 9000)}`);
+  const [regBadge, setRegBadge] = useState('');
   const [regName, setRegName] = useState('');
   const [regRank, setRegRank] = useState('Police Inspector (PI)');
   const [regRole, setRegRole] = useState('INVESTIGATOR');

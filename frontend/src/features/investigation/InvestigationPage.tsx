@@ -34,7 +34,7 @@ export const InvestigationPage: React.FC = () => {
   const { activeTarget, setActiveTarget } = useTargetStore();
 
   const queryPlate = searchParams.get('plate');
-  const initialPlate = queryPlate || activeTarget?.plate || 'GJ 01 AB 1234';
+  const initialPlate = queryPlate || activeTarget?.plate || '';
 
   const [searchInput, setSearchInput] = useState(initialPlate);
   const [activePlate, setActivePlate] = useState(initialPlate);
@@ -50,11 +50,11 @@ export const InvestigationPage: React.FC = () => {
     if (dossier) {
       setActiveTarget({
         plate: dossier.plate,
-        vehicleCategory: dossier.vahan?.vehicle_category || 'Car',
-        vehicleMake: dossier.vahan?.vehicle_make || 'Toyota',
-        vehicleModel: dossier.vahan?.vehicle_model || 'Fortuner 4x4',
-        vehicleColor: dossier.vahan?.vehicle_color || 'White',
-        threatScore: dossier.threat_score || 90,
+        vehicleCategory: dossier.vahan?.vehicle_category || '',
+        vehicleMake: dossier.vahan?.vehicle_make || '',
+        vehicleModel: dossier.vahan?.vehicle_model || '',
+        vehicleColor: dossier.vahan?.vehicle_color || '',
+        threatScore: dossier.threat_score || 0,
         isWanted: Boolean(dossier.criminal_record?.is_wanted),
         status: dossier.criminal_record?.is_wanted ? 'CRITICAL_PURSUIT' : 'ACTIVE',
         trajectory: dossier.trajectory?.path_geojson || [],

@@ -24,21 +24,25 @@ def get_effective_db_url() -> str:
         return url.replace("@postgres:", "@127.0.0.1:")
     return url
 
+def create_db_engine():
+    """Initializes async SQLAlchemy engine with automatic SQLite fallback."""
+    url = get_effective_db_url()
+    if url.startswith("sqlite"):
+        return create_async_engine(url, echo=settings.DEBUG)
+    try:
+        return create_async_engine(
+            url,
+            echo=settings.DEBUG,
+            pool_size=20,
+            max_overflow=10,
+            pool_pre_ping=True,
+        )
+    except Exception as e:
+        logger.warning(f"Could not initialize PostgreSQL engine: {e}. Falling back to SQLite.")
+        return create_async_engine(settings.SQLITE_FALLBACK_URL, echo=settings.DEBUG)
+
 # Primary Async Engine
-try:
-    engine = create_async_engine(
-        get_effective_db_url(),
-        echo=settings.DEBUG,
-        pool_size=20,
-        max_overflow=10,
-        pool_pre_ping=True,
-    )
-except Exception as e:
-    logger.warning(f"Could not initialize PostgreSQL async engine: {e}. Falling back to SQLite.")
-    engine = create_async_engine(
-        settings.SQLITE_FALLBACK_URL,
-        echo=settings.DEBUG,
-    )
+engine = create_db_engine()
 
 # Async Session Maker
 AsyncSessionLocal = async_sessionmaker(

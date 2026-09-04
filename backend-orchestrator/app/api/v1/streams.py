@@ -149,17 +149,11 @@ def generate_live_stream_frames(cam_tag: str):
                 cls_name = det["class"]
                 conf = det["conf"]
 
-                # Color: Red for alert plate on cam01/cam04, cyan/green for regular
-                is_target = cam_tag in ("cam01", "cam04") and cls_name in ("car", "auto-rickshaw")
-                color = (0, 0, 255) if is_target else (255, 240, 0)
-
+                color = (0, 255, 120) if cls_name in ("car", "auto-rickshaw", "bus", "truck") else (255, 200, 0)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
-                # Label Header
+                # Label Header with actual detected class and confidence
                 label = f"{cls_name.upper()} {conf:.0%}"
-                if is_target:
-                    label = f"TARGET [GJ 01 AB 1234] {conf:.0%}"
-
                 (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
                 cv2.rectangle(frame, (x1, max(0, y1 - 20)), (x1 + lw + 6, max(0, y1)), color, -1)
                 cv2.putText(

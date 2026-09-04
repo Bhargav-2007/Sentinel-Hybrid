@@ -29,7 +29,7 @@ async def get_vehicle_trajectory(
 
 @router.get("/corridor-speed/calculate", response_model=CorridorSpeedResponse)
 async def calculate_corridor_speed(
-    plate: str = Query(..., examples=["GJ01AB1234"]),
+    plate: str = Query(..., examples=["GJ01AA0001"]),
     corridor_name: str = Query("SG Highway Express Corridor", examples=["SG Highway Express Corridor"]),
     start_cam_id: str = Query("1", examples=["1"]),
     end_cam_id: str = Query("4", examples=["4"]),

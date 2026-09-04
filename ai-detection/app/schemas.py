@@ -162,7 +162,7 @@ class AnomalyDetectionResponse(BaseModel):
 class TemporalFusionRequest(BaseModel):
     camera_id: str = Field(..., examples=["CAM-01"])
     track_id: int = Field(..., examples=[42])
-    plate_observations: List[str] = Field(..., examples=[["GJ01AB1234", "GJ01AB1234", "GJ01AB1284", "GJ01AB1234"]])
+    plate_observations: List[str] = Field(..., examples=[["GJ01EF5678", "GJ01EF5678", "GJ01EF5678"]])
     confidences: Optional[List[float]] = None
 
 

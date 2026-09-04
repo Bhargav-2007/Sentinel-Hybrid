@@ -22,7 +22,7 @@ export const UserManagementPage: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Form State
-  const [badgeNumber, setBadgeNumber] = useState(`GJ-POL-${Math.floor(1000 + Math.random() * 9000)}`);
+  const [badgeNumber, setBadgeNumber] = useState('');
   const [fullName, setFullName] = useState('');
   const [rank, setRank] = useState('Police Inspector (PI)');
   const [role, setRole] = useState<'SUPER_ADMIN' | 'INVESTIGATOR' | 'PATROL_OFFICER' | 'DISPATCHER' | 'ADMIN' | 'OPERATOR'>('INVESTIGATOR');
@@ -52,7 +52,7 @@ export const UserManagementPage: React.FC = () => {
       setToastMessage(`✓ Officer ${badgeNumber} onboarded successfully with ${role} permissions.`);
       setTimeout(() => setToastMessage(null), 4000);
       setFullName('');
-      setBadgeNumber(`GJ-POL-${Math.floor(1000 + Math.random() * 9000)}`);
+      setBadgeNumber('');
     },
   });
 

@@ -13,11 +13,11 @@ export const ContextDrawer: React.FC = () => {
 
   if (!isContextDrawerOpen || !contextData) return null;
 
-  const plate = contextData.plate || contextData.detection?.license_plate?.plate_number || 'GJ01AB1234';
-  const isWanted = plate === 'GJ01AB1234' || plate === 'GJ09SS4567';
-  const camName = contextData.camera?.name || contextData.detection?.camera_name || 'SG Highway Iskcon Jct';
-  const lat = contextData.camera?.location?.latitude || 23.0298;
-  const lng = contextData.camera?.location?.longitude || 72.5074;
+  const plate = contextData.plate || contextData.detection?.license_plate?.plate_number || '';
+  const isWanted = Boolean(contextData.alert || (contextData.detection as any)?.is_wanted);
+  const camName = contextData.camera?.name || contextData.detection?.camera_name || 'Camera Node';
+  const lat = contextData.camera?.location?.latitude || 0;
+  const lng = contextData.camera?.location?.longitude || 0;
 
   const canExport = hasPermission(user?.role, PERMISSIONS.EXPORT_SECTION_65B_EVIDENCE);
   const canCreateCase = hasPermission(user?.role, PERMISSIONS.CREATE_CASE);

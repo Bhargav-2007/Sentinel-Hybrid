@@ -41,24 +41,30 @@ export const SystemStatusPage: React.FC = () => {
       {/* Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-xs">
         <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase font-bold">Hybrid Gateway</span>
-          <p className="text-lg font-bold text-emerald-400">100% OPERATIONAL</p>
-          <span className="text-[10px] text-slate-400">Reverse Proxy Port :8000</span>
+          <span className="text-[10px] text-slate-500 uppercase font-bold">Orchestrator Gateway</span>
+          <p className="text-lg font-bold text-emerald-400">
+            {status?.services.filter((s) => s.status === 'ONLINE').length || 0} / {status?.services.length || 0} ACTIVE
+          </p>
+          <span className="text-[10px] text-slate-400">Port :8000</span>
         </div>
         <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase font-bold">Active Cameras</span>
-          <p className="text-lg font-bold text-cyber-cyan">30 / 30 Online</p>
-          <span className="text-[10px] text-slate-400">Gujarat CCTV Grid</span>
+          <span className="text-[10px] text-slate-500 uppercase font-bold">Registered Cameras</span>
+          <p className="text-lg font-bold text-cyber-cyan">{status?.total_cameras || 0} Nodes</p>
+          <span className="text-[10px] text-slate-400">Gujarat CCTV Registry</span>
         </div>
         <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase font-bold">AI Ingestion Latency</span>
-          <p className="text-lg font-bold text-yellow-400">19.04 ms (52.5 FPS)</p>
-          <span className="text-[10px] text-slate-400">YOLOv8 Edge Acceleration</span>
+          <span className="text-[10px] text-slate-500 uppercase font-bold">Avg Service Latency</span>
+          <p className="text-lg font-bold text-yellow-400">
+            {status?.services && status.services.length > 0
+              ? `${(status.services.reduce((acc, s) => acc + s.latency_ms, 0) / status.services.length).toFixed(1)} ms`
+              : 'N/A'}
+          </p>
+          <span className="text-[10px] text-slate-400">Backend Response Time</span>
         </div>
         <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-1">
-          <span className="text-[10px] text-slate-500 uppercase font-bold">Bandwidth Saved</span>
-          <p className="text-lg font-bold text-cyber-emerald">99.95%</p>
-          <span className="text-[10px] text-slate-400">Metadata Ingestion Architecture</span>
+          <span className="text-[10px] text-slate-500 uppercase font-bold">Pipeline Architecture</span>
+          <p className="text-lg font-bold text-cyber-emerald">Edge + Cloud</p>
+          <span className="text-[10px] text-slate-400">Hybrid Metadata Ingestion</span>
         </div>
       </div>
 

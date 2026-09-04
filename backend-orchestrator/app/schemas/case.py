@@ -9,12 +9,12 @@ from app.models.case import CaseStatus, CasePriority
 
 
 class CaseCreate(BaseModel):
-    title: str = Field(..., min_length=5, description="Case title / summary", examples=["Hotlist Pursuit: Stolen Fortuner GJ01AB1234"])
+    title: str = Field(..., min_length=5, description="Case title / summary", examples=["Surveillance Investigation: Unidentified Motor Vehicle"])
     description: Optional[str] = Field(None, description="Detailed case narrative")
-    fir_number: Optional[str] = Field(None, description="FIR or GD register reference", examples=["FIR-2026-CR-08942"])
+    fir_number: Optional[str] = Field(None, description="FIR or GD register reference", examples=["FIR-2026-CR-00100"])
     priority: CasePriority = CasePriority.HIGH
     alert_id: Optional[str] = None
-    target_plate: Optional[str] = Field(None, examples=["GJ01AB1234"])
+    target_plate: Optional[str] = Field(None, examples=["GJ01AA0001"])
     target_vehicle_make: Optional[str] = None
     target_vehicle_model: Optional[str] = None
     target_vehicle_color: Optional[str] = None

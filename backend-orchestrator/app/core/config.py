@@ -53,13 +53,15 @@ class Settings(BaseSettings):
     
     @property
     def sync_database_url(self) -> str:
-        if self.DATABASE_URL and not self.DATABASE_URL.startswith("postgresql+asyncpg"):
+        if self.DATABASE_URL:
+            if self.DATABASE_URL.startswith("sqlite+aiosqlite"):
+                return self.DATABASE_URL.replace("sqlite+aiosqlite", "sqlite")
             return self.DATABASE_URL
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     @property
     def async_database_url(self) -> str:
-        if self.DATABASE_URL and self.DATABASE_URL.startswith("postgresql+asyncpg"):
+        if self.DATABASE_URL:
             return self.DATABASE_URL
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         

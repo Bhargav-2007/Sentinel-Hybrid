@@ -279,7 +279,7 @@ export const FootageInspectionModal: React.FC<FootageInspectionModalProps> = ({
               <button
                 onClick={() => {
                   onClose();
-                  onJumpToInvestigation('GJ01AB1234');
+                  onJumpToInvestigation('');
                 }}
                 className="px-3.5 py-1.5 rounded bg-cyber-blue hover:bg-cyber-cyan hover:text-black text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md"
               >

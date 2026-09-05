@@ -164,7 +164,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setConnectionStatus('HLS Live');
         setIsWaitingKeyframe(false);
         setHasVideoMedia(true);
-        video.play().catch(() => {});
+        video.play().catch(() => { });
       });
 
       hls.on(Hls.Events.ERROR, (_event, data) => {
@@ -182,7 +182,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setConnectionStatus('HLS Native Live');
         setIsWaitingKeyframe(false);
         setHasVideoMedia(true);
-        video.play().catch(() => {});
+        video.play().catch(() => { });
       });
       video.addEventListener('error', () => {
         startSnapshotLoop();
@@ -224,7 +224,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           setHasVideoMedia(true);
           setIsWaitingKeyframe(false);
           setConnectionStatus('WHEP Live (WebRTC)');
-          video.play().catch(() => {});
+          video.play().catch(() => { });
         }
       };
 
@@ -311,10 +311,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (!containerRef.current) return;
 
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch(() => {});
+      containerRef.current.requestFullscreen().catch(() => { });
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { });
       setIsFullscreen(false);
     }
   };
@@ -381,11 +381,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <div
         ref={containerRef}
         onClick={() => setIsModalOpen(true)}
-        className={`relative ${aspectRatio} bg-[#0d1117] rounded-md border overflow-hidden group select-none transition-all cursor-pointer ${
-          isThreat
+        className={`relative ${aspectRatio} bg-[#0d1117] rounded-md border overflow-hidden group select-none transition-all cursor-pointer ${isThreat
             ? 'border-[#da3633] ring-1 ring-[#da3633] shadow-md shadow-[#da3633]/20'
             : 'border-[#30363d] hover:border-[#58a6ff]/70 shadow-sm'
-        }`}
+          }`}
       >
         {/* Native HTML5 Video Element for WebRTC (WHEP) and HLS Media */}
         <video
@@ -393,9 +392,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           autoPlay
           muted={isMuted}
           playsInline
-          className={`w-full h-full object-cover ${
-            hasVideoMedia && activeTransport !== 'SNAPSHOT' ? 'block' : 'hidden'
-          }`}
+          className={`w-full h-full object-cover ${hasVideoMedia && activeTransport !== 'SNAPSHOT' ? 'block' : 'hidden'
+            }`}
           onWaiting={() => setIsWaitingKeyframe(true)}
           onPlaying={() => setIsWaitingKeyframe(false)}
         />
@@ -432,14 +430,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <div className="flex items-center gap-1.5">
             <span className="flex h-2 w-2 relative">
               <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  isThreat ? 'bg-[#f85149]' : 'bg-[#3fb950]'
-                }`}
+                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isThreat ? 'bg-[#f85149]' : 'bg-[#3fb950]'
+                  }`}
               ></span>
               <span
-                className={`relative inline-flex rounded-full h-2 w-2 ${
-                  isThreat ? 'bg-[#da3633]' : 'bg-[#238636]'
-                }`}
+                className={`relative inline-flex rounded-full h-2 w-2 ${isThreat ? 'bg-[#da3633]' : 'bg-[#238636]'
+                  }`}
               ></span>
             </span>
             <span className="text-xs font-semibold text-[#f0f6fc] tracking-tight truncate max-w-[150px] sm:max-w-[200px]">
@@ -454,33 +450,30 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           >
             <button
               onClick={() => setTransport('WHEP')}
-              className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-medium ${
-                transport === 'WHEP'
+              className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-medium ${transport === 'WHEP'
                   ? 'bg-[#1f6feb] text-white'
                   : 'text-[#8b949e] hover:text-[#c9d1d9]'
-              }`}
+                }`}
               title="WebRTC WHEP (Sub-second low latency SDP)"
             >
               WHEP
             </button>
             <button
               onClick={() => setTransport('HLS')}
-              className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-medium ${
-                transport === 'HLS'
+              className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-medium ${transport === 'HLS'
                   ? 'bg-[#1f6feb] text-white'
                   : 'text-[#8b949e] hover:text-[#c9d1d9]'
-              }`}
+                }`}
               title="HLS (HTTP Live Streaming m3u8 fallback)"
             >
               HLS
             </button>
             <button
               onClick={() => setTransport('SNAPSHOT')}
-              className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-medium ${
-                transport === 'SNAPSHOT'
+              className={`px-1.5 py-0.5 rounded transition-all cursor-pointer font-medium ${transport === 'SNAPSHOT'
                   ? 'bg-[#1f6feb] text-white'
                   : 'text-[#8b949e] hover:text-[#c9d1d9]'
-              }`}
+                }`}
               title="Direct Snapshot Pipeline (10 FPS Matrix Engine)"
             >
               SNAP

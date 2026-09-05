@@ -73,9 +73,8 @@ export const ContextDrawer: React.FC = () => {
             <span className="text-[10px] font-mono text-[#8b949e] uppercase tracking-wider">
               {plate ? 'INDIAN HSRP REGISTRATION' : 'TARGET CLASSIFICATION'}
             </span>
-            <span className={`text-[10px] font-mono px-2 py-0.2 rounded-full font-medium border ${
-              isWanted ? 'border-[#da3633]/40 bg-[#da3633]/15 text-[#f85149]' : 'border-[#238636]/40 bg-[#238636]/15 text-[#3fb950]'
-            }`}>
+            <span className={`text-[10px] font-mono px-2 py-0.2 rounded-full font-medium border ${isWanted ? 'border-[#da3633]/40 bg-[#da3633]/15 text-[#f85149]' : 'border-[#238636]/40 bg-[#238636]/15 text-[#3fb950]'
+              }`}>
               {isWanted ? 'APB WANTED: 95/100' : 'VERIFIED CLEAR'}
             </span>
           </div>
@@ -109,9 +108,8 @@ export const ContextDrawer: React.FC = () => {
         </div>
 
         {/* eGujCop Criminal Record Status */}
-        <div className={`mt-3 p-3 rounded-md border ${
-          isWanted ? 'bg-[#da3633]/10 border-[#da3633]/50 text-[#f85149]' : 'bg-[#0d1117] border-[#30363d] text-[#c9d1d9]'
-        }`}>
+        <div className={`mt-3 p-3 rounded-md border ${isWanted ? 'bg-[#da3633]/10 border-[#da3633]/50 text-[#f85149]' : 'bg-[#0d1117] border-[#30363d] text-[#c9d1d9]'
+          }`}>
           <div className="flex items-center gap-1.5 text-xs font-semibold mb-1">
             {isWanted ? <ShieldAlert className="w-3.5 h-3.5 text-[#f85149]" /> : <ShieldCheck className="w-3.5 h-3.5 text-[#3fb950]" />}
             <span className="text-[#f0f6fc]">{isWanted ? 'eGujCop Stolen Vehicle Hotlist' : 'eGujCop CCTNS Database'}</span>

@@ -33,15 +33,23 @@ class LicensePlateDetector:
 
     def _load_model(self) -> None:
         """Loads fine-tuned license plate YOLO weights if available."""
-        if self.model_path and os.path.exists(self.model_path):
-            try:
-                from ultralytics import YOLO
-                self.model = YOLO(self.model_path)
-                self.has_custom_model = True
-                logger.info(f"✓ Loaded dedicated License Plate YOLO model from {self.model_path}")
-                return
-            except Exception as e:
-                logger.warning(f"Failed to load custom plate model: {e}")
+        candidate_paths = [
+            self.model_path,
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), self.model_path) if self.model_path else None,
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "models", "license_plate_yolo.pt"),
+            "models/license_plate_yolo.pt",
+        ]
+        for path in candidate_paths:
+            if path and os.path.exists(path):
+                try:
+                    from ultralytics import YOLO
+                    self.model = YOLO(path)
+                    self.has_custom_model = True
+                    self.model_path = path
+                    logger.info(f"✓ Loaded dedicated License Plate YOLO model from {path}")
+                    return
+                except Exception as e:
+                    logger.warning(f"Failed to load custom plate model from {path}: {e}")
 
         # Do NOT use generic COCO YOLO as a plate detector (it causes false detections on whole cars)
         self.model = None

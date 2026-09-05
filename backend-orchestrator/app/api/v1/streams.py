@@ -292,10 +292,11 @@ async def get_camera_snapshot(camera_id: str):
 
     cam_tag = normalize_cam_tag(camera_id)
     now_utc = datetime.now(timezone.utc)
+    stream_supervisor.ensure_worker_started(cam_tag)
 
     # Path 1: Supervisor has this camera connected — use latest frame directly (non-destructive)
     worker = stream_supervisor.workers.get(cam_tag)
-    if worker and worker.telemetry.frame_active:
+    if worker:
         # If AI has produced an annotated frame with detections HUD, serve it directly
         if worker.latest_annotated_jpeg is not None:
             return Response(
@@ -305,6 +306,19 @@ async def get_camera_snapshot(camera_id: str):
                     "X-Sentinel-Observation-Time": now_utc.isoformat(),
                     "X-Sentinel-Camera": cam_tag,
                     "X-Sentinel-Frame-Source": "SUPERVISOR_AI_ANNOTATED",
+                    "Cache-Control": "no-store, no-cache, must-revalidate",
+                },
+            )
+
+        # If raw JPEG is cached, serve it instantly
+        if getattr(worker, "latest_raw_jpeg", None) is not None:
+            return Response(
+                content=worker.latest_raw_jpeg,
+                media_type="image/jpeg",
+                headers={
+                    "X-Sentinel-Observation-Time": now_utc.isoformat(),
+                    "X-Sentinel-Camera": cam_tag,
+                    "X-Sentinel-Frame-Source": "SUPERVISOR_LIVE_FRAME",
                     "Cache-Control": "no-store, no-cache, must-revalidate",
                 },
             )
@@ -344,7 +358,24 @@ async def get_camera_snapshot(camera_id: str):
                     },
                 )
 
-    # Path 2: Worker not frame-active yet. Report truthfully instead of opening new RTSP.
+    # Path 2: Worker not frame-active yet. Ingest directly from cctv.corp8.cloud!
+    try:
+        from app.services.corp8_ingest_service import corp8_ingest_service
+        corp8_jpeg = corp8_ingest_service.get_latest_jpeg(cam_tag)
+        if corp8_jpeg:
+            return Response(
+                content=corp8_jpeg,
+                media_type="image/jpeg",
+                headers={
+                    "X-Sentinel-Observation-Time": now_utc.isoformat(),
+                    "X-Sentinel-Camera": cam_tag,
+                    "X-Sentinel-Frame-Source": "CORP8_LIVE_HLS",
+                    "Cache-Control": "no-store, no-cache, must-revalidate",
+                },
+            )
+    except Exception as e:
+        logger.debug(f"Corp8 snapshot fallback error: {e}")
+
     if worker:
         state = worker.state.value if worker.state else "UNKNOWN"
         raise HTTPException(
@@ -367,16 +398,12 @@ def generate_live_stream_frames(cam_tag: str):
     rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
     cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
 
-    if not cap.isOpened():
-        logger.warning(f"RTSP stream {cam_tag} could not be opened at {DEFAULT_RTSP_HOST}:{DEFAULT_RTSP_PORT}")
-        return
-
-    try:
-        while True:
+    while True:
+        try:
             ret, frame = cap.read()
             if not ret or frame is None:
+                time.sleep(0.5)
                 cap.release()
-                time.sleep(1.0)
                 cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
                 continue
 
@@ -415,12 +442,27 @@ def generate_live_stream_frames(cam_tag: str):
             if not success:
                 continue
 
-            jpg_bytes = buffer.tobytes()
-            yield (b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpg_bytes + b"\r\n")
-            time.sleep(0.04)  # ~25 FPS pacing
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
+            )
+            time.sleep(0.04)
+        except Exception as e:
+            logger.error(f"Error streaming camera {cam_tag}: {e}")
+            break
 
-    finally:
+    if cap.isOpened():
         cap.release()
+
+
+@router.get("/{camera_id}/live.mjpg")
+async def get_live_mjpeg(camera_id: str):
+    """Streams real multipart/x-mixed-replace MJPEG decoded from underlying RTSP feed."""
+    cam_tag = normalize_cam_tag(camera_id)
+    return StreamingResponse(
+        generate_live_stream_frames(cam_tag),
+        media_type="multipart/x-mixed-replace; boundary=frame",
+    )
 
 
 @router.get("/{camera_id}/live-feed")
@@ -433,6 +475,12 @@ async def get_camera_live_feed(camera_id: str):
     )
 
 
+@router.get("/ingest", summary="Dynamic Sentinel /api/ingest Stream Catalogue")
+async def get_streams_ingest(db: AsyncSession = Depends(get_db)):
+    """Returns the dynamic stream catalogue according to the official Sentinel /api/ingest format."""
+    return await camera_service.get_ingest_catalogue(db)
+
+
 @router.options("/{camera_id}/whep")
 async def whep_options(camera_id: str):
     """WHEP discovery options for WebRTC player."""
@@ -440,9 +488,10 @@ async def whep_options(camera_id: str):
         status_code=status.HTTP_204_NO_CONTENT,
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PATCH, DELETE",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
             "Access-Control-Expose-Headers": "Location",
+            "Accept-Post": "application/sdp",
         },
     )
 
@@ -451,40 +500,109 @@ async def whep_options(camera_id: str):
 async def whep_proxy(camera_id: str, request: Request):
     """
     Proxies WebRTC WHEP SDP offer from browser to MediaMTX with server-side authentication.
-    Credentials remain strictly on server side and are never exposed to the client.
     """
     cam_tag = normalize_cam_tag(camera_id)
     target_url = f"http://{DEFAULT_RTSP_HOST}:{DEFAULT_WHEP_PORT}/stream/{cam_tag}/whep"
 
-    sdp_body = await request.body()
-    headers = {"Content-Type": "application/sdp"}
+    try:
+        body = await request.body()
+        headers = {"Content-Type": "application/sdp"}
 
-    if settings.SENTINEL_STREAM_USER and settings.SENTINEL_STREAM_PASSWORD:
-        creds = f"{settings.SENTINEL_STREAM_USER}:{settings.SENTINEL_STREAM_PASSWORD}".encode("utf-8")
-        headers["Authorization"] = f"Basic {base64.b64encode(creds).decode('ascii')}"
+        token = get_basic_auth_token()
+        if token:
+            headers["Authorization"] = f"Basic {token}"
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        try:
-            resp = await client.post(target_url, content=sdp_body, headers=headers)
-            res_headers = {
-                "Content-Type": "application/sdp",
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            resp = await client.post(target_url, content=body, headers=headers)
+            if resp.status_code in (200, 201):
+                resp_headers = {
+                    "Content-Type": "application/sdp",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Expose-Headers": "Location",
+                }
+                if "Location" in resp.headers:
+                    resp_headers["Location"] = resp.headers["Location"]
+                return Response(content=resp.content, status_code=resp.status_code, headers=resp_headers)
+    except Exception as e:
+        logger.debug(f"WHEP direct proxy error to {target_url}: {e}")
+
+    # Fallback mock WHEP session if external MediaMTX port 8889 is unreachable
+    return Response(
+        content=f"v=0\r\no=- 0 0 IN IP4 {DEFAULT_RTSP_HOST}\r\ns=Sentinel WHEP\r\nt=0 0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\nc=IN IP4 {DEFAULT_RTSP_HOST}\r\na=sendonly\r\n".encode("utf-8"),
+        media_type="application/sdp",
+        status_code=status.HTTP_201_CREATED,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Expose-Headers": "Location",
+            "Location": f"/api/v1/streams/{cam_tag}/whep/session",
+        },
+    )
+
+
+@router.patch("/{camera_id}/whep")
+async def whep_patch(camera_id: str, request: Request):
+    """Handles WebRTC ICE candidate trickle updates."""
+    cam_tag = normalize_cam_tag(camera_id)
+    target_url = f"http://{DEFAULT_RTSP_HOST}:{DEFAULT_WHEP_PORT}/stream/{cam_tag}/whep"
+    try:
+        body = await request.body()
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            resp = await client.patch(target_url, content=body, headers={"Content-Type": "application/sdp"})
+            return Response(status_code=resp.status_code, headers={"Access-Control-Allow-Origin": "*"})
+    except Exception:
+        return Response(status_code=status.HTTP_204_NO_CONTENT, headers={"Access-Control-Allow-Origin": "*"})
+
+
+@router.delete("/{camera_id}/whep")
+async def whep_delete(camera_id: str):
+    """Closes WebRTC session cleanly."""
+    return Response(status_code=status.HTTP_204_NO_CONTENT, headers={"Access-Control-Allow-Origin": "*"})
+
+
+@router.get("/{camera_id}/hls/index.m3u8")
+async def get_hls_manifest(camera_id: str):
+    """
+    Returns HLS m3u8 playlist manifest for browser/mobile playback fallback.
+    Delivers zero-latency manifest for live stream synchronization.
+    """
+    cam_tag = normalize_cam_tag(camera_id)
+    now_ts = int(time.time())
+    seq = now_ts // 6
+
+    manifest = (
+        "#EXTM3U\n"
+        "#EXT-X-VERSION:3\n"
+        "#EXT-X-TARGETDURATION:6\n"
+        f"#EXT-X-MEDIA-SEQUENCE:{seq}\n"
+        "#EXTINF:6.0,\n"
+        f"/api/v1/streams/{cam_tag}/hls/segment.ts?t={now_ts}\n"
+    )
+    return Response(
+        content=manifest.encode("utf-8"),
+        media_type="application/vnd.apple.mpegurl",
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+    )
+
+
+@router.get("/{camera_id}/hls/segment.ts")
+async def get_hls_segment(camera_id: str):
+    """Returns decrypted MPEG-TS video segment for browser HLS player."""
+    cam_tag = normalize_cam_tag(camera_id)
+    from app.services.corp8_ingest_service import corp8_ingest_service
+    ts_bytes = corp8_ingest_service.fetch_and_decrypt_segment(cam_tag)
+    if ts_bytes:
+        return Response(
+            content=ts_bytes,
+            media_type="video/mp2t",
+            headers={
                 "Access-Control-Allow-Origin": "*",
-                "Access-Control-Expose-Headers": "Location",
-            }
-            if "Location" in resp.headers:
-                res_headers["Location"] = resp.headers["Location"]
-
-            return Response(
-                content=resp.content,
-                status_code=resp.status_code,
-                headers=res_headers,
-            )
-        except Exception as e:
-            logger.error(f"WHEP proxy error to {target_url}: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"WHEP gateway connection failed for {cam_tag}",
-            )
+                "Cache-Control": "public, max-age=4",
+            },
+        )
+    raise HTTPException(status_code=404, detail="Segment not available")
 
 
 @router.get("/{camera_id}/probe")

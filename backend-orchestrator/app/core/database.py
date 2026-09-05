@@ -44,7 +44,8 @@ def create_db_engine():
         if settings.ENVIRONMENT.lower() in ("production", "live"):
             raise RuntimeError(
                 "DATABASE_UNAVAILABLE: Configured database URL uses SQLite. "
-                "Production/LIVE environments strictly require PostgreSQL + PostGIS."
+                "Production/LIVE environments strictly require PostgreSQL + PostGIS. "
+                "Silent SQLite fallback is strictly prohibited in LIVE/PRODUCTION mode."
             )
         return create_async_engine(url, echo=settings.DEBUG)
     

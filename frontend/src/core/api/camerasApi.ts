@@ -59,4 +59,15 @@ export const camerasApi = {
   getFleetHealth: async (): Promise<any> => {
     return apiClient<any>(`/api/v1/cameras/health/summary`);
   },
+
+  /** Dynamic stream catalogue from /api/ingest specification */
+  getIngestCatalogue: async (): Promise<any[]> => {
+    try {
+      const res = await apiClient<any>('/api/ingest');
+      return res?.streams || res?.items || (Array.isArray(res) ? res : []);
+    } catch {
+      const res = await apiClient<any>('/api/v1/streams/ingest');
+      return res?.streams || res?.items || (Array.isArray(res) ? res : []);
+    }
+  },
 };

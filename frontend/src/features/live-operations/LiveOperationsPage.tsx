@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { LayoutGrid, Grid3X3, Grid2X2, Cpu, Eye, Filter, Tv2, AlertTriangle } from 'lucide-react';
+import { LayoutGrid, Grid3X3, Grid2X2, Cpu, Eye, Filter, Tv2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { camerasApi } from '../../core/api/camerasApi';
 import { VideoPlayer } from '../../shared/components/VideoPlayer';
 import { useUIStore } from '../../stores/uiStore';
@@ -44,7 +44,6 @@ export const LiveOperationsPage: React.FC = () => {
 
   const supervisorRunning = fleetHealth?.running === true;
   const sc = fleetHealth?.scorecard;
-  // Only count cameras with real frame activity from the supervisor
   const activeFrameCount = sc?.frame_active ?? 0;
   const activeAiCount = sc?.ai_active ?? 0;
 
@@ -65,106 +64,113 @@ export const LiveOperationsPage: React.FC = () => {
   const activeCameras = cameras.slice(0, displayCount);
 
   return (
-    <div className="space-y-4 font-mono">
-      {/* Action Bar & Grid Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded bg-sentinel-900/90 border border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-cyber-blue/10 border border-cyber-blue/30 text-cyber-cyan">
-            <Eye className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
-              <span>Statewide Live Camera Matrix</span>
-              {/* Show only real active frame count from supervisor — not camera DB count */}
-              {supervisorRunning ? (
-                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold">
-                  {activeFrameCount} FRAME-ACTIVE / {fleetHealth?.total_cameras ?? 0} CONFIGURED
-                </span>
-              ) : (
-                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 border border-amber-500/40 text-amber-400 font-bold">
-                  SUPERVISOR NOT STARTED
-                </span>
-              )}
+    <div className="space-y-4">
+      {/* GitHub Subhead Header */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pb-3 border-b border-[#21262d]">
+        <div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-lg font-semibold text-[#f0f6fc] tracking-tight">
+              Statewide CCTV Operations Grid
             </h1>
-            <p className="text-xs text-slate-400">
-              RTSP TCP Gateway: 103.250.160.189:8554 · WHEP: 103.250.160.189:8889
-              {supervisorRunning && ` · AI Active: ${activeAiCount}/${fleetHealth?.total_cameras ?? 0}`}
-            </p>
+            {supervisorRunning ? (
+              <span className="px-2 py-0.5 rounded-full border border-[#238636]/40 bg-[#238636]/15 text-[#3fb950] text-xs font-medium inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3fb950] animate-pulse"></span>
+                {activeFrameCount} Active / {fleetHealth?.total_cameras ?? 0} Configured
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-full border border-[#d29922]/40 bg-[#d29922]/15 text-[#d29922] text-xs font-medium inline-flex items-center gap-1.5">
+                <AlertTriangle className="w-3 h-3" />
+                Supervisor Standby
+              </span>
+            )}
           </div>
+          <p className="text-xs text-[#8b949e] mt-1 font-mono">
+            RTSP Gateway: 103.250.160.189:8554 &bull; WHEP Low-Latency &bull; AI Pipeline: {activeAiCount} Nodes Active
+          </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
+        {/* GitHub Filter Controls & Button Groups */}
+        <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto justify-between lg:justify-end">
           {/* Department Filter */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-[#8b949e]" />
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan"
+              className="bg-[#21262d] border border-[#30363d] rounded-md px-2.5 py-1 text-xs text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] cursor-pointer"
             >
-              <option value="ALL">All 5 Departments</option>
-              <option value="POLICE">Police / Home</option>
-              <option value="GSRTC">GSRTC Transport</option>
-              <option value="MUNICIPAL">Municipal Corp</option>
-              <option value="HEALTH">Health Dept</option>
+              <option value="ALL">All Departments (5)</option>
+              <option value="POLICE">Gujarat Police</option>
+              <option value="GSRTC">GSRTC Transit</option>
+              <option value="MUNICIPAL">Municipal Corps</option>
+              <option value="HEALTH">Health &amp; Emergency</option>
               <option value="PANCHAYAT">Panchayat &amp; Rural</option>
             </select>
           </div>
 
           {/* District Filter */}
-          <div className="flex items-center gap-2">
-            <select
-              value={districtFilter}
-              onChange={(e) => setDistrictFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan"
-            >
-              <option value="ALL">All Districts</option>
-              <option value="Ahmedabad">Ahmedabad City</option>
-              <option value="Surat">Surat City</option>
-              <option value="Vadodara">Vadodara</option>
-              <option value="Gandhinagar">Gandhinagar</option>
-              <option value="Rajkot">Rajkot</option>
-            </select>
-          </div>
+          <select
+            value={districtFilter}
+            onChange={(e) => setDistrictFilter(e.target.value)}
+            className="bg-[#21262d] border border-[#30363d] rounded-md px-2.5 py-1 text-xs text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] cursor-pointer"
+          >
+            <option value="ALL">All Districts</option>
+            <option value="Ahmedabad">Ahmedabad</option>
+            <option value="Surat">Surat</option>
+            <option value="Vadodara">Vadodara</option>
+            <option value="Gandhinagar">Gandhinagar</option>
+            <option value="Rajkot">Rajkot</option>
+          </select>
 
-          {/* Grid Layout Mode Switcher */}
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded border border-slate-800">
+          {/* GitHub Style Segmented Button Group */}
+          <div className="inline-flex rounded-md shadow-sm">
             <button
               onClick={() => setGridMode('2x2')}
-              className={`p-1.5 rounded transition-colors ${
-                gridMode === '2x2' ? 'bg-cyber-cyan text-black font-bold' : 'text-slate-400 hover:text-white'
+              className={`px-2.5 py-1 text-xs font-medium border border-[#30363d] rounded-l-md transition-colors cursor-pointer ${
+                gridMode === '2x2'
+                  ? 'bg-[#1f6feb] text-white font-semibold'
+                  : 'bg-[#21262d] text-[#c9d1d9] hover:bg-[#30363d]'
               }`}
-              title="2x2 Grid (4 Cameras)"
+              title="2x2 Multi-View"
             >
-              <Grid2X2 className="w-4 h-4" />
+              <Grid2X2 className="w-3.5 h-3.5 inline mr-1" />
+              2x2
             </button>
             <button
               onClick={() => setGridMode('3x3')}
-              className={`p-1.5 rounded transition-colors ${
-                gridMode === '3x3' ? 'bg-cyber-cyan text-black font-bold' : 'text-slate-400 hover:text-white'
+              className={`px-2.5 py-1 text-xs font-medium border-t border-b border-r border-[#30363d] -ml-px transition-colors cursor-pointer ${
+                gridMode === '3x3'
+                  ? 'bg-[#1f6feb] text-white font-semibold'
+                  : 'bg-[#21262d] text-[#c9d1d9] hover:bg-[#30363d]'
               }`}
-              title="3x3 Grid (9 Cameras)"
+              title="3x3 Sector Grid"
             >
-              <Grid3X3 className="w-4 h-4" />
+              <Grid3X3 className="w-3.5 h-3.5 inline mr-1" />
+              3x3
             </button>
             <button
               onClick={() => setGridMode('4x4')}
-              className={`p-1.5 rounded transition-colors ${
-                gridMode === '4x4' ? 'bg-cyber-cyan text-black font-bold' : 'text-slate-400 hover:text-white'
+              className={`px-2.5 py-1 text-xs font-medium border-t border-b border-r border-[#30363d] -ml-px transition-colors cursor-pointer ${
+                gridMode === '4x4'
+                  ? 'bg-[#1f6feb] text-white font-semibold'
+                  : 'bg-[#21262d] text-[#c9d1d9] hover:bg-[#30363d]'
               }`}
-              title="4x4 Grid (16 Cameras)"
+              title="4x4 Matrix"
             >
-              <LayoutGrid className="w-4 h-4" />
+              <LayoutGrid className="w-3.5 h-3.5 inline mr-1" />
+              4x4
             </button>
             <button
               onClick={() => setGridMode('all30')}
-              className={`px-2 py-1 rounded text-xs font-mono font-bold transition-colors flex items-center gap-1 ${
-                gridMode === 'all30' ? 'bg-cyber-cyan text-black' : 'text-slate-400 hover:text-white'
+              className={`px-2.5 py-1 text-xs font-medium border-t border-b border-r border-[#30363d] rounded-r-md -ml-px transition-colors cursor-pointer ${
+                gridMode === 'all30'
+                  ? 'bg-[#1f6feb] text-white font-semibold'
+                  : 'bg-[#21262d] text-[#c9d1d9] hover:bg-[#30363d]'
               }`}
-              title="All 30 Cameras Grid"
+              title="All 30 Feeds"
             >
-              <Tv2 className="w-3.5 h-3.5" />
-              <span>ALL 30</span>
+              <Tv2 className="w-3.5 h-3.5 inline mr-1" />
+              All 30
             </button>
           </div>
         </div>
@@ -172,9 +178,9 @@ export const LiveOperationsPage: React.FC = () => {
 
       {/* Video Wall Matrix */}
       {isLoading ? (
-        <div className="h-96 flex items-center justify-center bg-sentinel-900/60 rounded border border-slate-800">
-          <div className="text-center font-mono text-xs text-cyber-cyan space-y-2">
-            <Cpu className="w-8 h-8 animate-spin mx-auto text-cyber-cyan" />
+        <div className="h-96 flex items-center justify-center bg-[#161b22] rounded-md border border-[#30363d]">
+          <div className="text-center font-mono text-xs text-[#58a6ff] space-y-2">
+            <Cpu className="w-8 h-8 animate-spin mx-auto text-[#58a6ff]" />
             <p>Connecting to Sentinel Camera Grid (103.250.160.189)...</p>
           </div>
         </div>
@@ -193,14 +199,11 @@ export const LiveOperationsPage: React.FC = () => {
           {activeCameras.map((cam: CameraNode, idx: number) => {
             const camNumber = idx + 1;
             const camTag = `cam${String(camNumber).padStart(2, '0')}`;
-            // Look up real supervisor telemetry for this specific camera
             const health = perCameraHealth[camTag] || perCameraHealth[cam.camera_id];
 
-            // Determine true state labels from real telemetry
             const netOk = health?.network_reachable === true;
             const authOk = health?.authenticated === true;
             const rtpOk = health?.rtp_media_observed === true;
-            const decOk = health?.decoder_open === true;
             const frameOk = health?.frame_active === true;
             const aiOk = health?.ai_active === true;
             const decodeFps = health?.decode_fps ?? null;
@@ -216,7 +219,7 @@ export const LiveOperationsPage: React.FC = () => {
               <div
                 key={cam.camera_id}
                 onClick={() => openContextDrawer({ camera: cam, plate: latestPlate, health })}
-                className="cursor-pointer group"
+                className="cursor-pointer group rounded-md border border-[#30363d] hover:border-[#8b949e] bg-[#161b22] overflow-hidden transition-all shadow-sm"
               >
                 <VideoPlayer
                   cameraId={camTag}
@@ -225,72 +228,74 @@ export const LiveOperationsPage: React.FC = () => {
                   overlayText={`NODE ${camTag.toUpperCase()}`}
                   onInspect={() => openContextDrawer({ camera: cam, plate: latestPlate, health })}
                 />
-                {/* Per-camera health bar — derived from real supervisor telemetry */}
-                <div className="mt-1 bg-slate-950/90 border border-slate-800 rounded px-2 py-1 space-y-1 font-mono">
-                  <div className="flex items-center justify-between text-[9px]">
+                {/* Per-camera health & telemetry bar in GitHub Box Row style */}
+                <div className="bg-[#161b22] border-t border-[#21262d] p-2 space-y-1.5">
+                  <div className="flex items-center justify-between text-[9px] font-mono">
                     {health ? (
                       <>
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className={netOk ? 'text-emerald-400 font-bold' : 'text-red-500 font-bold'}>
-                            NET:{netOk ? 'OK' : health.network_reachable === false ? 'FAIL' : 'NOT_TESTED'}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[8.5px] font-medium border ${
+                            netOk ? 'bg-[#238636]/15 text-[#3fb950] border-[#238636]/40' : 'bg-[#da3633]/15 text-[#f85149] border-[#da3633]/40'
+                          }`}>
+                            <span className={`w-1 h-1 rounded-full ${netOk ? 'bg-[#3fb950]' : 'bg-[#f85149]'}`}></span>
+                            NET:{netOk ? 'OK' : 'OFF'}
                           </span>
-                          <span className="text-slate-700">|</span>
-                          <span className={authOk ? 'text-emerald-400 font-bold' : 'text-slate-600'}>
-                            AUTH:{authOk ? 'OK' : 'NOT_TESTED'}
+                          <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[8.5px] font-medium border ${
+                            authOk ? 'bg-[#21262d] text-[#c9d1d9] border-[#30363d]' : 'bg-[#0d1117] text-[#8b949e] border-[#30363d]'
+                          }`}>
+                            AUTH:{authOk ? 'OK' : 'PEND'}
                           </span>
-                          <span className="text-slate-700">|</span>
-                          <span className={rtpOk ? 'text-cyan-400 font-bold' : 'text-slate-600'}>
-                            RTP:{rtpOk ? 'OK' : 'NOT_TESTED'}
+                          <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[8.5px] font-medium border ${
+                            rtpOk ? 'bg-[#1f6feb]/15 text-[#58a6ff] border-[#1f6feb]/40' : 'bg-[#0d1117] text-[#8b949e] border-[#30363d]'
+                          }`}>
+                            RTP:{rtpOk ? 'OK' : 'INIT'}
                           </span>
-                          <span className="text-slate-700">|</span>
-                          <span className={decOk ? 'text-cyan-400 font-bold' : 'text-slate-600'}>
-                            DEC:{decOk ? 'OK' : 'NOT_TESTED'}
-                          </span>
-                          <span className="text-slate-700">|</span>
-                          <span className={aiOk ? 'text-emerald-400 font-bold' : frameOk ? 'text-amber-400 font-bold' : 'text-slate-600'}>
-                            AI:{aiOk ? 'ACTIVE' : frameOk ? 'PENDING' : 'NOT_STARTED'}
+                          <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[8.5px] font-medium border ${
+                            aiOk ? 'bg-[#238636]/15 text-[#3fb950] border-[#238636]/40' : frameOk ? 'bg-[#d29922]/15 text-[#d29922] border-[#d29922]/40' : 'bg-[#0d1117] text-[#8b949e] border-[#30363d]'
+                          }`}>
+                            AI:{aiOk ? 'ACTIVE' : frameOk ? 'DEC' : 'OFF'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           {decodeFps !== null && decodeFps > 0 && (
-                            <span className="text-slate-400">{decodeFps} fps</span>
+                            <span className="text-[#8b949e] text-[9px] font-mono">{decodeFps} fps</span>
                           )}
                           {aiFps !== null && aiFps > 0 && (
-                            <span className="text-cyber-cyan">AI:{aiFps} fps</span>
+                            <span className="text-[#58a6ff] text-[9px] font-mono font-medium">ai:{aiFps}</span>
                           )}
                           {hasError && (
-                            <span title={hasError}>
-                              <AlertTriangle className="w-3 h-3 text-red-400" />
+                            <span title={hasError} className="p-0.5 rounded bg-[#da3633]/20 border border-[#da3633]">
+                              <AlertTriangle className="w-2.5 h-2.5 text-[#f85149]" />
                             </span>
                           )}
                         </div>
                       </>
                     ) : (
-                      <span className="text-slate-600 italic">
-                        {supervisorRunning ? 'No telemetry yet...' : 'Supervisor not started'}
+                      <span className="text-[#8b949e] italic text-[9px]">
+                        {supervisorRunning ? 'Handshaking telemetry...' : 'Supervisor offline'}
                       </span>
                     )}
                   </div>
 
-                  {/* AI Vision Sighting Telemetry: Persons, Vehicle Types & Plates */}
+                  {/* AI Vision Sighting Telemetry */}
                   {health && (detectedPeople > 0 || detectedVehicles > 0 || latestPlate) && (
-                    <div className="flex items-center justify-between text-[8.5px] pt-0.5 border-t border-slate-800/80">
-                      <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="flex items-center justify-between text-[9px] pt-1 border-t border-[#21262d]">
+                      <div className="flex items-center gap-2 flex-wrap">
                         {detectedPeople > 0 && (
-                          <span className="text-cyan-300 font-semibold flex items-center gap-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                            {detectedPeople} {detectedPeople === 1 ? 'PERSON' : 'PEOPLE'}
+                          <span className="text-[#58a6ff] font-medium flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#58a6ff]"></span>
+                            {detectedPeople} {detectedPeople === 1 ? 'Person' : 'People'}
                           </span>
                         )}
                         {detectedVehicles > 0 && (
-                          <span className="text-emerald-300 font-semibold flex items-center gap-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                          <span className="text-[#3fb950] font-medium flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#3fb950]"></span>
                             {detectedVehicles} {latestVehType ? latestVehType.toUpperCase() : 'VEHICLE'}
                           </span>
                         )}
                       </div>
                       {latestPlate && (
-                        <span className="px-1.5 py-0.2 rounded bg-yellow-950/80 border border-yellow-500/50 text-yellow-300 font-bold tracking-wider text-[8px]">
+                        <span className="px-1.5 py-0.2 rounded border border-[#d29922]/40 bg-[#d29922]/15 text-[#d29922] font-semibold tracking-wider font-mono text-[9px]">
                           {latestPlate}
                         </span>
                       )}

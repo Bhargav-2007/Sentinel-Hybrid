@@ -33,6 +33,8 @@ class RedisManager:
                 encoding="utf-8",
                 decode_responses=True,
                 max_connections=20,
+                socket_connect_timeout=1.0,
+                socket_timeout=1.0,
             )
             await self._client.ping()
             logger.info("Connected to Redis server successfully.")

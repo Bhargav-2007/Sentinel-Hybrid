@@ -4,76 +4,187 @@
 
 @layer base {
   :root {
-    --bg-primary: #030712;
-    --bg-secondary: #070f1e;
-    --bg-card: rgba(10, 23, 46, 0.85);
-    --border-card: rgba(0, 240, 255, 0.2);
-    --accent-cyan: #00f0ff;
-    --accent-blue: #0088ff;
-    --accent-alert: #ff0055;
-    --accent-warn: #ffb700;
-    --accent-success: #00ff99;
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-card: #161b22;
+    --border-card: #30363d;
+    --github-border: #30363d;
+    --github-border-muted: #21262d;
+    --police-blue: #1f6feb;
+    --police-gold: #d29922;
+    --police-emerald: #238636;
+    --police-red: #da3633;
   }
 
   body {
-    background-color: var(--bg-primary);
-    color: #f1f5f9;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #0d1117;
+    color: #f0f6fc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    letter-spacing: -0.01em;
   }
 
-  /* Custom Scrollbars */
+  /* GitHub Dark Scrollbars */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: rgba(3, 7, 18, 0.6);
+    background: #0d1117;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(31, 69, 127, 0.6);
-    border-radius: 3px;
+    background: #30363d;
+    border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-cyan);
+    background: #484f58;
   }
 }
 
-/* Glassmorphism Panels */
+/* GitHub Primer Box System */
+.gh-box {
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.gh-box-header {
+  background-color: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #f0f6fc;
+}
+
+.gh-box-row {
+  border-bottom: 1px solid #21262d;
+  padding: 10px 16px;
+  transition: background-color 0.15s ease;
+}
+.gh-box-row:last-child {
+  border-bottom: none;
+}
+.gh-box-row:hover {
+  background-color: rgba(22, 27, 34, 0.6);
+}
+
+/* GitHub Primer Buttons */
+.gh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 20px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background-color: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  box-shadow: 0 1px 0 rgba(27, 31, 36, 0.1);
+  transition: all 0.12s cubic-bezier(0.3, 0, 0.5, 1);
+  cursor: pointer;
+  user-select: none;
+}
+.gh-btn:hover {
+  background-color: #30363d;
+  color: #f0f6fc;
+  border-color: #8b949e;
+}
+.gh-btn:active {
+  background-color: #282e33;
+}
+
+.gh-btn-primary {
+  background-color: #238636;
+  color: #ffffff;
+  border-color: rgba(240, 246, 252, 0.1);
+  box-shadow: 0 1px 0 rgba(27, 31, 36, 0.1);
+  font-weight: 600;
+}
+.gh-btn-primary:hover {
+  background-color: #2ea043;
+  border-color: rgba(240, 246, 252, 0.1);
+  color: #ffffff;
+}
+
+.gh-btn-danger {
+  background-color: #21262d;
+  color: #f85149;
+  border-color: #30363d;
+}
+.gh-btn-danger:hover {
+  background-color: #da3633;
+  border-color: #da3633;
+  color: #ffffff;
+}
+
+/* GitHub CounterLabel */
+.gh-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 18px;
+  min-width: 20px;
+  border-radius: 20px;
+  background-color: #30363d;
+  color: #e6edf3;
+}
+
+/* GitHub Subhead Header */
+.gh-subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #21262d;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+/* Compatibility classes */
+.command-card {
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+}
+
+.command-card-elevated {
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+}
+
 .glass-panel {
-  background: rgba(10, 23, 46, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 240, 255, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
 }
 
 .glass-panel-alert {
-  background: rgba(35, 4, 15, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 0, 85, 0.35);
-  box-shadow: 0 0 20px rgba(255, 0, 85, 0.25);
+  background: rgba(218, 54, 51, 0.08);
+  border: 1px solid #da3633;
+  border-radius: 6px;
 }
 
-/* Subtle Tactical Grid Texture */
-.bg-tactical-grid {
-  background-size: 24px 24px;
-  background-image: 
-    linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-}
-
-/* Leaflet Dark Map Overrides */
+/* Leaflet Map in GitHub Dark Mode */
 .leaflet-container {
-  background: #050a14 !important;
+  background: #0d1117 !important;
   font-family: inherit;
 }
 .leaflet-popup-content-wrapper {
-  background: #0a172e !important;
-  color: #e2e8f0 !important;
-  border: 1px solid #00f0ff !important;
-  border-radius: 4px !important;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3) !important;
+  background: #161b22 !important;
+  color: #f0f6fc !important;
+  border: 1px solid #30363d !important;
+  border-radius: 6px !important;
+  box-shadow: 0 8px 24px rgba(1, 4, 9, 0.8) !important;
 }
 .leaflet-popup-tip {
-  background: #0a172e !important;
+  background: #161b22 !important;
 }

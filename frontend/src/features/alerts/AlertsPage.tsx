@@ -12,6 +12,7 @@ import {
   Radio,
   Filter,
   CheckCheck,
+  Tag,
 } from 'lucide-react';
 import { alertsApi } from '../../core/api/alertsApi';
 import { useUIStore } from '../../stores/uiStore';
@@ -35,7 +36,7 @@ export const AlertsPage: React.FC = () => {
     mutationFn: (alertId: string) => alertsApi.acknowledgeAlert(alertId),
     onSuccess: (_, alertId) => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      setDispatchToast(`✓ Incident ${alertId} Acknowledged & Logged in State Audit Trail`);
+      setDispatchToast(`✓ Advisory ${alertId} acknowledged and committed to Sec. 65B audit trail`);
       setTimeout(() => setDispatchToast(null), 3500);
     },
   });
@@ -43,7 +44,7 @@ export const AlertsPage: React.FC = () => {
   const handleEmergencyAutoCall = async (alt: ThreatAlert) => {
     try {
       playRiskAlertSiren(alt.threat_score);
-      const res = await apiClient<any>('/api/v1/alerts/auto-dispatch', {
+      await apiClient<any>('/api/v1/alerts/auto-dispatch', {
         method: 'POST',
         body: JSON.stringify({
           plate: alt.target_plate,
@@ -51,10 +52,10 @@ export const AlertsPage: React.FC = () => {
           nearest_chowki: `${alt.police_station} Intercept Unit`,
         }),
       });
-      setDispatchToast(`🚨 Auto-Call Initiated: Relayed to ${alt.police_station} & PCR Units`);
+      setDispatchToast(`🚨 Intercept advisory dispatched to ${alt.police_station} units`);
       setTimeout(() => setDispatchToast(null), 4000);
     } catch {
-      setDispatchToast(`🚨 Auto-Call Relayed to ${alt.police_station}`);
+      setDispatchToast(`🚨 Intercept advisory relayed to ${alt.police_station}`);
       setTimeout(() => setDispatchToast(null), 4000);
     }
   };
@@ -66,121 +67,141 @@ export const AlertsPage: React.FC = () => {
     return true;
   });
 
+  const criticalCount = alerts.filter(a => a.priority === 'CRITICAL' && a.status !== 'ACKNOWLEDGED').length;
+  const openCount = alerts.filter(a => a.status !== 'ACKNOWLEDGED').length;
+
   return (
-    <div className="space-y-4 font-mono">
-      {/* Header */}
-      <div className="p-4 rounded bg-sentinel-900/90 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-cyber-crimson/15 border border-cyber-crimson/30 text-cyber-crimson">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-white tracking-wide">
-              Real-Time APB Threat & Hotlist Alert Dispatch
+    <div className="space-y-4">
+      {/* GitHub Subhead Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-[#21262d]">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-lg font-semibold text-[#f0f6fc] tracking-tight">
+              Statewide APB Threat Hotlist &amp; Security Advisories
             </h1>
-            <p className="text-xs text-slate-400">
-              Live Priority Ingestion &bull; Duty Officer Acknowledgment &bull; Automated Chowki Intercept Dispatch
-            </p>
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-[#da3633]/40 bg-[#da3633]/15 text-[#f85149]">
+              PRIORITY QUEUE
+            </span>
           </div>
+          <p className="text-xs text-[#8b949e] mt-1 font-mono">
+            Automated ANPR Hotlist Match &bull; Duty Officer Rapid Dispatch &bull; Section 65B Audit Trail
+          </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-950 p-1 rounded border border-slate-800 text-xs">
-          {(['ALL', 'CRITICAL', 'HIGH', 'ACKNOWLEDGED'] as const).map((f) => (
+        {/* GitHub Segmented Filter Controls */}
+        <div className="inline-flex rounded-md shadow-sm text-xs">
+          {(['ALL', 'CRITICAL', 'HIGH', 'ACKNOWLEDGED'] as const).map((f, i) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-2.5 py-1 rounded font-bold transition-all ${
+              className={`px-3 py-1 font-medium border border-[#30363d] ${i > 0 ? '-ml-px' : ''} ${i === 0 ? 'rounded-l-md' : ''} ${i === 3 ? 'rounded-r-md' : ''} transition-colors cursor-pointer ${
                 filter === f
-                  ? 'bg-cyber-cyan text-black'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#1f6feb] text-white font-semibold'
+                  : 'bg-[#21262d] text-[#c9d1d9] hover:bg-[#30363d]'
               }`}
             >
-              {f}
+              {f === 'ALL' ? 'All Advisories' : f}
             </button>
           ))}
         </div>
       </div>
 
       {dispatchToast && (
-        <div className="p-3 bg-emerald-950/90 border border-emerald-400 text-emerald-300 rounded text-xs font-bold flex items-center gap-2 animate-fadeIn">
-          <CheckCircle className="w-4 h-4 text-emerald-400" />
+        <div className="p-2.5 bg-[#238636]/15 border border-[#238636]/40 text-[#3fb950] rounded-md text-xs font-medium flex items-center gap-2 shadow-sm animate-fadeIn">
+          <CheckCircle className="w-4 h-4 text-[#3fb950] shrink-0" />
           <span>{dispatchToast}</span>
         </div>
       )}
 
-      {/* Alert Feed Table / Cards */}
+      {/* GitHub Box Issue / Security Advisories Container */}
       {isLoading ? (
-        <div className="h-48 flex items-center justify-center text-xs text-cyber-cyan">
-          Connecting to Real-time Alert Stream...
+        <div className="h-48 flex items-center justify-center text-xs text-[#58a6ff]">
+          Loading State Hotlist Dispatch Stream...
         </div>
       ) : (
-        <div className="grid gap-3 text-xs">
-          {filteredAlerts.map((alt: ThreatAlert) => {
-            const isCritical = alt.priority === 'CRITICAL';
-            const isAcknowledged = alt.status === 'ACKNOWLEDGED';
+        <div className="gh-box">
+          {/* GitHub Box Header */}
+          <div className="gh-box-header">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#f0f6fc]">
+                <ShieldAlert className="w-4 h-4 text-[#f85149]" />
+                {openCount} Open Advisories
+              </span>
+              {criticalCount > 0 && (
+                <span className="text-[11px] font-mono font-medium px-2 py-0.2 rounded-full border border-[#da3633]/40 bg-[#da3633]/15 text-[#f85149]">
+                  {criticalCount} Critical
+                </span>
+              )}
+            </div>
+            <div className="text-xs text-[#8b949e]">
+              Sorted by threat score
+            </div>
+          </div>
 
-            return (
-              <div
-                key={alt.alert_id}
-                className={`p-4 rounded border transition-all ${
-                  isAcknowledged
-                    ? 'bg-sentinel-900/60 border-slate-800 opacity-80'
-                    : isCritical
-                    ? 'bg-red-950/25 border-cyber-crimson/80 shadow-glow-crimson'
-                    : 'bg-sentinel-900 border-slate-800'
-                }`}
-              >
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          {/* GitHub Box Rows */}
+          <div className="divide-y divide-[#21262d]">
+            {filteredAlerts.map((alt: ThreatAlert) => {
+              const isCritical = alt.priority === 'CRITICAL';
+              const isAcknowledged = alt.status === 'ACKNOWLEDGED';
+
+              return (
+                <div
+                  key={alt.alert_id}
+                  className={`p-3.5 hover:bg-[#161b22]/70 transition-colors flex flex-col md:flex-row items-start md:items-center justify-between gap-3 ${
+                    isAcknowledged ? 'opacity-70 bg-[#0d1117]' : isCritical ? 'bg-[#da3633]/5' : 'bg-[#0d1117]'
+                  }`}
+                >
                   <div className="flex items-start gap-3">
-                    <div
-                      className={`p-2.5 rounded ${
-                        isAcknowledged
-                          ? 'bg-slate-800 text-emerald-400'
-                          : isCritical
-                          ? 'bg-cyber-crimson text-white'
-                          : 'bg-yellow-500/20 text-yellow-400'
-                      }`}
-                    >
-                      <ShieldAlert className="w-6 h-6" />
+                    <div className="mt-0.5 shrink-0">
+                      {isAcknowledged ? (
+                        <CheckCircle className="w-4 h-4 text-[#3fb950]" />
+                      ) : isCritical ? (
+                        <ShieldAlert className="w-4 h-4 text-[#f85149]" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-[#d29922]" />
+                      )}
                     </div>
 
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-sm text-yellow-400 bg-black px-2 py-0.5 rounded border border-slate-700">
+                        {/* Indian HSRP License Plate */}
+                        <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border border-[#d29922]/50 bg-[#d29922]/15 text-[#d29922] tracking-wider">
                           {alt.target_plate}
                         </span>
+
+                        <span className="font-semibold text-xs text-[#f0f6fc] hover:text-[#58a6ff] transition-colors cursor-pointer">
+                          {alt.hotlist_category.replace(/_/g, ' ')}
+                        </span>
+
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                          className={`text-[10px] px-2 py-0.2 rounded-full font-mono font-medium border ${
                             isAcknowledged
-                              ? 'bg-emerald-950 text-emerald-400 border border-emerald-700'
+                              ? 'border-[#238636]/40 bg-[#238636]/15 text-[#3fb950]'
                               : isCritical
-                              ? 'bg-cyber-crimson text-white'
-                              : 'bg-yellow-500/20 text-yellow-400'
+                              ? 'border-[#da3633]/40 bg-[#da3633]/15 text-[#f85149]'
+                              : 'border-[#d29922]/40 bg-[#d29922]/15 text-[#d29922]'
                           }`}
                         >
-                          {isAcknowledged ? 'STATUS: ACKNOWLEDGED' : `${alt.priority} • SCORE: ${alt.threat_score}/100`}
-                        </span>
-                        <span className="text-xs font-semibold text-slate-300">
-                          {alt.hotlist_category.replace(/_/g, ' ')}
+                          {isAcknowledged ? 'ACKNOWLEDGED' : `${alt.priority} // SCORE ${alt.threat_score}`}
                         </span>
                       </div>
 
-                      <p className="text-slate-400 text-xs">
-                        {alt.fir_number && <b className="text-slate-300">{alt.fir_number} &bull; </b>}
-                        {alt.police_station} &bull; Make: {alt.vehicle_make} {alt.vehicle_model} ({alt.vehicle_color})
+                      <p className="text-xs text-[#8b949e]">
+                        {alt.fir_number && <span className="text-[#f0f6fc] font-mono mr-1">{alt.fir_number} &bull;</span>}
+                        Jurisdiction: {alt.police_station} &bull; {alt.vehicle_make} {alt.vehicle_model} ({alt.vehicle_color})
                       </p>
 
-                      <div className="flex items-center gap-4 text-[11px] text-slate-500 pt-1 flex-wrap">
-                        <span className="flex items-center gap-1 text-slate-300 font-semibold">
-                          <MapPin className="w-3 h-3 text-cyber-cyan" />
+                      <div className="flex items-center gap-3 text-[11px] text-[#8b949e] pt-0.5 flex-wrap font-mono">
+                        <span className="flex items-center gap-1 text-[#c9d1d9]">
+                          <MapPin className="w-3 h-3 text-[#58a6ff]" />
                           {alt.camera_name}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
+                          <Clock className="w-3 h-3 text-[#8b949e]" />
                           {new Date(alt.timestamp).toLocaleTimeString()}
                         </span>
                         {alt.speed_kmh && (
-                          <span className="flex items-center gap-1 text-cyber-cyan font-bold">
+                          <span className="flex items-center gap-1 text-[#58a6ff]">
                             <Gauge className="w-3 h-3" />
                             {alt.speed_kmh} km/h
                           </span>
@@ -189,15 +210,15 @@ export const AlertsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+                  {/* GitHub Style Actions */}
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap shrink-0">
                     <button
                       onClick={() => handleEmergencyAutoCall(alt)}
-                      className="px-3 py-1.5 rounded bg-red-900/80 hover:bg-red-700 text-white font-bold flex items-center gap-1.5 transition-colors border border-red-700 text-xs"
-                      title="Auto-Call & Dispatch to Nearest Chowki"
+                      className="gh-btn-danger gh-btn text-xs"
+                      title="Auto-Relay Emergency Intercept Alert to Chowki"
                     >
                       <PhoneCall className="w-3.5 h-3.5" />
-                      <span>AUTO-CALL CHOWKI</span>
+                      <span>Dispatch Chowki</span>
                     </button>
 
                     <button
@@ -207,38 +228,38 @@ export const AlertsPage: React.FC = () => {
                           plate: alt.target_plate,
                         })
                       }
-                      className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-cyber-cyan font-bold flex items-center gap-1.5 transition-colors border border-slate-700 text-xs"
+                      className="gh-btn text-xs"
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      <span>INSPECT 360°</span>
+                      <span>Dossier</span>
                     </button>
 
                     <button
                       disabled={isAcknowledged || ackMutation.isPending}
                       onClick={() => ackMutation.mutate(alt.alert_id)}
-                      className={`px-3 py-1.5 rounded font-bold flex items-center gap-1.5 transition-all text-xs shadow-md ${
+                      className={`gh-btn text-xs ${
                         isAcknowledged
-                          ? 'bg-emerald-950 text-emerald-400 border border-emerald-600/40 cursor-default'
-                          : 'bg-cyber-blue hover:bg-cyber-cyan hover:text-black text-white'
+                          ? 'opacity-60 cursor-default'
+                          : 'gh-btn-primary'
                       }`}
                     >
                       {isAcknowledged ? (
                         <>
-                          <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>ACKNOWLEDGED</span>
+                          <CheckCheck className="w-3.5 h-3.5 text-[#3fb950]" />
+                          <span>Acknowledged</span>
                         </>
                       ) : (
                         <>
                           <CheckCircle className="w-3.5 h-3.5" />
-                          <span>{ackMutation.isPending ? 'ACKING...' : 'ACKNOWLEDGE'}</span>
+                          <span>{ackMutation.isPending ? 'Logging...' : 'Acknowledge'}</span>
                         </>
                       )}
                     </button>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

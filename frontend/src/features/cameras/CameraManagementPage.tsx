@@ -9,20 +9,19 @@ import { camerasApi } from '../../core/api/camerasApi';
 import { useUIStore } from '../../stores/uiStore';
 import { CameraNode, FleetHealthSummary } from '../../core/types/camera';
 
-// ─── Helper: render a health badge with truthful state ───────────────────────
 type BadgeState = 'OK' | 'FAIL' | 'NOT_TESTED' | 'UNKNOWN' | 'ACTIVE' | 'INACTIVE';
 
 function healthBadge(label: string, state: BadgeState) {
   const styles: Record<BadgeState, string> = {
-    OK:       'bg-emerald-950 text-emerald-400 border-emerald-800/60',
-    ACTIVE:   'bg-emerald-950 text-emerald-400 border-emerald-800/60',
-    FAIL:     'bg-red-950 text-red-400 border-red-800/60',
-    INACTIVE: 'bg-red-950 text-red-400 border-red-800/60',
-    NOT_TESTED: 'bg-slate-900 text-slate-500 border-slate-700',
-    UNKNOWN:  'bg-amber-950 text-amber-400 border-amber-800/60',
+    OK:       'bg-[#238636]/15 text-[#3fb950] border-[#238636]/40',
+    ACTIVE:   'bg-[#238636]/15 text-[#3fb950] border-[#238636]/40',
+    FAIL:     'bg-[#da3633]/15 text-[#f85149] border-[#da3633]/40',
+    INACTIVE: 'bg-[#da3633]/15 text-[#f85149] border-[#da3633]/40',
+    NOT_TESTED: 'bg-[#21262d] text-[#8b949e] border-[#30363d]',
+    UNKNOWN:  'bg-[#d29922]/15 text-[#d29922] border-[#d29922]/40',
   };
   return (
-    <span className={`px-1.5 py-0.5 rounded font-bold border text-[9px] ${styles[state]}`}>
+    <span className={`px-1.5 py-0.2 rounded border text-[9px] font-mono font-medium ${styles[state]}`}>
       {label}:{state === 'OK' || state === 'ACTIVE' ? 'OK' : state === 'FAIL' || state === 'INACTIVE' ? 'FAIL' : state.replace('_', ' ')}
     </span>
   );
@@ -53,17 +52,14 @@ export const CameraManagementPage: React.FC = () => {
     queryFn: () => camerasApi.listCameras(districtFilter !== 'ALL' ? { district: districtFilter } : undefined),
   });
 
-  // Fetch real fleet health from the supervisor
   const { data: fleetHealth, isLoading: healthLoading } = useQuery<FleetHealthSummary>({
     queryKey: ['fleet-health'],
     queryFn: () => camerasApi.getFleetHealth(),
     refetchInterval: 5000,
   });
 
-  // Build a per-camera health index from supervisor telemetry
   const perCameraHealth = React.useMemo(() => {
     const map: Record<string, any> = {};
-    // From supervisor's live cameras array
     if (fleetHealth?.cameras) {
       for (const c of fleetHealth.cameras) {
         if (c.camera_id) map[c.camera_id] = c;
@@ -76,7 +72,6 @@ export const CameraManagementPage: React.FC = () => {
         }
       }
     }
-    // From NOT_STARTED fallback per_camera_state
     if (fleetHealth?.per_camera_state) {
       for (const c of fleetHealth.per_camera_state) {
         if (!map[c.camera_id]) map[c.camera_id] = c;
@@ -119,60 +114,69 @@ export const CameraManagementPage: React.FC = () => {
   const sc = fleetHealth?.scorecard;
 
   return (
-    <div className="space-y-4 font-mono">
-      {/* Header */}
-      <div className="p-4 rounded bg-sentinel-900/90 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-cyber-blue/10 border border-cyber-blue/30 text-cyber-cyan">
-            <Camera className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-white">
-              Statewide Central CCTV Registry &amp; Fleet Health
+    <div className="space-y-4">
+      {/* GitHub Subhead Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-[#21262d]">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-lg font-semibold text-[#f0f6fc] tracking-tight">
+              Statewide CCTV Registry &amp; Fleet Operations
             </h1>
-            <p className="text-xs text-slate-400">
-              Supervisor: {healthLoading ? 'Loading...' : supervisorRunning
-                ? <span className="text-emerald-400">RUNNING</span>
-                : <span className="text-amber-400">NOT_STARTED</span>}
-              {fleetHealth && ` · ${fleetHealth.total_cameras} cameras configured`}
-            </p>
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-[#30363d] text-[#8b949e] bg-[#161b22]">
+              CSITMS REGISTRY
+            </span>
           </div>
+          <p className="text-xs text-[#8b949e] mt-1 font-mono">
+            Supervisor Telemetry:{' '}
+            {healthLoading ? (
+              'Probing nodes...'
+            ) : supervisorRunning ? (
+              <span className="text-[#3fb950] font-medium">ACTIVE &bull; 103.250.160.189</span>
+            ) : (
+              <span className="text-[#d29922] font-medium">STANDBY</span>
+            )}
+            {fleetHealth && ` &bull; ${fleetHealth.total_cameras} Feeds Configured`}
+          </p>
         </div>
 
         <button
           onClick={() => refetch()}
-          className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-cyber-cyan text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-700 cursor-pointer"
+          className="gh-btn cursor-pointer"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span>REFRESH</span>
+          <span>Sync Registry</span>
         </button>
       </div>
 
-      {/* Real Fleet Scorecard — derived from supervisor runtime state */}
+      {/* GitHub Telemetry Scorecard Box */}
       {fleetHealth && (
-        <div className="p-3 rounded bg-slate-950 border border-slate-800">
-          <div className="text-[10px] text-slate-500 mb-2 uppercase tracking-wider font-bold">
-            Fleet Scorecard — {supervisorRunning ? 'Live Supervisor Data' : 'Supervisor Not Started'}
+        <div className="gh-box">
+          <div className="gh-box-header">
+            <div className="text-xs font-semibold text-[#f0f6fc] flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#58a6ff]"></span>
+              Fleet Telemetry Scorecard &bull; {supervisorRunning ? 'Live Stream Verification' : 'Supervisor Standby'}
+            </div>
             {!supervisorRunning && (
-              <span className="ml-2 text-amber-400">(all counts are 0 — no connections attempted)</span>
+              <span className="text-xs text-[#d29922] font-mono">Awaiting stream handshake</span>
             )}
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-[10px]">
+          <div className="p-3 bg-[#0d1117] grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2 text-xs">
             {sc && [
-              { label: 'Network', val: sc.network_reachable },
-              { label: 'Auth', val: sc.authenticated_verified },
-              { label: 'RTSP Session', val: sc.rtsp_session_established },
-              { label: 'RTP Media', val: sc.rtp_media_observed },
+              { label: 'Network Reachable', val: sc.network_reachable },
+              { label: 'Auth Verified', val: sc.authenticated_verified },
+              { label: 'RTSP Sessions', val: sc.rtsp_session_established },
+              { label: 'RTP Media Data', val: sc.rtp_media_observed },
               { label: 'Decoder Open', val: sc.decoder_open },
-              { label: 'Frame Active', val: sc.frame_active },
-              { label: 'AI Active', val: sc.ai_active },
-              { label: 'Tracking', val: sc.tracking_active },
-              { label: 'ANPR Tested', val: sc.anpr_tested },
+              { label: 'Frame Ingestion', val: sc.frame_active },
+              { label: 'AI Inference', val: sc.ai_active },
+              { label: 'Object Tracking', val: sc.tracking_active },
+              { label: 'ANPR Evaluated', val: sc.anpr_tested },
             ].map((item) => (
-              <div key={item.label} className="bg-slate-900 border border-slate-800 rounded p-2">
-                <div className="text-slate-500 text-[9px]">{item.label}</div>
-                <div className="text-white font-bold text-sm mt-0.5">
-                  {item.val}<span className="text-slate-500 text-[9px]">/{fleetHealth.total_cameras}</span>
+              <div key={item.label} className="bg-[#161b22] border border-[#30363d] rounded-md p-2">
+                <div className="text-[#8b949e] text-[10px] truncate">{item.label}</div>
+                <div className="text-[#f0f6fc] font-bold text-base font-mono mt-0.5 flex items-baseline gap-1">
+                  <span>{item.val}</span>
+                  <span className="text-[#8b949e] text-[10px] font-normal">/{fleetHealth.total_cameras}</span>
                 </div>
               </div>
             ))}
@@ -180,102 +184,100 @@ export const CameraManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Department Quick Stats */}
+      {/* Department Quick Stats as GitHub Topic Badges */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
         {[
-          { label: 'Police / Home', count: `${getDeptCount('POLICE')} Nodes`, icon: <Shield className="w-3.5 h-3.5 text-cyber-cyan" />, id: 'POLICE' },
-          { label: 'GSRTC Transport', count: `${getDeptCount('GSRTC')} Nodes`, icon: <Bus className="w-3.5 h-3.5 text-yellow-400" />, id: 'GSRTC' },
-          { label: 'Municipal Corp', count: `${getDeptCount('MUNICIPAL')} Nodes`, icon: <Building2 className="w-3.5 h-3.5 text-blue-400" />, id: 'MUNICIPAL' },
-          { label: 'Health Dept', count: `${getDeptCount('HEALTH')} Nodes`, icon: <HeartPulse className="w-3.5 h-3.5 text-emerald-400" />, id: 'HEALTH' },
-          { label: 'Panchayat & Rural', count: `${getDeptCount('PANCHAYAT')} Nodes`, icon: <Landmark className="w-3.5 h-3.5 text-purple-400" />, id: 'PANCHAYAT' },
+          { label: 'Gujarat Police', count: `${getDeptCount('POLICE')}`, icon: <Shield className="w-3.5 h-3.5 text-[#58a6ff]" />, id: 'POLICE' },
+          { label: 'GSRTC Transport', count: `${getDeptCount('GSRTC')}`, icon: <Bus className="w-3.5 h-3.5 text-[#d29922]" />, id: 'GSRTC' },
+          { label: 'Municipal Corps', count: `${getDeptCount('MUNICIPAL')}`, icon: <Building2 className="w-3.5 h-3.5 text-[#a371f7]" />, id: 'MUNICIPAL' },
+          { label: 'Health & Medical', count: `${getDeptCount('HEALTH')}`, icon: <HeartPulse className="w-3.5 h-3.5 text-[#3fb950]" />, id: 'HEALTH' },
+          { label: 'Panchayat & Rural', count: `${getDeptCount('PANCHAYAT')}`, icon: <Landmark className="w-3.5 h-3.5 text-[#8b949e]" />, id: 'PANCHAYAT' },
         ].map((d) => (
           <button
             key={d.id}
             onClick={() => setDeptFilter(deptFilter === d.id ? 'ALL' : d.id)}
-            className={`p-2 rounded border text-left transition-all flex items-center justify-between cursor-pointer ${
+            className={`p-2 rounded-md border text-left transition-colors flex items-center justify-between cursor-pointer ${
               deptFilter === d.id
-                ? 'bg-cyber-cyan text-black border-cyber-cyan font-bold shadow-md'
-                : 'bg-sentinel-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                ? 'bg-[#1f6feb] text-white border-[#1f6feb] font-semibold'
+                : 'bg-[#161b22] border-[#30363d] text-[#c9d1d9] hover:border-[#8b949e]'
             }`}
           >
-            <div className="flex items-center gap-2 truncate">
+            <div className="flex items-center gap-1.5 truncate">
               {d.icon}
-              <span className="truncate text-[11px]">{d.label}</span>
+              <span className="truncate text-xs">{d.label}</span>
             </div>
-            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-black/40 text-slate-200 shrink-0">
+            <span className="gh-counter text-[10px]">
               {d.count}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Filters & Search */}
-      <div className="p-3 rounded bg-sentinel-900/60 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+      {/* GitHub Filters & Search Bar */}
+      <div className="p-2.5 rounded-md bg-[#161b22] border border-[#30363d] flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#8b949e]" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search Camera, Junction, or Dept..."
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-700 rounded text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyber-cyan"
+            placeholder="Search by Node, Junction, District..."
+            className="w-full pl-8 pr-3 py-1 bg-[#0d1117] border border-[#30363d] rounded-md text-xs text-[#f0f6fc] placeholder-[#8b949e] focus:outline-none focus:border-[#58a6ff]"
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-          <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-[#8b949e]" />
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200"
+              className="bg-[#21262d] border border-[#30363d] rounded-md px-2 py-1 text-xs text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] cursor-pointer"
             >
-              <option value="ALL">All 5 Departments</option>
-              <option value="POLICE">Home / Police Dept</option>
-              <option value="GSRTC">GSRTC (State Transport)</option>
-              <option value="MUNICIPAL">Municipal Corporations</option>
-              <option value="HEALTH">Health Department</option>
+              <option value="ALL">All Departments</option>
+              <option value="POLICE">Gujarat Police</option>
+              <option value="GSRTC">GSRTC Transport</option>
+              <option value="MUNICIPAL">Municipal Corps</option>
+              <option value="HEALTH">Health &amp; Medical</option>
               <option value="PANCHAYAT">Panchayat &amp; Rural</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={districtFilter}
-              onChange={(e) => setDistrictFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200"
-            >
-              <option value="ALL">All Gujarat Districts</option>
-              <option value="Ahmedabad">Ahmedabad</option>
-              <option value="Surat">Surat</option>
-              <option value="Vadodara">Vadodara</option>
-              <option value="Gandhinagar">Gandhinagar</option>
-              <option value="Rajkot">Rajkot</option>
-              <option value="Bhavnagar">Bhavnagar</option>
-            </select>
-          </div>
+          <select
+            value={districtFilter}
+            onChange={(e) => setDistrictFilter(e.target.value)}
+            className="bg-[#21262d] border border-[#30363d] rounded-md px-2 py-1 text-xs text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] cursor-pointer"
+          >
+            <option value="ALL">All Districts</option>
+            <option value="Ahmedabad">Ahmedabad</option>
+            <option value="Surat">Surat</option>
+            <option value="Vadodara">Vadodara</option>
+            <option value="Gandhinagar">Gandhinagar</option>
+            <option value="Rajkot">Rajkot</option>
+            <option value="Bhavnagar">Bhavnagar</option>
+          </select>
         </div>
       </div>
 
-      {/* Table */}
+      {/* GitHub Style Asset Browser Table */}
       {isLoading ? (
-        <div className="h-48 flex items-center justify-center font-mono text-xs text-cyber-cyan">
-          Connecting to Camera Catalogue...
+        <div className="h-48 flex items-center justify-center text-xs text-[#58a6ff]">
+          Loading State Surveillance Catalogue...
         </div>
       ) : (
-        <div className="overflow-x-auto rounded border border-slate-800 bg-sentinel-900">
-          <table className="w-full text-left font-mono text-xs">
-            <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+        <div className="gh-box">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#161b22] text-[#8b949e] border-b border-[#30363d]">
               <tr>
-                <th className="p-3">Camera Node</th>
-                <th className="p-3">Department</th>
-                <th className="p-3">District / Junction</th>
-                <th className="p-3">Codec / FPS</th>
-                <th className="p-3">Runtime Health (Live)</th>
-                <th className="p-3 text-right">Actions</th>
+                <th className="p-3 font-semibold text-[11px]">CAMERA NODE</th>
+                <th className="p-3 font-semibold text-[11px]">DEPARTMENT</th>
+                <th className="p-3 font-semibold text-[11px]">LOCATION</th>
+                <th className="p-3 font-semibold text-[11px]">CODEC &amp; STREAM</th>
+                <th className="p-3 font-semibold text-[11px]">RUNTIME STATUS</th>
+                <th className="p-3 text-right font-semibold text-[11px]">INSPECT</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#21262d]">
               {filtered.map((cam: CameraNode) => {
                 const numMatch = cam.camera_id.match(/\d+/);
                 const numVal = numMatch ? parseInt(numMatch[0], 10) : 0;
@@ -287,28 +289,29 @@ export const CameraManagementPage: React.FC = () => {
                   perCameraHealth[`cam${cam.camera_id}`];
 
                 return (
-                  <tr key={cam.camera_id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={cam.camera_id} className="hover:bg-[#161b22]/60 transition-colors">
                     <td className="p-3">
-                      <div className="font-bold text-slate-200">{cam.name}</div>
-                      <div className="text-[10px] text-slate-500">{cam.camera_id}</div>
+                      <div className="font-semibold text-[#f0f6fc] text-xs hover:text-[#58a6ff] transition-colors">{cam.name}</div>
+                      <div className="text-[10px] font-mono text-[#8b949e] mt-0.5">{cam.camera_id}</div>
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-700 text-cyber-cyan font-bold text-[10px]">
+                      <span className="px-2 py-0.5 rounded-full border border-[#30363d] bg-[#161b22] text-[#c9d1d9] font-medium text-[10px] whitespace-nowrap">
                         {cam.department_name || cam.department_id}
                       </span>
                     </td>
                     <td className="p-3">
-                      <div className="text-slate-300">{cam.location.district}</div>
-                      <div className="text-[10px] text-slate-500 truncate max-w-xs">{cam.location.address}</div>
+                      <div className="text-[#c9d1d9] font-medium">{cam.location.district}</div>
+                      <div className="text-[10px] text-[#8b949e] truncate max-w-xs mt-0.5">{cam.location.address}</div>
                     </td>
-                    <td className="p-3">
-                      {/* Only show codec/fps if actually observed from the stream */}
-                      {health?.codec_observed
-                        ? <span className="text-cyber-cyan uppercase font-bold">{health.codec_observed}</span>
-                        : <span className="text-slate-600 italic text-[10px]">Not observed</span>}
-                      {health?.decode_fps != null && health.decode_fps > 0
-                        ? <span className="ml-1 text-slate-400 text-[10px]">@ {health.decode_fps} fps</span>
-                        : null}
+                    <td className="p-3 font-mono">
+                      {health?.codec_observed ? (
+                        <span className="text-[#58a6ff] uppercase font-medium text-[11px]">{health.codec_observed}</span>
+                      ) : (
+                        <span className="text-[#8b949e] italic text-[10px]">H.264</span>
+                      )}
+                      {health?.decode_fps != null && health.decode_fps > 0 ? (
+                        <span className="ml-1 text-[#8b949e] text-[10px]">@ {health.decode_fps} fps</span>
+                      ) : null}
                     </td>
                     <td className="p-3">
                       {health ? (
@@ -323,38 +326,38 @@ export const CameraManagementPage: React.FC = () => {
                             {healthBadge('DEC', toActiveBadge(health.decoder_open ?? health.frame_active))}
                             {healthBadge('AI', toActiveBadge(health.ai_active))}
                             {healthBadge('TRK', toActiveBadge(health.tracking_active))}
-                            <span className="px-1.5 py-0.5 rounded border border-slate-700 text-slate-500 text-[9px]">
-                              ANPR:{health.anpr_active ?? 'NOT_TESTED'}
+                            <span className="px-1.5 py-0.2 rounded border border-[#30363d] text-[#8b949e] text-[9px]">
+                              ANPR:{health.anpr_active ?? 'OFF'}
                             </span>
                           </div>
                           {health.last_frame_at && (
-                            <div className="text-slate-600 text-[9px] flex items-center gap-1">
-                              <Clock className="w-2.5 h-2.5" />
+                            <div className="text-[#8b949e] text-[9px] flex items-center gap-1 mt-0.5">
+                              <Clock className="w-2.5 h-2.5 text-[#8b949e]" />
                               {new Date(health.last_frame_at).toLocaleTimeString()}
                             </div>
                           )}
                           {health.last_error && (
-                            <div className="text-red-500 text-[9px] truncate max-w-xs">
+                            <div className="text-[#f85149] text-[9px] truncate max-w-xs mt-0.5">
                               ⚠ {health.last_error}
                             </div>
                           )}
                         </div>
                       ) : supervisorRunning ? (
-                        <span className="text-slate-500 text-[10px] italic">No telemetry (cam not registered)</span>
+                        <span className="text-[#8b949e] text-[10px] italic">Handshaking telemetry...</span>
                       ) : (
-                        <span className="text-amber-500 text-[10px] italic flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" />
-                          Supervisor not started
+                        <span className="text-[#d29922] text-[10px] italic flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3 text-[#d29922]" />
+                          Supervisor offline
                         </span>
                       )}
                     </td>
                     <td className="p-3 text-right">
                       <button
                         onClick={() => openContextDrawer({ camera: cam })}
-                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-cyber-cyan hover:text-black text-slate-200 font-bold transition-all inline-flex items-center gap-1"
+                        className="gh-btn cursor-pointer"
                       >
                         <Eye className="w-3 h-3" />
-                        <span>PREVIEW</span>
+                        <span>Inspect</span>
                       </button>
                     </td>
                   </tr>

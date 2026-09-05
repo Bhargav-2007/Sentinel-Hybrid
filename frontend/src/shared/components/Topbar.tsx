@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Bell, BellOff, Activity, User, ShieldAlert, ChevronDown } from 'lucide-react';
+import { Shield, Bell, BellOff, Activity, User, ShieldAlert, ChevronDown, Search, Lock, GitBranch, Terminal } from 'lucide-react';
 import { useAuthStore } from '../../core/auth/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useTargetStore } from '../../stores/targetStore';
 import { UserRole } from '../../core/types/auth';
 
 export const Topbar: React.FC = () => {
-  const { user, setRole } = useAuthStore();
+  const { user, setRole, logout } = useAuthStore();
   const { audioAlertsEnabled, toggleAudioAlerts } = useUIStore();
   const { activeTarget } = useTargetStore();
   const [timeStr, setTimeStr] = useState('');
+  const [dateStr, setDateStr] = useState('');
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const updateTime = () => {
       const now = new Date();
       setTimeStr(now.toTimeString().split(' ')[0] + ' IST');
-    }, 1000);
+      setDateStr(now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -28,121 +32,168 @@ export const Topbar: React.FC = () => {
       : 'SG HIGHWAY ISKCON';
 
   return (
-    <header className="h-16 bg-sentinel-900/90 backdrop-blur border-b border-slate-800 px-4 flex items-center justify-between z-30 sticky top-0">
-      {/* Brand & State Badge */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded bg-gradient-to-br from-sentinel-800 to-slate-900 border border-cyber-cyan/40 flex items-center justify-center shadow-glow-cyan">
-          <Shield className="w-6 h-6 text-cyber-cyan" />
+    <header className="h-14 bg-[#010409] border-b border-[#30363d] px-4 flex items-center justify-between z-30 sticky top-0 shrink-0 select-none">
+      {/* GitHub Repository Breadcrumbs & Mark */}
+      <div className="flex items-center gap-3 shrink-0">
+        {/* GitHub Organization Mark */}
+        <div className="w-8 h-8 rounded-md bg-[#21262d] border border-[#30363d] flex items-center justify-center text-[#f0f6fc] shadow-sm hover:border-[#8b949e] transition-colors cursor-pointer">
+          <Shield className="w-4 h-4 text-[#f0f6fc]" />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-extrabold text-sm tracking-wider font-mono bg-gradient-to-r from-white via-slate-200 to-cyber-cyan bg-clip-text text-transparent">
-              GUJARAT POLICE SENTINEL
-            </span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyber-blue/20 border border-cyber-blue/40 text-cyber-cyan font-semibold">
-              HYBRID SOC
-            </span>
-          </div>
-          <p className="text-[10px] font-mono text-slate-400">
-            State Command & Investigation Platform &bull; Innovation 2026
-          </p>
+
+        {/* GitHub Repo Breadcrumbs */}
+        <div className="flex items-center gap-1.5 text-sm font-normal">
+          <span className="text-[#58a6ff] hover:underline font-medium cursor-pointer">
+            Gujarat-Police
+          </span>
+          <span className="text-[#8b949e] font-light">/</span>
+          <span className="text-[#f0f6fc] font-semibold hover:underline cursor-pointer flex items-center gap-1.5">
+            sentinel-csitms
+          </span>
+          <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border border-[#30363d] text-[#8b949e] bg-[#161b22] ml-1">
+            Public Command
+          </span>
+          <span className="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border border-[#238636]/40 text-[#3fb950] bg-[#238636]/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#238636]"></span>
+            Sec. 65B Verified
+          </span>
         </div>
       </div>
 
-      {/* Center Ticker: APB Alert Banner — only shown for real active targets */}
-      {activeTarget && (
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded bg-cyber-crimson/15 border border-cyber-crimson/40 text-cyber-crimson font-mono text-xs font-semibold animate-pulse-fast">
-          <ShieldAlert className="w-4 h-4" />
-          <span>
-            HOTLIST APB: {activeTarget.plate} ({activeTarget.vehicleMake} {activeTarget.vehicleModel}) &bull; SIGHTED: {latestLoc.toUpperCase()}
-          </span>
-        </div>
-      )}
+      {/* Center Announcement / Hotlist APB Banner */}
+      <div className="hidden md:flex items-center justify-center px-2 flex-1 max-w-xl">
+        {activeTarget ? (
+          <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-[#da3633]/15 border border-[#da3633]/40 text-[#f85149] text-xs font-medium truncate animate-pulse">
+            <ShieldAlert className="w-3.5 h-3.5 text-[#f85149] shrink-0" />
+            <span className="truncate">
+              <strong>SECURITY ADVISORY:</strong> Hotlist{' '}
+              <span className="font-mono bg-[#0d1117] px-1.5 py-0.5 rounded border border-[#da3633]/40 text-[#f0f6fc] text-[11px]">
+                {activeTarget.plate}
+              </span>{' '}
+              at {latestLoc.toUpperCase()}
+            </span>
+          </div>
+        ) : (
+          <div className="hidden 2xl:flex items-center gap-2 px-3 py-1 rounded-md bg-[#161b22] border border-[#30363d] text-xs text-[#8b949e]">
+            <span className="w-2 h-2 rounded-full bg-[#238636]"></span>
+            <span className="text-[#c9d1d9] font-medium">30/30 Feeds Synced</span>
+            <span className="text-[#30363d]">&bull;</span>
+            <span>RTSP Gateway: 103.250.160.189:8554</span>
+          </div>
+        )}
+      </div>
 
-      {/* Right Side Controls */}
-      <div className="flex items-center gap-3">
-        {/* Command Palette Trigger */}
+      {/* Right Side GitHub Controls */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* GitHub Command Search Bar */}
         <button
           onClick={() => {
             const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
             window.dispatchEvent(event);
           }}
-          className="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-300 font-mono text-xs transition-colors"
-          title="Open Command Palette (Ctrl+K)"
+          className="h-8 hidden md:flex items-center gap-2.5 px-2.5 rounded-md bg-[#161b22] hover:bg-[#21262d] border border-[#30363d] text-[#8b949e] text-xs transition-colors cursor-pointer shadow-sm"
+          title="Search or jump to... (Ctrl+K)"
         >
-          <span className="text-cyber-cyan font-bold">⌘ Quick Search</span>
-          <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-600 text-[10px] text-slate-400 font-bold">
-            Ctrl + K
+          <Search className="w-3.5 h-3.5 text-[#8b949e]" />
+          <span className="font-normal text-[#8b949e]">
+            Type <kbd className="px-1 py-0.5 rounded bg-[#21262d] border border-[#30363d] text-[10px] text-[#c9d1d9] font-mono">/</kbd> to search
+          </span>
+          <kbd className="px-1.5 py-0.5 rounded bg-[#21262d] border border-[#30363d] text-[10px] text-[#8b949e] font-mono">
+            Ctrl+K
           </kbd>
         </button>
 
-        {/* System Pulse Indicator */}
-        <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 font-mono text-xs text-slate-300">
-          <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-          <span className="text-emerald-400 font-bold">SYSTEM OPERATIONAL</span>
-          <span className="text-slate-600">|</span>
-          <span>{timeStr || '11:35:00 IST'}</span>
+        {/* Operational Status & Clock Badge */}
+        <div className="h-8 hidden sm:flex items-center gap-2 px-2.5 rounded-md bg-[#161b22] border border-[#30363d] text-xs text-[#c9d1d9]">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#238636] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#238636]"></span>
+          </span>
+          <span className="text-[11px] font-semibold text-[#3fb950] font-mono">
+            OPERATIONAL
+          </span>
+          <span className="text-[#30363d]">|</span>
+          <span className="font-mono text-xs text-[#8b949e]">
+            {timeStr || '20:45:00 IST'}
+          </span>
         </div>
 
-        {/* Audio Alert Toggle */}
+        {/* Audio Siren Toggle */}
         <button
           onClick={toggleAudioAlerts}
-          title={audioAlertsEnabled ? 'Disable Audio Siren' : 'Enable Audio Siren'}
-          className={`p-2 rounded border transition-colors ${
+          title={audioAlertsEnabled ? 'Siren Audio Alerts: Armed' : 'Siren Audio Alerts: Muted'}
+          className={`h-8 w-8 flex items-center justify-center rounded-md border transition-colors cursor-pointer ${
             audioAlertsEnabled
-              ? 'bg-cyber-crimson/20 border-cyber-crimson/60 text-cyber-crimson'
-              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+              ? 'bg-[#da3633]/20 border-[#da3633] text-[#f85149]'
+              : 'bg-[#21262d] hover:bg-[#30363d] border-[#30363d] text-[#8b949e] hover:text-[#f0f6fc]'
           }`}
         >
-          {audioAlertsEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+          {audioAlertsEnabled ? <Bell className="w-4 h-4 text-[#f85149]" /> : <BellOff className="w-4 h-4" />}
         </button>
 
-        {/* Officer Profile & Role Switcher */}
+        {/* GitHub User Profile Avatar & Dropdown */}
         <div className="relative">
           <button
             onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded bg-slate-900 border border-slate-800 hover:border-cyber-cyan/50 text-left transition-all"
+            className="h-8 flex items-center gap-2 pl-1 pr-2 rounded-md hover:bg-[#21262d] border border-transparent hover:border-[#30363d] transition-all cursor-pointer"
           >
-            <div className="w-7 h-7 rounded-full bg-sentinel-800 border border-slate-700 flex items-center justify-center text-cyber-cyan">
-              <User className="w-4 h-4" />
+            {/* GitHub Style Circle Avatar */}
+            <div className="w-6 h-6 rounded-full bg-[#1f6feb] border border-[#30363d] flex items-center justify-center text-white text-xs font-bold font-mono">
+              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'V'}
             </div>
-            <div className="hidden md:block">
-              <p className="text-xs font-semibold text-slate-200 font-mono leading-none">{user?.full_name}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-cyber-cyan/10 text-cyber-cyan font-bold leading-tight">
-                  {user?.role}
-                </span>
-                <span className="text-[10px] font-mono text-slate-400 leading-tight">
-                  ({user?.badge_number})
-                </span>
-              </div>
+            <div className="hidden lg:flex flex-col text-left">
+              <span className="text-xs font-semibold text-[#f0f6fc] leading-tight truncate max-w-[120px]">
+                {user?.full_name ? user.full_name.toLowerCase().replace(/\s+/g, '-') : 'vikram-rathore'}
+              </span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
+            <ChevronDown className="w-3 h-3 text-[#8b949e]" />
           </button>
 
-          {/* Role Switcher Menu */}
+          {/* GitHub Style Dropdown Menu */}
           {roleDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded shadow-xl p-2 z-50">
-              <p className="text-[10px] font-mono text-slate-400 px-2 py-1 uppercase tracking-wider">
-                Switch Role (RBAC Testing)
-              </p>
-              {rolesList.map((r) => (
+            <div className="absolute right-0 mt-2 w-64 bg-[#161b22] border border-[#30363d] rounded-md shadow-2xl p-1 z-50 animate-in fade-in-50 duration-100">
+              <div className="px-3 py-2 border-b border-[#30363d]">
+                <p className="text-xs text-[#8b949e]">Signed in as</p>
+                <p className="text-xs font-semibold text-[#f0f6fc] truncate">{user?.full_name || 'Inspector Vikram Rathore'}</p>
+                <p className="text-[11px] text-[#8b949e] mt-0.5">{user?.station || 'Navrangpura PS, Ahmedabad'}</p>
+                <p className="text-[10px] font-mono text-[#d29922] mt-0.5">Badge: {user?.badge_number || 'GJ-POL-7674'}</p>
+              </div>
+
+              <div className="py-1">
+                <p className="text-[11px] font-semibold text-[#8b949e] px-3 py-1 uppercase tracking-wider">
+                  Role Clearance
+                </p>
+                {rolesList.map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => {
+                      setRole(r);
+                      setRoleDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 rounded-md text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                      user?.role === r
+                        ? 'bg-[#1f6feb] text-white font-semibold'
+                        : 'text-[#c9d1d9] hover:bg-[#21262d]'
+                    }`}
+                  >
+                    <span>{r}</span>
+                    {user?.role === r && (
+                      <span className="text-[10px] font-bold">✓ Active</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="border-t border-[#30363d] pt-1 mt-1">
                 <button
-                  key={r}
                   onClick={() => {
-                    setRole(r);
                     setRoleDropdownOpen(false);
+                    logout();
                   }}
-                  className={`w-full text-left px-2.5 py-1.5 rounded text-xs font-mono flex items-center justify-between transition-colors ${
-                    user?.role === r
-                      ? 'bg-cyber-cyan/20 text-cyber-cyan font-bold'
-                      : 'text-slate-300 hover:bg-slate-800'
-                  }`}
+                  className="w-full text-left px-3 py-1.5 rounded-md text-xs text-[#f85149] hover:bg-[#da3633]/20 transition-colors cursor-pointer font-medium"
                 >
-                  <span>{r}</span>
-                  {user?.role === r && <span className="text-[10px]">● ACTIVE</span>}
+                  Sign out
                 </button>
-              ))}
+              </div>
             </div>
           )}
         </div>

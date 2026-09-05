@@ -540,3 +540,5 @@ async def process_live_stream_frame(request: StreamFrameProcessRequest):
     )
     return await detect_full_pipeline(payload=payload)
 
+# GPU acceleration & License Plate YOLO active
+

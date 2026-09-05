@@ -53,85 +53,87 @@ export const StatewideMapPage: React.FC = () => {
       : 0;
 
   return (
-    <div className="space-y-4 h-[calc(100vh-6rem)] flex flex-col font-mono">
+    <div className="space-y-4 h-[calc(100vh-6rem)] flex flex-col font-sans">
       {/* Map Header & Filter Controls Bar */}
-      <div className="p-3 rounded bg-sentinel-900/90 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3.5 rounded-lg bg-police-navy/95 border border-police-sky/20 shadow-sm flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-cyber-blue/10 border border-cyber-blue/30 text-cyber-cyan">
+          <div className="p-2.5 rounded-lg bg-police-blue/15 border border-police-sky/30 text-police-sky shadow-inner">
             <MapPin className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white flex items-center gap-2">
-              <span>Statewide GIS Tactical Surveillance Map</span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-base font-bold text-white tracking-tight">
+                Statewide Tactical GIS Surveillance Grid
+              </h1>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-police-blue/20 border border-police-sky/30 text-police-sky font-semibold tracking-wider font-mono uppercase">
                 POSTGIS LIVE
               </span>
-            </h1>
-            <p className="text-xs text-slate-400">
-              Corridor Vector Grid &bull; 30 Active Node Checkpoints Across Gujarat &bull; Dynamic Pursuit Flight Path
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Corridor Vector Mesh &bull; 30 High-Value Junction Nodes Across Gujarat &bull; Dynamic Intercept Vectors
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {/* Target Route Toggle */}
           <button
             onClick={() => setShowTargetRoute(!showTargetRoute)}
-            className={`px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all border shadow-sm cursor-pointer ${
               showTargetRoute
-                ? 'bg-cyber-crimson text-white border-cyber-crimson shadow-glow-crimson'
-                : 'bg-slate-950 text-slate-400 border-slate-700 hover:text-white'
+                ? 'bg-red-800 text-white border-red-600'
+                : 'bg-police-navy text-slate-300 border-police-sky/20 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Navigation className="w-3.5 h-3.5" />
-            <span>{showTargetRoute ? 'TARGET ROUTE ACTIVE' : 'SHOW TARGET ROUTE'}</span>
+            <span>{showTargetRoute ? 'PURSUIT VECTOR ACTIVE' : 'ENABLE PURSUIT VECTOR'}</span>
           </button>
 
           {/* Department Filter */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan"
+              className="bg-police-navy border border-police-sky/30 rounded-md px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-police-sky cursor-pointer font-sans"
             >
-              <option value="ALL">All 5 Departments</option>
-              <option value="POLICE">Police / Home</option>
-              <option value="GSRTC">GSRTC Transport</option>
-              <option value="MUNICIPAL">Municipal Corp</option>
-              <option value="HEALTH">Health Dept</option>
-              <option value="PANCHAYAT">Panchayat & Rural</option>
+              <option value="ALL">All Departments (5)</option>
+              <option value="POLICE">Gujarat Police (Home Dept)</option>
+              <option value="GSRTC">GSRTC State Transport</option>
+              <option value="MUNICIPAL">Municipal Corporations</option>
+              <option value="HEALTH">Health &amp; Emergency</option>
+              <option value="PANCHAYAT">Panchayat &amp; Rural</option>
             </select>
           </div>
 
           {/* District Filter */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <select
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan"
+              className="bg-police-navy border border-police-sky/30 rounded-md px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-police-sky cursor-pointer font-sans"
             >
               <option value="ALL">All Gujarat Districts</option>
-              <option value="Ahmedabad">Ahmedabad</option>
-              <option value="Surat">Surat</option>
-              <option value="Vadodara">Vadodara</option>
-              <option value="Gandhinagar">Gandhinagar</option>
-              <option value="Rajkot">Rajkot</option>
+              <option value="Ahmedabad">Ahmedabad Commissionorate</option>
+              <option value="Surat">Surat Commissionorate</option>
+              <option value="Vadodara">Vadodara Commissionorate</option>
+              <option value="Gandhinagar">Gandhinagar Capital</option>
+              <option value="Rajkot">Rajkot Commissionorate</option>
               <option value="Bhavnagar">Bhavnagar</option>
             </select>
           </div>
 
           {/* Radar Radius Slider */}
-          <div className="flex items-center gap-2 text-xs text-slate-300">
-            <Radar className="w-4 h-4 text-cyber-cyan animate-spin" />
-            <span>Radar: {radiusKm} km</span>
+          <div className="flex items-center gap-2 text-xs text-slate-300 font-sans">
+            <Radar className="w-4 h-4 text-police-sky" />
+            <span>Range: {radiusKm} km</span>
             <input
               type="range"
               min="5"
               max="50"
               value={radiusKm}
               onChange={(e) => setRadiusKm(Number(e.target.value))}
-              className="w-20 accent-cyber-cyan cursor-pointer"
+              className="w-20 accent-police-sky cursor-pointer"
             />
           </div>
         </div>
@@ -139,39 +141,39 @@ export const StatewideMapPage: React.FC = () => {
 
       {/* Active Target Pursuit Telemetry Banner */}
       {showTargetRoute && activeTarget && (
-        <div className="p-3 rounded bg-slate-950 border border-cyber-crimson/50 flex flex-wrap items-center justify-between gap-3 text-xs shadow-lg animate-fadeIn">
+        <div className="p-3 rounded-lg bg-police-navy/95 border border-red-600/50 flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm animate-fadeIn">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 rounded bg-red-950 text-cyber-crimson border border-red-800 animate-pulse">
+            <div className="p-2 rounded-md bg-red-950/80 text-red-400 border border-red-500/40">
               <Crosshair className="w-4 h-4" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-white">{activeTarget.vehicleMake} {activeTarget.vehicleModel}</span>
-                <span className="bg-yellow-400 text-black px-1.5 py-0.2 rounded font-extrabold text-[11px]">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="font-bold text-white font-sans">{activeTarget.vehicleMake} {activeTarget.vehicleModel}</span>
+                <span className="bg-black text-amber-300 border border-amber-500/60 px-2 py-0.5 rounded font-mono font-extrabold text-xs tracking-wider">
                   {activeTarget.plate}
                 </span>
-                <span className="text-[10px] text-cyber-crimson font-bold border border-cyber-crimson px-1.5 rounded bg-red-950/40">
+                <span className="text-[10px] text-red-300 font-bold border border-red-500/40 px-2 py-0.5 rounded-full bg-red-950/60 font-mono uppercase">
                   {activeTarget.status}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
-                FIR: {activeTarget.firNo} &bull; {activeTarget.policeStation} &bull; Officer: {activeTarget.officerName}
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                FIR: <b className="text-slate-300 font-mono">{activeTarget.firNo}</b> &bull; {activeTarget.policeStation} &bull; Officer: {activeTarget.officerName}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-4 text-xs font-mono">
             <div className="flex items-center gap-1.5 text-slate-300">
-              <Navigation className="w-3.5 h-3.5 text-cyber-cyan" />
-              <span>Corridor Nodes: <b className="text-cyber-cyan">{trajectory.length} Checkpoints</b></span>
+              <Navigation className="w-3.5 h-3.5 text-police-sky" />
+              <span>Corridor Nodes: <b className="text-police-sky">{trajectory.length} Checkpoints</b></span>
             </div>
             <div className="flex items-center gap-1.5 text-slate-300">
-              <Gauge className="w-3.5 h-3.5 text-yellow-400" />
-              <span>Avg Speed: <b className="text-yellow-400">{avgSpeed} km/h</b></span>
+              <Gauge className="w-3.5 h-3.5 text-amber-400" />
+              <span>Avg Speed: <b className="text-amber-300">{avgSpeed} km/h</b></span>
             </div>
             <div className="flex items-center gap-1.5 text-slate-300">
               <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Telemetry: <b className="text-emerald-400">Synchronized</b></span>
+              <span>Telemetry: <b className="text-emerald-400 font-sans font-semibold">Synchronized</b></span>
             </div>
           </div>
         </div>

@@ -45,22 +45,23 @@ async def lifespan(app: FastAPI):
     # 2. Connect to Redis
     await redis_manager.connect()
 
-    # 3. Auto-onboard 50 Sentinel cameras
+    # 3. Dynamic Catalogue Ingestion & Sync (no hardcoded cameras)
+    live_catalogue = []
     try:
         async with AsyncSessionLocal() as session:
-            await camera_service.onboard_50_sentinel_cameras(session)
+            live_catalogue = await camera_service.discover_and_sync_catalogue(session)
+            logger.info(f"✓ Dynamic catalogue synchronized: {len(live_catalogue)} streams discovered.")
     except Exception as e:
-        logger.warning(f"Camera auto-onboarding notice: {e}")
+        logger.warning(f"Dynamic catalogue sync notice: {e}")
 
-    # 4. Start Stream Supervisor (load cameras from DB, spawn workers)
+    # 4. Start Stream Supervisor using dynamically discovered catalogue
     try:
         from app.services.stream_supervisor import stream_supervisor, CameraPriority
-        from app.adapters.sentinel_feed_adapter import sentinel_feed_adapter
 
-        # Build authenticated RTSP URLs for cam01..cam30 (the live fleet)
-        logger.info("Starting Stream Supervisor for live CCTV fleet...")
-        cam_ids = [f"cam{i:02d}" for i in range(1, 31)]
-        for cam_tag in cam_ids:
+        logger.info("Starting Stream Supervisor for dynamic CCTV fleet...")
+        for cam_entry in live_catalogue:
+            cam_id = str(cam_entry.get("stream_id") or cam_entry.get("id", "1")).replace("stream/", "")
+            cam_tag = f"cam{int(cam_id):02d}" if cam_id.isdigit() else cam_id
             rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
             stream_supervisor.register_camera(
                 camera_id=cam_tag,
@@ -69,11 +70,10 @@ async def lifespan(app: FastAPI):
                 priority=CameraPriority.NORMAL,
             )
 
-        # Start with AI pool size of 8 (CPU-bound: handles 30 cam × 2 FPS = 60 fps demand)
-        ai_pool_size = int(os.environ.get("SENTINEL_AI_POOL_SIZE", "8"))
-        stream_supervisor.start_all(pool_size=ai_pool_size)
+        ai_pool_size = int(os.environ.get("SENTINEL_AI_POOL_SIZE", "2"))
+        stream_supervisor.start_all(pool_size=ai_pool_size, initial_active_count=6)
         logger.info(
-            f"✓ Stream Supervisor started: {len(cam_ids)} cameras registered, "
+            f"✓ Stream Supervisor started: {len(live_catalogue)} cameras registered dynamically, "
             f"AI pool size={ai_pool_size}."
         )
     except Exception as sup_err:
@@ -166,6 +166,32 @@ async def serve_soc_dashboard():
             html_content = f.read()
         return HTMLResponse(content=html_content)
     return HTMLResponse("<h2>Gujarat Sentinel SOC Dashboard loading...</h2>")
+
+
+@app.get("/api/ingest", tags=["Catalogue Ingestion"], summary="Sentinel-Compatible /api/ingest Discovery Endpoint")
+async def get_ingest_catalogue():
+    """
+    Official Sentinel Sandbox /api/ingest endpoint.
+    Returns the dynamic camera catalogue with RTSP, WHEP, and HLS endpoints, codecs, and stream properties.
+    The catalogue is the contract.
+    """
+    async with AsyncSessionLocal() as session:
+        return await camera_service.get_ingest_catalogue(session)
+
+
+@app.get("/api/ingest/{stream_id}", tags=["Catalogue Ingestion"], summary="Get Stream Details by ID")
+async def get_stream_details(stream_id: str):
+    """Returns details for a specific stream from the dynamic catalogue."""
+    async with AsyncSessionLocal() as session:
+        catalogue = await camera_service.get_ingest_catalogue(session)
+        for cam in catalogue:
+            if (
+                str(cam.get("stream_id")) == stream_id
+                or cam.get("id") == f"stream/{stream_id}"
+                or cam.get("camera_id") == stream_id
+            ):
+                return cam
+        return JSONResponse(status_code=404, content={"error": f"Stream {stream_id} not found in catalogue"})
 
 
 @app.get("/", tags=["Health & Status"])

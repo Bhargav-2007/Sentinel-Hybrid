@@ -78,19 +78,24 @@ export const AnalyticsPage: React.FC = () => {
   const dbDetections = anprStats?.database_records?.total_detections ?? 0;
 
   return (
-    <div className="space-y-4 font-mono text-xs text-slate-200">
+    <div className="space-y-4 font-sans text-xs text-slate-100">
       {/* Header */}
-      <div className="p-4 rounded bg-sentinel-900/90 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+      <div className="p-4 rounded-lg bg-police-navy/95 border border-police-sky/20 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded bg-cyan-950 border border-cyber-cyan/30 text-cyber-cyan">
+          <div className="p-2.5 rounded-lg bg-police-blue/15 border border-police-sky/30 text-police-sky shadow-inner">
             <BarChart3 className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white tracking-wide">
-              Real-Time AI Vision & Computer Vision Analytics
-            </h1>
-            <p className="text-[11px] text-slate-400">
-              Statewide ANPR Ingestion Telemetry &bull; YOLOv8 Vehicle Classifiers &bull; Live Camera Node Health
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-base font-bold text-white tracking-tight">
+                Statewide Computer Vision &amp; ANPR Telemetry
+              </h1>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-police-blue/20 border border-police-sky/30 text-police-sky font-semibold tracking-wider font-mono uppercase">
+                AI METRICS
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              CSITMS Edge Telemetry &bull; YOLOv8 Neural Inference &bull; Section 65B Audit Registry
             </p>
           </div>
         </div>
@@ -98,41 +103,41 @@ export const AnalyticsPage: React.FC = () => {
         <button
           onClick={() => refetchStats()}
           disabled={isLoadingStats}
-          className="px-3.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-cyber-cyan font-bold flex items-center gap-1.5 transition-all border border-slate-700 cursor-pointer disabled:opacity-50"
+          className="px-3.5 py-1.5 rounded-md bg-police-navy border border-police-sky/30 hover:bg-police-blue hover:text-white text-police-sky font-semibold flex items-center gap-1.5 transition-all text-xs shadow-sm cursor-pointer disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoadingStats ? 'animate-spin' : ''}`} />
-          <span>REFRESH TELEMETRY</span>
+          <span>SYNC TELEMETRY</span>
         </button>
       </div>
 
       {/* Primary KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-1 relative overflow-hidden">
-          <div className="flex justify-between items-center text-slate-400 text-[10px] uppercase font-bold">
+        <div className="p-4 rounded-lg bg-police-navy/80 border border-police-sky/20 space-y-1 relative overflow-hidden shadow-sm">
+          <div className="flex justify-between items-center text-slate-400 text-[10px] uppercase font-semibold">
             <span>Database Detections</span>
-            <Layers className="w-3.5 h-3.5 text-cyber-cyan" />
+            <Layers className="w-4 h-4 text-police-sky" />
           </div>
-          <p className="text-2xl font-bold text-cyber-cyan">{dbDetections.toLocaleString()}</p>
-          <p className="text-[10px] text-slate-500">
+          <p className="text-2xl font-bold font-mono text-police-sky">{dbDetections.toLocaleString()}</p>
+          <p className="text-[10px] text-slate-400 font-sans">
             {dbDetections === 0 ? 'Awaiting edge plate detections' : 'Section 65B chained records'}
           </p>
         </div>
 
-        <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-1 relative overflow-hidden">
-          <div className="flex justify-between items-center text-slate-400 text-[10px] uppercase font-bold">
+        <div className="p-4 rounded-lg bg-police-navy/80 border border-police-sky/20 space-y-1 relative overflow-hidden shadow-sm">
+          <div className="flex justify-between items-center text-slate-400 text-[10px] uppercase font-semibold">
             <span>ANPR Processing Feeds</span>
-            <Camera className="w-3.5 h-3.5 text-yellow-400" />
+            <Camera className="w-4 h-4 text-amber-400" />
           </div>
-          <p className="text-2xl font-bold text-yellow-400">
+          <p className="text-2xl font-bold font-mono text-amber-300">
             {anprStats?.active_anpr_feeds ?? totalCameras} Feeds
           </p>
-          <p className="text-[10px] text-slate-500">MediaMTX Gateway (103.250.160.189)</p>
+          <p className="text-[10px] text-slate-400 font-sans font-mono">MediaMTX (103.250.160.189)</p>
         </div>
 
-        <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-1 relative overflow-hidden">
-          <div className="flex justify-between items-center text-slate-400 text-[10px] uppercase font-bold">
-            <span>Model 2 AI Engine</span>
-            <Cpu className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="p-4 rounded-lg bg-police-navy/80 border border-police-sky/20 space-y-1 relative overflow-hidden shadow-sm">
+          <div className="flex justify-between items-center text-slate-400 text-[10px] uppercase font-semibold">
+            <span>AI Neural Engine</span>
+            <Cpu className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="flex items-center gap-2">
             <span
@@ -140,25 +145,25 @@ export const AnalyticsPage: React.FC = () => {
                 isModel2Online ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
               }`}
             />
-            <p className="text-lg font-bold text-white">
-              {isModel2Online ? 'ONLINE' : 'STANDBY / OFFLINE'}
+            <p className="text-base font-bold text-white font-mono">
+              {isModel2Online ? 'ONLINE' : 'STANDBY'}
             </p>
           </div>
-          <p className="text-[10px] text-slate-500">
-            Device: {anprStats?.device || 'CPU / CUDA'} &bull; Latency: {anprStats?.avg_latency_ms || 19.0}ms
+          <p className="text-[10px] text-slate-400 font-mono">
+            {anprStats?.device?.toUpperCase() || 'CUDA / GPU'} &bull; Latency: {anprStats?.avg_latency_ms || 19.0}ms
           </p>
         </div>
 
-        <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-1 relative overflow-hidden">
-          <div className="flex justify-between items-center text-slate-400 text-[10px] uppercase font-bold">
+        <div className="p-4 rounded-lg bg-police-navy/80 border border-police-sky/20 space-y-1 relative overflow-hidden shadow-sm">
+          <div className="flex justify-between items-center text-slate-400 text-[10px] uppercase font-semibold">
             <span>State Camera Matrix</span>
-            <Activity className="w-3.5 h-3.5 text-emerald-400" />
+            <Activity className="w-4 h-4 text-emerald-400" />
           </div>
-          <p className="text-2xl font-bold text-emerald-400">
+          <p className="text-2xl font-bold font-mono text-emerald-400">
             {activeCameras} / {totalCameras} Active
           </p>
-          <p className="text-[10px] text-slate-500">
-            {offlineCameras > 0 ? `${offlineCameras} Offline Node(s)` : '100% Operational Grid'}
+          <p className="text-[10px] text-slate-400 font-sans">
+            {offlineCameras > 0 ? `${offlineCameras} Node(s) Offline` : '100% Operational Grid'}
           </p>
         </div>
       </div>
@@ -219,9 +224,9 @@ export const AnalyticsPage: React.FC = () => {
       {/* Camera Distribution Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* District Allocation */}
-        <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-3">
-          <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Building className="w-4 h-4 text-cyber-cyan" />
+        <div className="p-4 rounded-lg bg-police-navy/80 border border-police-sky/20 space-y-3 shadow-sm">
+          <div className="flex items-center gap-2 border-b border-police-sky/15 pb-2">
+            <Building className="w-4 h-4 text-police-sky" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
               Camera Deployment by Police District
             </h2>
@@ -239,13 +244,13 @@ export const AnalyticsPage: React.FC = () => {
                   <div key={district} className="space-y-1">
                     <div className="flex justify-between items-center text-[11px]">
                       <span className="text-slate-300 font-semibold">{district}</span>
-                      <span className="text-cyber-cyan font-bold">
+                      <span className="text-police-sky font-bold font-mono">
                         {count} Camera{count > 1 ? 's' : ''} ({pct}%)
                       </span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                    <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-police-sky/20">
                       <div
-                        className="h-full bg-gradient-to-r from-cyber-cyan to-blue-500 rounded-full transition-all"
+                        className="h-full bg-gradient-to-r from-police-navy via-police-blue to-police-sky rounded-full transition-all"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -257,9 +262,9 @@ export const AnalyticsPage: React.FC = () => {
         </div>
 
         {/* Operational Departments */}
-        <div className="p-4 rounded bg-sentinel-900 border border-slate-800 space-y-3">
-          <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Zap className="w-4 h-4 text-yellow-400" />
+        <div className="p-4 rounded-lg bg-police-navy/80 border border-police-sky/20 space-y-3 shadow-sm">
+          <div className="flex items-center gap-2 border-b border-police-sky/15 pb-2">
+            <Zap className="w-4 h-4 text-amber-400" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
               Inter-Departmental Allocation Breakdown
             </h2>
@@ -277,13 +282,13 @@ export const AnalyticsPage: React.FC = () => {
                   <div key={dept} className="space-y-1">
                     <div className="flex justify-between items-center text-[11px]">
                       <span className="text-slate-300 font-semibold">{dept}</span>
-                      <span className="text-yellow-400 font-bold">
+                      <span className="text-amber-300 font-bold font-mono">
                         {count} Node{count > 1 ? 's' : ''} ({pct}%)
                       </span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                    <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-police-sky/20">
                       <div
-                        className="h-full bg-gradient-to-r from-yellow-500 to-amber-600 rounded-full transition-all"
+                        className="h-full bg-gradient-to-r from-amber-700 via-amber-500 to-amber-400 rounded-full transition-all"
                         style={{ width: `${pct}%` }}
                       />
                     </div>

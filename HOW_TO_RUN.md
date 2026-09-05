@@ -144,3 +144,24 @@ python -m pytest ai-detection/tests -v
 # Run frontend type-check & build:
 cd frontend && npm run build
 ```
+
+---
+
+## ⚠️ Troubleshooting: `[WinError 10013]` (Port Already In Use)
+
+If you see:
+```text
+ERROR: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions
+```
+This means another process is already listening on that port (usually port `8000` or `8006`).
+
+**To free port 8000 instantly in PowerShell:**
+```powershell
+Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+```
+
+**To free port 8006:**
+```powershell
+Get-NetTCPConnection -LocalPort 8006 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+```
+

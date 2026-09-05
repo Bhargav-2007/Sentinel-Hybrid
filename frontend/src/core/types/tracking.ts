@@ -34,6 +34,7 @@ export interface VahanDossier {
   insurance_valid_upto: string;
   puc_valid_upto: string;
   rto_location: string;
+  registered_district?: string;
   chassis_number: string;
   engine_number: string;
   blacklist_status: string;
@@ -60,4 +61,6 @@ export interface Vehicle360Dossier {
   sightings_history: TrajectoryPoint[];
   threat_score: number;
   priority: string;
+  latest_snapshot_url?: string;
+  latest_alert_id?: string;
 }

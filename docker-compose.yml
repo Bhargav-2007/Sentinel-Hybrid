@@ -641,6 +641,7 @@ services:
       MODEL2_URL: http://model2:8002
       MODEL3_URL: http://model3:8003
       MODEL4_URL: http://model4:8004
+      ORCHESTRATOR_URL: http://orchestrator:8000
       KEYCLOAK_URL: http://keycloak:8080
       OPA_URL: http://opa:8181
     ports:

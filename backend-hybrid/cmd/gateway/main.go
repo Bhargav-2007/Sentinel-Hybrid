@@ -157,6 +157,8 @@ func main() {
 	mountProxy("/api/v1/cross-department", cfg.Orchestrator)
 	mountProxy("/api/v1/external-gateways", cfg.Orchestrator)
 	mountProxy("/api/v1/metrics/performance", cfg.Orchestrator)
+	mountProxy("/api/v1/evidence", cfg.Orchestrator)
+	mountProxy("/api/v1/orchestrator", cfg.Orchestrator)
 
 	// Model 2: Unified Viewer & ANPR
 	mountProxy("/api/v1/anpr", cfg.Model2)

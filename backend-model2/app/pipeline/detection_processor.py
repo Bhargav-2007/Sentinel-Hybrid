@@ -445,10 +445,150 @@ class DetectionProcessor:
         record: ANPRDetection,
         watchlist_hit: dict[str, Any] | None,
     ) -> None:
-        """Publish detection event to Kafka."""
-        # Kafka publishing follows same pattern as Model 1
-        # Deferred to Kafka publisher module (shared pattern)
-        pass
+        """
+        Publish detection CloudEvent to Kafka sentinel.detection.events topic.
+
+        Falls back to direct HTTP POST to Orchestrator /orchestrator/ingest-detection
+        when Kafka is unavailable (dev/demo mode without full Docker stack).
+        This ensures the Detection → Alert → WebSocket → Frontend chain always fires.
+        """
+        import json
+        from datetime import datetime, timezone
+
+        event_payload = {
+            "specversion": "1.0",
+            "type": "sentinel.anpr.detection",
+            "source": f"model2/stream/{record.stream_id}",
+            "id": str(detection_id),
+            "time": datetime.now(timezone.utc).isoformat(),
+            "datacontenttype": "application/json",
+            "data": {
+                "detection_id": str(detection_id),
+                "camera_id": record.camera_id,
+                "stream_id": record.stream_id,
+                "plate_number": record.plate_number,
+                "plate_number_normalised": record.plate_number_normalised,
+                "confidence": record.confidence,
+                "timestamp": record.timestamp.isoformat() if record.timestamp else None,
+                "pts_ms": record.pts_ms,
+                "vehicle_type": record.vehicle_type,
+                "vehicle_color": record.vehicle_color,
+                "district": record.district,
+                "latitude": record.latitude,
+                "longitude": record.longitude,
+                "is_stolen": record.is_stolen,
+                "is_blacklisted": record.is_blacklisted,
+                "snapshot_url": record.snapshot_url,
+                "watchlist_hit": watchlist_hit,
+            },
+        }
+
+        kafka_published = False
+
+        # ── 1. Try Kafka first ─────────────────────────────────────────────
+        try:
+            from aiokafka import AIOKafkaProducer
+
+            producer = AIOKafkaProducer(
+                bootstrap_servers=self.settings.kafka_bootstrap_servers,
+                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+            )
+            await producer.start()
+            try:
+                await producer.send_and_wait(
+                    self.settings.topic_detection_events,
+                    value=event_payload,
+                    key=record.plate_number_normalised.encode("utf-8") if record.plate_number_normalised else None,
+                )
+                kafka_published = True
+                logger.info(
+                    "detection_event_published_kafka",
+                    detection_id=str(detection_id),
+                    plate=record.plate_number,
+                    topic=self.settings.topic_detection_events,
+                )
+
+                # Also publish alert event if watchlist hit
+                if watchlist_hit:
+                    alert_event = {
+                        **event_payload,
+                        "type": "sentinel.watchlist.alert",
+                        "data": {
+                            **event_payload["data"],
+                            "alert_priority": watchlist_hit.get("priority", "medium"),
+                            "alert_type": watchlist_hit.get("type", "watchlist_match"),
+                            "case_number": watchlist_hit.get("case_number"),
+                        },
+                    }
+                    await producer.send_and_wait(
+                        self.settings.topic_alert_events,
+                        value=alert_event,
+                        key=record.plate_number_normalised.encode("utf-8") if record.plate_number_normalised else None,
+                    )
+                    logger.warning(
+                        "alert_event_published_kafka",
+                        plate=record.plate_number,
+                        priority=watchlist_hit.get("priority"),
+                    )
+            finally:
+                await producer.stop()
+
+        except asyncio.CancelledError:
+            raise
+        except Exception as kafka_err:
+            logger.warning(
+                "kafka_publish_failed_using_http_fallback",
+                error=str(kafka_err)[:200],
+                plate=record.plate_number,
+            )
+
+        # ── 2. HTTP fallback to Orchestrator (works without Kafka/Docker) ──
+        if not kafka_published:
+            try:
+                orchestrator_url = getattr(
+                    self.settings,
+                    "orchestrator_url",
+                    "http://localhost:8005",
+                )
+                ingest_url = f"{orchestrator_url}/api/v1/orchestrator/ingest-detection"
+
+                payload = {
+                    "camera_id": record.camera_id or record.stream_id,
+                    "camera_name": f"Camera {record.camera_id}",
+                    "district": record.district or "Gujarat",
+                    "latitude": record.latitude or 23.0225,
+                    "longitude": record.longitude or 72.5714,
+                    "detected_plate": record.plate_number,
+                    "confidence_score": record.confidence or 0.0,
+                    "vehicle_type": record.vehicle_type or "CAR",
+                    "vehicle_color": record.vehicle_color,
+                    "pts_timestamp_ms": record.pts_ms,
+                    "snapshot_url": record.snapshot_url,
+                }
+
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    resp = await client.post(ingest_url, json=payload)
+                    if resp.status_code in (200, 201):
+                        logger.info(
+                            "detection_event_forwarded_orchestrator",
+                            detection_id=str(detection_id),
+                            plate=record.plate_number,
+                            status=resp.status_code,
+                        )
+                    else:
+                        logger.warning(
+                            "orchestrator_ingest_unexpected_status",
+                            status=resp.status_code,
+                            plate=record.plate_number,
+                        )
+            except asyncio.CancelledError:
+                raise
+            except Exception as http_err:
+                logger.warning(
+                    "http_fallback_to_orchestrator_failed",
+                    error=str(http_err)[:200],
+                    plate=record.plate_number,
+                )
 
     async def refresh_watchlist(self) -> int:
         """Force-refresh the watchlist cache. Returns new cache size."""

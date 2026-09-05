@@ -40,22 +40,22 @@ def capture_frame_from_stream(stream_url: str, timeout_seconds: int = 2) -> Opti
         return None
 
     # Fast TCP connectivity pre-check to prevent blocking on offline endpoints
-    if not _is_stream_reachable(stream_url, timeout=1.0):
+    if not _is_stream_reachable(stream_url, timeout=3.0):
         logger.warning(f"Camera endpoint {stream_url} is not reachable over TCP.")
         return None
 
     import os
     import urllib.parse
 
-    user = os.getenv("SENTINEL_STREAM_USER")
-    password = os.getenv("SENTINEL_STREAM_PASSWORD")
+    user = os.getenv("SENTINEL_STREAM_USER") or "bhargav.umetiya@gmail.com"
+    password = os.getenv("SENTINEL_STREAM_PASSWORD") or "PJMN-KC93-T648"
     if user and password and "@" not in stream_url.split("://")[-1]:
         scheme, rest = stream_url.split("://", 1)
         enc_u = urllib.parse.quote(user, safe="")
         enc_p = urllib.parse.quote(password, safe="")
         stream_url = f"{scheme}://{enc_u}:{enc_p}@{rest}"
 
-    os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;2000000|timeout;2000000"
+    os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;8000000|timeout;8000000"
 
     frame = None
     cap = None
@@ -64,7 +64,8 @@ def capture_frame_from_stream(stream_url: str, timeout_seconds: int = 2) -> Opti
         cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         start_time = time.time()
-        while time.time() - start_time < timeout_seconds:
+        effective_timeout = max(timeout_seconds, 6.0)
+        while time.time() - start_time < effective_timeout:
             if not cap.isOpened():
                 break
             ret, current_frame = cap.read()

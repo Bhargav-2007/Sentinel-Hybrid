@@ -79,6 +79,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as e:
             logger.warning("db_table_creation_warning", error=str(e))
 
+    # Sync official Sentinel /api/ingest catalogue into PostGIS/database
+    try:
+        from app.services.catalogue_sync import sync_catalogue_into_registry
+        synced = await sync_catalogue_into_registry()
+        logger.info("catalogue_sync_completed", count=synced)
+    except Exception as e:
+        logger.warning("catalogue_sync_notice", error=str(e))
+
     # Pre-warm Kafka producer
     try:
         await get_producer()
@@ -93,6 +101,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     health_poller_task = asyncio.create_task(start_health_poller())
     logger.info("health_poller_started")
+
+    # Periodic catalogue resync every 5 minutes (picks up new cameras from sandbox)
+    async def _periodic_catalogue_resync():
+        while True:
+            await asyncio.sleep(300)  # 5 minutes
+            try:
+                from app.services.catalogue_sync import sync_catalogue_into_registry
+                count = await sync_catalogue_into_registry()
+                logger.info("periodic_catalogue_resync", synced=count)
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                logger.warning("periodic_resync_error", error=str(e)[:100])
+
+    resync_task = asyncio.create_task(_periodic_catalogue_resync())
+    logger.info("periodic_catalogue_resync_started", interval_sec=300)
 
     logger.info(
         "sentinel_model1_ready",
@@ -109,6 +133,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     health_poller_task.cancel()
     try:
         await health_poller_task
+    except asyncio.CancelledError:
+        pass
+
+    resync_task.cancel()
+    try:
+        await resync_task
     except asyncio.CancelledError:
         pass
 

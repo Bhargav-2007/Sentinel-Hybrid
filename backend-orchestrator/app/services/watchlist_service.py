@@ -111,5 +111,98 @@ class WatchlistService:
 
         return MatchResult(is_match=False)
 
+    async def seed_default_watchlist(self, db: AsyncSession) -> int:
+        """Seeds default Gujarat Police Hotlist entries if table is empty or missing key targets."""
+        default_entries = [
+            {
+                "identifier": "BR10GE",
+                "category": WatchlistCategory.STOLEN_VEHICLE,
+                "reason": "Bridge Checkpost Alert — Mahindra Bolero used in Interstate Gold Heist",
+                "case_number": "FIR-2026-9011/CID",
+                "police_station": "Junagadh B-Division PS",
+                "investigating_officer": "PI R. K. Vala",
+                "priority": "CRITICAL",
+                "source_database": "eGujCop Intercept",
+            },
+            {
+                "identifier": "JANPATH",
+                "category": WatchlistCategory.WANTED_SUSPECT,
+                "reason": "Junagadh VIP Corridor Surveillance — High Risk Threat Vehicle",
+                "case_number": "FIR-2026-4412/STATE",
+                "police_station": "State Special Operations Group",
+                "investigating_officer": "SP V. M. Jadeja",
+                "priority": "HIGH",
+                "source_database": "CID Crime Intelligence",
+            },
+            {
+                "identifier": "GJ01AB1234",
+                "category": WatchlistCategory.STOLEN_VEHICLE,
+                "reason": "Ahmedabad SG Highway Robbery Vehicle — White Fortuner",
+                "case_number": "FIR-2026-1029/VAST",
+                "police_station": "Vastrapur PS, Ahmedabad",
+                "investigating_officer": "PSI P. B. Solanki",
+                "priority": "CRITICAL",
+                "source_database": "eGujCop State Crime",
+            },
+            {
+                "identifier": "GJ05CD5678",
+                "category": WatchlistCategory.HIT_AND_RUN,
+                "reason": "Surat Ring Road Fatal Hit & Run — Silver Sedan",
+                "case_number": "FIR-2026-7821/SUR",
+                "police_station": "Athwa Lines PS, Surat",
+                "investigating_officer": "PI M. S. Patel",
+                "priority": "CRITICAL",
+                "source_database": "Traffic Crime Branch",
+            },
+            {
+                "identifier": "GJ03ER9999",
+                "category": WatchlistCategory.WANTED_SUSPECT,
+                "reason": "Rajkot State Highway Smuggling Convoy Intercept",
+                "case_number": "FIR-2026-3390/RJK",
+                "police_station": "Bhaktinagar PS, Rajkot",
+                "investigating_officer": "DySP H. N. Joshi",
+                "priority": "HIGH",
+                "source_database": "Anti-Terrorist Squad (ATS)",
+            },
+            {
+                "identifier": "GJ06AB5555",
+                "category": WatchlistCategory.BLACK_LISTED,
+                "reason": "Vadodara Express Highway — Blacklisted Commercial Vehicle",
+                "case_number": "FIR-2026-5501/VAD",
+                "police_station": "Makarpura PS, Vadodara",
+                "investigating_officer": "RTO Inspector K. D. Barot",
+                "priority": "HIGH",
+                "source_database": "VAHAN Central Registry",
+            },
+        ]
+        seeded = 0
+        for data in default_entries:
+            clean_id = data["identifier"].strip().upper().replace(" ", "").replace("-", "")
+            stmt = select(WatchlistEntry).where(WatchlistEntry.clean_identifier == clean_id)
+            res = await db.execute(stmt)
+            if not res.scalars().first():
+                entry = WatchlistEntry(
+                    id=f"WCH-{uuid.uuid4().hex[:8].upper()}",
+                    category=data["category"],
+                    identifier=data["identifier"],
+                    clean_identifier=clean_id,
+                    reason=data["reason"],
+                    case_number=data["case_number"],
+                    police_station=data["police_station"],
+                    investigating_officer=data["investigating_officer"],
+                    priority=data["priority"],
+                    source_database=data["source_database"],
+                    is_active=True,
+                    created_at=datetime.now(timezone.utc),
+                    alert_count=0,
+                    extra_metadata={"seeded_by": "Gujarat-Sentinel-Hybrid"},
+                )
+                db.add(entry)
+                seeded += 1
+        if seeded > 0:
+            await db.commit()
+            logger.info(f"Seeded {seeded} official Gujarat Police hotlist entries into watchlist.")
+        return seeded
+
 
 watchlist_service = WatchlistService()

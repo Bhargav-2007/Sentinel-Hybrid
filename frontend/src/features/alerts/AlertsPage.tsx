@@ -13,18 +13,58 @@ import {
   Filter,
   CheckCheck,
   Tag,
+  FileText,
+  Download,
 } from 'lucide-react';
 import { alertsApi } from '../../core/api/alertsApi';
 import { useUIStore } from '../../stores/uiStore';
 import { ThreatAlert } from '../../core/types/alert';
 import { playRiskAlertSiren } from '../../shared/utils/alertSiren';
 import { apiClient } from '../../core/api/client';
+import { evidenceApi } from '../../core/api/evidenceApi';
 
 export const AlertsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { openContextDrawer } = useUIStore();
   const [filter, setFilter] = useState<'ALL' | 'CRITICAL' | 'HIGH' | 'ACKNOWLEDGED'>('ALL');
   const [dispatchToast, setDispatchToast] = useState<string | null>(null);
+  const [evidenceLoading, setEvidenceLoading] = useState<string | null>(null);
+
+  const handleGenerateEvidence = async (alt: ThreatAlert) => {
+    setEvidenceLoading(alt.alert_id);
+    try {
+      await evidenceApi.generateAndDownload(alt.alert_id, alt.target_plate);
+      setDispatchToast(`✓ Sec. 65B evidence package generated for ${alt.target_plate} — SHA-256 signed`);
+    } catch (err: any) {
+      // If the Orchestrator endpoint isn't seeded yet, generate a local package
+      const localPkg = {
+        package_id: `LOCAL-${alt.alert_id}`,
+        incident_number: alt.alert_id,
+        alert_id: alt.alert_id,
+        alert_type: alt.hotlist_category,
+        severity: alt.priority,
+        title: `Watchlist Alert — ${alt.target_plate}`,
+        target_plate: alt.target_plate,
+        camera_id: alt.camera_id,
+        camera_name: alt.camera_name,
+        district: alt.police_station,
+        gps_coordinates: { latitude: alt.latitude, longitude: alt.longitude },
+        incident_timestamp: alt.timestamp,
+        package_generated_at: new Date().toISOString(),
+        snapshot_url: alt.snapshot_url || null,
+        section65b_declaration:
+          'This evidence was captured by an automated CCTV surveillance system operated by Gujarat Police. ' +
+          'The digital record is certified under Section 65B of the Indian Evidence Act.',
+        hmac_sha256_hash: `LOCAL-FALLBACK-${alt.alert_id.replace(/-/g,'').substring(0,32)}`,
+        hmac_algorithm: 'HMAC-SHA256 (local fallback — connect Orchestrator for signed hash)',
+      };
+      evidenceApi.downloadAsFile(localPkg as any, alt.target_plate);
+      setDispatchToast(`⚠ Local evidence package saved (connect Orchestrator for signed hash)`);
+    } finally {
+      setEvidenceLoading(null);
+      setTimeout(() => setDispatchToast(null), 4000);
+    }
+  };
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ['alerts'],
@@ -252,6 +292,26 @@ export const AlertsPage: React.FC = () => {
                         <>
                           <CheckCircle className="w-3.5 h-3.5" />
                           <span>{ackMutation.isPending ? 'Logging...' : 'Acknowledge'}</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Section 65B Evidence Package Download */}
+                    <button
+                      onClick={() => handleGenerateEvidence(alt)}
+                      disabled={evidenceLoading === alt.alert_id}
+                      title="Generate Section 65B certified evidence package with SHA-256 HMAC"
+                      className="gh-btn text-xs border-[#388bfd]/40 text-[#388bfd] hover:bg-[#388bfd]/10 hover:border-[#388bfd]/70 transition-colors"
+                    >
+                      {evidenceLoading === alt.alert_id ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border border-[#388bfd] border-t-transparent rounded-full animate-spin" />
+                          <span>Signing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-3.5 h-3.5" />
+                          <span>65B Evidence</span>
                         </>
                       )}
                     </button>

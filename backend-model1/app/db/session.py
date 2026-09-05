@@ -23,6 +23,19 @@ from app.config import get_settings
 
 logger = structlog.get_logger(__name__)
 
+import socket
+from urllib.parse import urlparse
+
+def is_db_reachable(url: str, timeout: float = 0.5) -> bool:
+    try:
+        parsed = urlparse(url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 5432
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
+
 # Module-level engine and session factory (created once at startup)
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
@@ -33,26 +46,31 @@ def get_engine() -> AsyncEngine:
     global _engine
     if _engine is None:
         settings = get_settings()
-        _engine = create_async_engine(
-            settings.model1_database_url,
-            echo=settings.is_dev,           # Log SQL in development
-            pool_size=20,                    # Base pool connections
-            max_overflow=10,                 # Additional connections under load
-            pool_timeout=30,                 # Wait up to 30s for a connection
-            pool_recycle=1800,               # Recycle connections every 30 min
-            pool_pre_ping=True,              # Verify connection before use
-            connect_args={
-                "server_settings": {
-                    "application_name": "sentinel-model1",
-                    "jit": "off",            # Disable JIT for predictable latency
-                }
-            },
-        )
-        logger.info(
-            "database_engine_created",
-            url=settings.model1_database_url.split("@")[1],  # Don't log credentials
-            pool_size=20,
-        )
+        url = settings.model1_database_url
+        if not is_db_reachable(url):
+            logger.info("PostgreSQL unreachable for Model 1, using SQLite fallback for local environment")
+            _engine = create_async_engine("sqlite+aiosqlite:///../sentinel_platform.db", echo=settings.is_dev)
+        else:
+            _engine = create_async_engine(
+                url,
+                echo=settings.is_dev,           # Log SQL in development
+                pool_size=20,                    # Base pool connections
+                max_overflow=10,                 # Additional connections under load
+                pool_timeout=30,                 # Wait up to 30s for a connection
+                pool_recycle=1800,               # Recycle connections every 30 min
+                pool_pre_ping=True,              # Verify connection before use
+                connect_args={
+                    "server_settings": {
+                        "application_name": "sentinel-model1",
+                        "jit": "off",            # Disable JIT for predictable latency
+                    }
+                },
+            )
+            logger.info(
+                "database_engine_created",
+                url=url.split("@")[1] if "@" in url else url,
+                pool_size=20,
+            )
     return _engine
 
 

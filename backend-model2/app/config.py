@@ -45,10 +45,15 @@ class Settings(BaseSettings):
     opensearch_index_detections: str = "sentinel-anpr-detections"
     opensearch_index_events: str = "sentinel-events"
 
-    # ── RTSP Simulator / Ingest ───────────────────────────────────────────
-    sentinel_ingest_api: str = "https://live.corp8.cloud/api/ingest"
-    sentinel_rtsp_host: str = "live.corp8.cloud"
+    # ── RTSP Live Ingest & Authoritative Gateway ──────────────────────────
+    sentinel_ingest_api: str = "http://localhost:8888/api/ingest"
+    sentinel_rtsp_host: str = "103.250.160.189"
     sentinel_rtsp_port: int = 8554
+    sentinel_stream_user: str = "bhargav.umetiya@gmail.com"
+    sentinel_stream_password: str = "PJMN-KC93-T648"
+    ai_service_url: str = "http://localhost:8006"
+    orchestrator_url: str = "http://localhost:8005"  # For HTTP fallback when Kafka unavailable
+
 
     # ── External APIs ────────────────────────────────────────────────────
     vahan_api_url: str = "http://mock-external-apis:8090/vahan"

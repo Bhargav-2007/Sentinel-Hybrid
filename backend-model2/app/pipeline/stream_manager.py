@@ -60,7 +60,20 @@ class RTSPConsumer:
     ):
         self.stream_id = stream_id
         self.camera_id = camera_id
-        self.rtsp_url = rtsp_url
+        self.settings = get_settings()
+        
+        # Ensure RTSP credentials are injected for authenticated gateway
+        import urllib.parse
+        user = getattr(self.settings, "sentinel_stream_user", "bhargav.umetiya@gmail.com")
+        pwd = getattr(self.settings, "sentinel_stream_password", "PJMN-KC93-T648")
+        if user and pwd and "@" not in rtsp_url.split("://")[-1]:
+            scheme, rest = rtsp_url.split("://", 1)
+            enc_u = urllib.parse.quote(user, safe="")
+            enc_p = urllib.parse.quote(pwd, safe="")
+            self.rtsp_url = f"{scheme}://{enc_u}:{enc_p}@{rest}"
+        else:
+            self.rtsp_url = rtsp_url
+
         self.on_frame = on_frame
         self.metadata = metadata or {}
         self._running = False
@@ -68,7 +81,6 @@ class RTSPConsumer:
         self._reconnect_count = 0
         self._frames_decoded = 0
         self._last_frame_time: float = 0.0
-        self.settings = get_settings()
 
     async def start(self) -> None:
         """Start the RTSP consumer task."""
@@ -141,18 +153,18 @@ class RTSPConsumer:
         """
         options = {
             "rtsp_transport": self.settings.rtsp_transport,  # MUST be TCP
-            "stimeout": str(self.settings.rtsp_reconnect_delay_sec * 1_000_000),
-            "buffer_size": "1048576",  # 1MB buffer
-            "max_delay": "500000",
-            "analyzeduration": "2000000",
-            "probesize": "1000000",
+            "stimeout": "8000000",
+            "buffer_size": "2097152",  # 2MB buffer
+            "max_delay": "1000000",
+            "analyzeduration": "4000000",
+            "probesize": "2000000",
         }
 
         # PyAV/FFmpeg RTSP connection — runs in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
         container = await loop.run_in_executor(
             None,
-            lambda: av.open(self.rtsp_url, options=options, timeout=10),
+            lambda: av.open(self.rtsp_url, options=options, timeout=15),
         )
 
         try:
@@ -281,10 +293,16 @@ class StreamManager:
         Always start from the catalogue — never hard-code endpoints.
         """
         sources = [
+            "https://live.corp8.cloud/api/ingest",     # Official live sandbox (highest priority)
+            "https://cctv.corp8.cloud/api/ingest",
+            "https://cctv.corp8.cloud/cameras.json",
             self.settings.sentinel_ingest_api,
-            "http://rtsp-simulator:8888/api/ingest",
-            "http://localhost:8888/api/ingest",
+            "http://rtsp-simulator:8888/api/ingest",   # Docker Compose service name
+            "http://localhost:8888/api/ingest",        # Local dev (simulator on 8888)
+            "http://127.0.0.1:8888/api/ingest",
+            "http://localhost:8886/api/ingest",        # docker-compose host-mapped port
         ]
+
 
         for src in sources:
             try:

@@ -536,6 +536,7 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY:-minio_secret_key}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       AUTH_DISABLED: "true"
+      ORCHESTRATOR_URL: http://orchestrator:8000
     ports:
       - "8002:8002"
     networks:

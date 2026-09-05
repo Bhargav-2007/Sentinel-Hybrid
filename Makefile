@@ -91,6 +91,28 @@ demo:
 	@echo "  Model1 API:  http://localhost:8001/docs"
 	@echo "  Grafana:     http://localhost:3000$(RESET)"
 
+## officer-demo: Run automated 5-minute officer demo proving all 10 officer needs
+officer-demo:
+	@echo "$(CYAN)Running Officer Demo — Gujarat Sentinel (10 needs in 5 minutes)...$(RESET)"
+	@$(PYTHON) scripts/officer_demo.py
+	@echo "$(GREEN)Officer demo complete! All 10 needs verified.$(RESET)"
+
+## quickstart: One-command setup — start all backends + frontend without Docker
+quickstart:
+	@echo "$(CYAN)Starting Sentinel in quickstart mode (no Docker required)...$(RESET)"
+	@echo "Step 1: Install Python dependencies..."
+	@cd backend-orchestrator && pip install -r requirements.txt -q
+	@echo "Step 2: Starting Orchestrator (port 8005)..."
+	@start /B cmd /c "cd backend-orchestrator && python -m uvicorn app.main:app --port 8005 --host 0.0.0.0 > ../runtime/orchestrator.log 2>&1"
+	@echo "Step 3: Starting AI Detection (port 8006)..."
+	@start /B cmd /c "cd ai-detection && python -m uvicorn app.main:app --port 8006 --host 0.0.0.0 > ../runtime/ai-detection.log 2>&1"
+	@echo "Step 4: Starting Frontend (port 5173)..."
+	@start /B cmd /c "cd frontend && npm run dev > ../runtime/frontend.log 2>&1"
+	@echo "$(GREEN)Quickstart launched!"
+	@echo "  Orchestrator: http://localhost:8005/docs"
+	@echo "  AI Detection: http://localhost:8006/docs"
+	@echo "  Frontend:     http://localhost:5173$(RESET)"
+
 ## seed: Seed all test data (50 cameras, vehicles, watchlist)
 seed:
 	@echo "$(CYAN)Seeding test data...$(RESET)"
@@ -111,6 +133,7 @@ scenario:
 	@echo "$(CYAN)Running Sentinel hackathon scenario...$(RESET)"
 	@python scripts/demo/hackathon_scenario.py
 	@echo "$(GREEN)Scenario complete! Check Grafana for visualisations.$(RESET)"
+
 
 ## ─── Build ───────────────────────────────────────────────────────────────────
 

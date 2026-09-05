@@ -60,6 +60,17 @@ async def get_camera_service(
 
 # ── Camera CRUD endpoints ─────────────────────────────────────────────────────
 
+@router.post(
+    "/sync-catalogue",
+    summary="Synchronize camera inventory from official Sentinel /api/ingest catalogue",
+)
+async def trigger_catalogue_sync():
+    """Fetches dynamic /api/ingest stream catalogue and upserts into Model 1 registry."""
+    from app.services.catalogue_sync import sync_catalogue_into_registry
+    count = await sync_catalogue_into_registry()
+    return {"status": "success", "synced_cameras": count}
+
+
 @router.get(
     "",
     response_model=CameraListResponseSchema,

@@ -358,10 +358,13 @@ async def get_camera_snapshot(camera_id: str):
                     },
                 )
 
-    # Path 2: Worker not frame-active yet. Ingest directly from cctv.corp8.cloud!
+    # Path 2: Worker not frame-active yet. Ingest directly from cctv.corp8.cloud (non-blocking thread)
     try:
         from app.services.corp8_ingest_service import corp8_ingest_service
-        corp8_jpeg = corp8_ingest_service.get_latest_jpeg(cam_tag)
+        corp8_jpeg = await asyncio.wait_for(
+            asyncio.to_thread(corp8_ingest_service.get_latest_jpeg, cam_tag),
+            timeout=2.0
+        )
         if corp8_jpeg:
             return Response(
                 content=corp8_jpeg,
@@ -592,7 +595,13 @@ async def get_hls_segment(camera_id: str):
     """Returns decrypted MPEG-TS video segment for browser HLS player."""
     cam_tag = normalize_cam_tag(camera_id)
     from app.services.corp8_ingest_service import corp8_ingest_service
-    ts_bytes = corp8_ingest_service.fetch_and_decrypt_segment(cam_tag)
+    try:
+        ts_bytes = await asyncio.wait_for(
+            asyncio.to_thread(corp8_ingest_service.fetch_and_decrypt_segment, cam_tag),
+            timeout=3.0
+        )
+    except Exception:
+        ts_bytes = None
     if ts_bytes:
         return Response(
             content=ts_bytes,

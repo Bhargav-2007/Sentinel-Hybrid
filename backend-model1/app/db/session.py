@@ -49,7 +49,7 @@ def get_engine() -> AsyncEngine:
         url = settings.model1_database_url
         if not is_db_reachable(url):
             logger.info("PostgreSQL unreachable for Model 1, using SQLite fallback for local environment")
-            _engine = create_async_engine("sqlite+aiosqlite:///../sentinel_platform.db", echo=settings.is_dev)
+            _engine = create_async_engine("sqlite+aiosqlite:///../sentinel_model1.db", echo=settings.is_dev)
         else:
             _engine = create_async_engine(
                 url,
@@ -119,13 +119,16 @@ async def create_tables() -> None:
 
     engine = get_engine()
     async with engine.begin() as conn:
-        # Ensure PostGIS extension is available
-        await conn.execute(
-            __import__("sqlalchemy").text("CREATE EXTENSION IF NOT EXISTS postgis")
-        )
-        await conn.execute(
-            __import__("sqlalchemy").text("CREATE EXTENSION IF NOT EXISTS pgcrypto")
-        )
+        if "sqlite" not in str(engine.url):
+            try:
+                await conn.execute(
+                    __import__("sqlalchemy").text("CREATE EXTENSION IF NOT EXISTS postgis")
+                )
+                await conn.execute(
+                    __import__("sqlalchemy").text("CREATE EXTENSION IF NOT EXISTS pgcrypto")
+                )
+            except Exception:
+                pass
         await conn.run_sync(Base.metadata.create_all)
     logger.info("database_tables_created")
 

@@ -163,10 +163,12 @@ class CameraService:
             )
         if params.bbox_coords:
             min_lon, min_lat, max_lon, max_lat = params.bbox_coords
-            # ST_Within uses PostGIS bounding box
-            from geoalchemy2.functions import ST_MakeEnvelope, ST_Within
-            envelope = ST_MakeEnvelope(min_lon, min_lat, max_lon, max_lat, 4326)
-            query = query.where(ST_Within(Camera.location, envelope))
+            query = query.where(
+                Camera.longitude >= min_lon,
+                Camera.longitude <= max_lon,
+                Camera.latitude >= min_lat,
+                Camera.latitude <= max_lat,
+            )
 
         # Count total
         count_query = select(func.count()).select_from(query.subquery())

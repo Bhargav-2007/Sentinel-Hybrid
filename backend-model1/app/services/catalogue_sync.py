@@ -95,6 +95,36 @@ async def sync_catalogue_into_registry() -> int:
     """Synchronizes dynamic /api/ingest catalogue into PostGIS/DB."""
     catalogue = await fetch_catalogue_from_sources()
     if not catalogue:
+        import os, sqlite3
+        candidates = ["sentinel_platform.db", "../sentinel_platform.db"]
+        db_file = next((p for p in candidates if os.path.exists(p)), None)
+        if db_file:
+            try:
+                conn = sqlite3.connect(db_file)
+                cur = conn.cursor()
+                rows = cur.execute("SELECT id, stream_id, camera_code, name, district, latitude, longitude, rtsp_url, webrtc_url, hls_url FROM cameras").fetchall()
+                for r in rows:
+                    catalogue.append({
+                        "id": str(r[0]),
+                        "stream_id": str(r[1]),
+                        "camera_id": str(r[2]),
+                        "name": str(r[3]),
+                        "location": {
+                            "district": str(r[4]),
+                            "latitude": float(r[5]),
+                            "longitude": float(r[6]),
+                            "address": f"{r[3]}, {r[4]}",
+                        },
+                        "rtsp_url": str(r[7]),
+                        "webrtc_url": str(r[8]),
+                        "hls_url": str(r[9]),
+                        "live": True,
+                    })
+                logger.info(f"Loaded {len(catalogue)} fallback cameras from {db_file}")
+            except Exception as e:
+                logger.debug(f"Could not load fallback cameras: {e}")
+
+    if not catalogue:
         logger.warning("No dynamic camera catalogue discovered.")
         return 0
 
@@ -159,7 +189,6 @@ async def sync_catalogue_into_registry() -> int:
                     rtsp_url=rtsp_url,
                     storage_type=StorageTypeEnum.edge_device,
                     status=status_val,
-                    is_active=is_live,
                     extra_metadata={
                         "stream_id": cam_num,
                         "webrtc_url": entry.get("webrtc_url"),
@@ -177,7 +206,6 @@ async def sync_catalogue_into_registry() -> int:
                 cam.district = district
                 cam.rtsp_url = rtsp_url
                 cam.status = status_val
-                cam.is_active = is_live
                 cam.extra_metadata = {
                     **dict(cam.extra_metadata or {}),
                     "stream_id": cam_num,

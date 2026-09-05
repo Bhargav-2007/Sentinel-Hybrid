@@ -70,11 +70,12 @@ async def lifespan(app: FastAPI):
                 priority=CameraPriority.NORMAL,
             )
 
-        ai_pool_size = int(os.environ.get("SENTINEL_AI_POOL_SIZE", "2"))
-        stream_supervisor.start_all(pool_size=ai_pool_size, initial_active_count=6)
+        ai_pool_size = int(os.environ.get("SENTINEL_AI_POOL_SIZE", "1"))
+        active_cams = int(os.environ.get("SENTINEL_ACTIVE_CAMERAS", "2"))
+        stream_supervisor.start_all(pool_size=ai_pool_size, initial_active_count=active_cams)
         logger.info(
             f"✓ Stream Supervisor started: {len(live_catalogue)} cameras registered dynamically, "
-            f"AI pool size={ai_pool_size}."
+            f"active={active_cams}, AI pool size={ai_pool_size}."
         )
     except Exception as sup_err:
         logger.error(f"Stream Supervisor startup failed: {sup_err}", exc_info=True)
@@ -213,8 +214,15 @@ async def root():
 @app.get("/health", tags=["Health & Status"])
 async def health_check():
     """Health check endpoint for Docker container orchestrators and load balancers."""
-    db_ok = await check_db_health()
-    redis_ok = await redis_manager.is_healthy()
+    import asyncio
+    try:
+        db_ok = await asyncio.wait_for(check_db_health(), timeout=1.0)
+    except Exception:
+        db_ok = False
+    try:
+        redis_ok = await asyncio.wait_for(redis_manager.is_healthy(), timeout=0.5)
+    except Exception:
+        redis_ok = False
 
     overall_status = "healthy" if db_ok else "degraded"
     return {

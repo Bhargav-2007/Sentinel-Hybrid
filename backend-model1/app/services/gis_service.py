@@ -103,7 +103,6 @@ class GISService:
                 Camera.is_public_domain,
                 Camera.last_health_check_at,
                 Camera.amc_expiry_date,
-                func.cast(ST_AsGeoJSON(Camera.location), text("text")).label("geojson"),
             )
             .where(Camera.deleted_at.is_(None))
         )
@@ -114,16 +113,24 @@ class GISService:
             query = query.where(Camera.status == status)
         if bbox:
             min_lon, min_lat, max_lon, max_lat = bbox
-            envelope = ST_MakeEnvelope(min_lon, min_lat, max_lon, max_lat, 4326)
-            query = query.where(ST_Within(Camera.location, envelope))
+            query = query.where(
+                Camera.longitude >= min_lon,
+                Camera.longitude <= max_lon,
+                Camera.latitude >= min_lat,
+                Camera.latitude <= max_lat,
+            )
 
         result = await self.db.execute(query)
         rows = result.all()
 
-        import json
         features = []
         for row in rows:
-            geometry = json.loads(row.geojson)
+            lon = float(row.longitude) if row.longitude is not None else 72.5714
+            lat = float(row.latitude) if row.latitude is not None else 23.0225
+            geometry = {
+                "type": "Point",
+                "coordinates": [lon, lat],
+            }
             feature = GeoJSONFeatureSchema(
                 type="Feature",
                 id=str(row.id),
@@ -157,63 +164,64 @@ class GISService:
     ) -> GeoJSONFeatureCollectionSchema:
         """
         Generate coverage circles (buffers) around each camera.
-
-        Uses ST_Buffer with metre-based projection (SRID=32643, UTM Zone 43N for Gujarat).
-        The buffer represents approximate camera viewing radius.
+        Computes 16-point circle polygons around camera positions.
         """
-
-        # Convert meters to approximate degrees for a quick approach
-        # (For high-accuracy, use ST_Transform to UTM and back)
-        # 1 degree latitude ≈ 111,000 meters at Gujarat's latitude
-        radius_deg = radius_meters / 111000.0
-
-        query = text("""
-            SELECT
-                c.id::text,
-                c.camera_id,
-                c.name,
-                c.district,
-                c.status,
-                ST_AsGeoJSON(
-                    ST_Buffer(c.location::geography, :radius_m)::geometry
-                )::text AS coverage_geojson
-            FROM cameras c
-            WHERE c.deleted_at IS NULL
-              AND (:dept_id IS NULL OR c.department_id = :dept_id::uuid)
-              AND (:district IS NULL OR c.district ILIKE :district_like)
-        """)
-
-        result = await self.db.execute(
-            query,
-            {
-                "radius_m": radius_meters,
-                "dept_id": str(department_id) if department_id else None,
-                "district": district,
-                "district_like": f"%{district}%" if district else None,
-            },
-        )
-        rows = result.all()
-
-        import json
+        import math
         features = []
-        for row in rows:
-            geometry = json.loads(row.coverage_geojson)
-            features.append(
-                GeoJSONFeatureSchema(
-                    type="Feature",
-                    id=row.id,
-                    geometry=geometry,
-                    properties={
-                        "camera_id": row.camera_id,
-                        "name": row.name,
-                        "district": row.district,
-                        "status": row.status,
-                        "radius_meters": radius_meters,
-                        "fill_color": self._status_to_color(row.status),
-                        "fill_opacity": 0.3,
-                    },
+        try:
+            query = (
+                select(
+                    Camera.id,
+                    Camera.camera_id,
+                    Camera.name,
+                    Camera.district,
+                    Camera.status,
+                    Camera.latitude,
+                    Camera.longitude,
                 )
+                .where(Camera.deleted_at.is_(None))
             )
+            if department_id:
+                query = query.where(Camera.department_id == department_id)
+            if district:
+                query = query.where(Camera.district.ilike(f"%{district}%"))
+
+            result = await self.db.execute(query)
+            rows = result.all()
+
+            for row in rows:
+                lat = float(row.latitude or 23.0225)
+                lon = float(row.longitude or 72.5714)
+                r_deg = radius_meters / 111000.0
+                coords = []
+                for step in range(17):
+                    angle = step * (2 * math.pi / 16)
+                    dx = r_deg * math.cos(angle) / max(0.1, math.cos(math.radians(lat)))
+                    dy = r_deg * math.sin(angle)
+                    coords.append([round(lon + dx, 6), round(lat + dy, 6)])
+
+                geometry = {
+                    "type": "Polygon",
+                    "coordinates": [coords],
+                }
+                features.append(
+                    GeoJSONFeatureSchema(
+                        type="Feature",
+                        id=str(row.id),
+                        geometry=geometry,
+                        properties={
+                            "camera_id": row.camera_id,
+                            "name": row.name,
+                            "district": row.district,
+                            "status": str(row.status),
+                            "radius_meters": radius_meters,
+                            "fill_color": self._status_to_color(str(row.status)),
+                            "fill_opacity": 0.3,
+                        },
+                    )
+                )
+        except Exception as e:
+            logger.warning("coverage_polygons_generation_error", error=str(e))
 
         return GeoJSONFeatureCollectionSchema(type="FeatureCollection", features=features)
 

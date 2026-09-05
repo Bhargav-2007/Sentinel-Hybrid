@@ -170,8 +170,6 @@ class CameraWorker:
 
     def stop(self):
         self._stop_signal.set()
-        if self._thread and self._thread.is_alive():
-            self._thread.join(timeout=2.0)
         self.state = CameraWorkerState.OFFLINE
         self.telemetry.state = CameraWorkerState.OFFLINE
         logger.info(f"[{self.cam_tag}] Ingestion worker stopped.")
@@ -205,8 +203,8 @@ class CameraWorker:
 
             cap: Optional[cv2.VideoCapture] = None
             try:
-                # Force TCP interleaved transport and 8s socket timeout to allow public internet handshake
-                os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;8000000"
+                # Force TCP interleaved transport, 5s timeout, and 1 thread per worker to prevent CPU starvation
+                os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;5000000|threads;1"
                 self._set_state(CameraWorkerState.AUTHENTICATING)
 
                 cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
@@ -628,6 +626,8 @@ class AIWorkerPool:
                                 except Exception as ev_err:
                                     logger.debug(f"Plate event dispatch error: {ev_err}")
 
+                    # Yield CPU to allow uvicorn HTTP server to handle requests smoothly
+                    time.sleep(0.08)
                 else:
                     cam_worker.telemetry.ai_errors += 1
                     cam_worker.telemetry.last_error = f"AI service HTTP {resp.status_code}"
@@ -762,7 +762,7 @@ class StreamSupervisor:
             logger.info(f"StreamSupervisor synced with catalogue: {new_count} new camera workers registered.")
         return len(self.workers)
 
-    def start_all(self, pool_size: int = 2, initial_active_count: int = 6):
+    def start_all(self, pool_size: int = 1, initial_active_count: int = 2):
         """Starts primary active camera workers and AI worker pool."""
         if self._running:
             return
@@ -771,7 +771,7 @@ class StreamSupervisor:
         active_tags = list(self.workers.keys())[:initial_active_count]
         for tag in active_tags:
             self.workers[tag].start()
-            time.sleep(0.4)
+            time.sleep(0.1)
 
         ai_url = getattr(settings, "AI_DETECTION_LOCAL_URL", "http://localhost:8006")
         self.ai_pool = AIWorkerPool(
@@ -785,11 +785,21 @@ class StreamSupervisor:
         self._running = True
 
     def ensure_worker_started(self, cam_tag: str):
-        """Ensures a camera worker is running when requested by client."""
+        """Ensures a camera worker is running when requested by client, capping active workers to prevent CPU exhaustion."""
         tag = cam_tag if cam_tag.startswith("cam") else f"cam{int(cam_tag):02d}"
         worker = self.workers.get(tag)
-        if worker and (not worker._thread or not worker._thread.is_alive()):
-            worker.start()
+        if not worker:
+            return
+        if worker._thread and worker._thread.is_alive():
+            return
+
+        max_active = int(os.environ.get("SENTINEL_MAX_ACTIVE_WORKERS", "3"))
+        active_workers = [w for w in self.workers.values() if w._thread and w._thread.is_alive()]
+        if len(active_workers) >= max_active:
+            # Stop the oldest active worker to stay within CPU budget
+            active_workers[0].stop()
+
+        worker.start()
 
     def stop_all(self):
         """Cleanly stops all ingestion workers and AI pool."""

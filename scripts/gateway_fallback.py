@@ -78,6 +78,8 @@ async def ready():
     models = {
         "model1": f"{MODEL1_URL}/health",
         "model2": f"{MODEL2_URL}/health",
+        "model3": f"{MODEL3_URL}/actuator/health",
+        "model4": f"{MODEL4_URL}/health",
         "orchestrator": f"{ORCHESTRATOR_URL}/health",
     }
     all_ok = True
@@ -114,7 +116,26 @@ def resolve_backend(path: str) -> str:
     ):
         return MODEL2_URL
 
-    # All other /api/v1 endpoints (cameras, streams, alerts, cases, tracking, auth, evidence, etc.)
+    # Model 3 endpoints (VMS Federation & PTZ)
+    if (
+        path.startswith("/api/v1/federation")
+        or path.startswith("/federation")
+        or path.startswith("/ptz")
+        or path.startswith("/playback/clip")
+    ):
+        return MODEL3_URL
+
+    # Model 4 endpoints (Trajectory Tracking, Encounters, Clips, Dashboard)
+    if (
+        path.startswith("/api/v1/tracking")
+        or path.startswith("/tracking")
+        or path.startswith("/api/v1/clips")
+        or path.startswith("/clips")
+        or path.startswith("/api/v1/dashboard")
+    ):
+        return MODEL4_URL
+
+    # All other /api/v1 endpoints (cameras, streams, alerts, cases, auth, evidence, etc.)
     # default to Orchestrator (:8005)
     return ORCHESTRATOR_URL
 

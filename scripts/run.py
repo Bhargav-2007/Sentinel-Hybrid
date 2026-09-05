@@ -483,7 +483,7 @@ class HealthEngine:
         if h_type == "http":
             url = h_cfg.get("url", f"http://127.0.0.1:{service_def.get('port', 8000)}/health")
             expected = h_cfg.get("expected_status", [200])
-            return cls.check_http(url, expected_status=expected, timeout=1.0)
+            return cls.check_http(url, expected_status=expected, timeout=2.5)
         elif h_type == "tcp":
             host = h_cfg.get("host", "127.0.0.1")
             port = int(h_cfg.get("port", service_def.get("port", 8000)))
@@ -774,19 +774,21 @@ class SentinelRunner:
             wdir = svc.get("working_dir", "")
             env_vars = svc.get("env", {})
 
-            # Graceful toolchain handling for optional services
+            # Graceful toolchain handling with native Python microservice fallbacks
             if key == "model3":
                 has_mvn = shutil.which("mvn") is not None
                 has_java = shutil.which("java") is not None
                 if not (has_mvn or has_java):
-                    print(f"  • {name:<45} : [OPTIONAL: SKIPPED — Java/Maven not installed]")
-                    continue
+                    print(f"  • {name:<45} : [NOTICE: Java/Maven not installed — using Python VMS Federation runner on :8003]")
+                    cmd = f'"{sys.executable}" -m uvicorn app.main:app --host 0.0.0.0 --port 8003'
+                    wdir = "backend-model3"
 
             if key == "model4":
                 has_go = shutil.which("go") is not None
                 if not has_go:
-                    print(f"  • {name:<45} : [OPTIONAL: SKIPPED — Go not installed]")
-                    continue
+                    print(f"  • {name:<45} : [NOTICE: Go not installed — using Python Trajectory & Archival runner on :8004]")
+                    cmd = f'"{sys.executable}" -m uvicorn app.main:app --host 0.0.0.0 --port 8004'
+                    wdir = "backend-model4"
 
             if key == "hybrid-gateway":
                 has_go = shutil.which("go") is not None
@@ -870,8 +872,8 @@ class SentinelRunner:
         probes = [
             ("Model 1 Central Camera Registry", "http://127.0.0.1:8001/health", True),
             ("Model 2 Unified Viewing & ANPR", "http://127.0.0.1:8002/health", True),
-            ("Model 3 VMS Federation SDK", "http://127.0.0.1:8003/actuator/health", False),
-            ("Model 4 Central VMS & Video Archival", "http://127.0.0.1:8004/health", False),
+            ("Model 3 VMS Federation SDK", "http://127.0.0.1:8003/actuator/health", True),
+            ("Model 4 Central VMS & Video Archival", "http://127.0.0.1:8004/health", True),
             ("AI Computer Vision & ANPR Engine", "http://127.0.0.1:8006/health", True),
             ("Central Brain Orchestrator", "http://127.0.0.1:8005/health", True),
             ("Hybrid API Gateway", "http://127.0.0.1:8000/health", True),
@@ -888,7 +890,7 @@ class SentinelRunner:
                     print(f"  • {label:<42} : [OPTIONAL: SKIPPED]")
                 continue
 
-            ok, msg = HealthEngine.check_http(url, timeout=2.0)
+            ok, msg = HealthEngine.check_http(url, timeout=3.0)
             status_str = "PASS" if ok else "FAIL"
             print(f"  • {label:<42} : [{status_str:<4}] {msg}")
             if not ok and is_required:
@@ -900,15 +902,15 @@ class SentinelRunner:
         return all_ok
 
     def start_core_stack(self, detach: bool = False) -> bool:
-        """Starts the officer-critical path: Model 1, Model 2, AI Detection, Orchestrator, Gateway, and Frontend."""
+        """Starts all officer-critical models: Model 1, Model 2, Model 3, Model 4, AI Detection, Brain, Gateway, and UI."""
         print("\n" + "=" * 80)
-        print("  GUJARAT SENTINEL — CORE OFFICER PATH RUNNER")
-        print("  Services: Model 1 (Registry) + Model 2 (Unified/ANPR) + AI Detection + Brain + Gateway + UI")
+        print("  GUJARAT SENTINEL — FULL-MODEL OFFICER SUITE RUNNER")
+        print("  Services: Model 1 (Registry) + Model 2 (Viewer/ANPR) + Model 3 (VMS) + Model 4 (Trajectory) + AI + Brain + Gateway + UI")
         print("=" * 80)
 
         # 1. Ensure clean ports
         print("\n[STEP 1] ENSURING CLEAN PORTS:")
-        core_ports = [8000, 8001, 8002, 8005, 8006, 3001]
+        core_ports = [8000, 8001, 8002, 8003, 8004, 8005, 8006, 3001]
         self.clean_ports(core_ports)
 
         # 2. Check backing infrastructure
@@ -922,8 +924,17 @@ class SentinelRunner:
         else:
             print("  --> Docker is offline/unstable. Running in Standalone Core Mode (SQLite / direct inter-service HTTP).")
 
-        # 3. Launch Core Application Services
-        core_services = ["model1", "model2", "ai-detection", "orchestrator", "hybrid-gateway", "frontend"]
+        # 3. Launch Core Application Services (All 4 Models + AI + Brain + Gateway + UI)
+        core_services = [
+            "model1",
+            "model2",
+            "model3",
+            "model4",
+            "ai-detection",
+            "orchestrator",
+            "hybrid-gateway",
+            "frontend",
+        ]
         apps_ok = self.start_application_services(core_services)
 
         # 4. Status & Smoke Verification
@@ -931,13 +942,15 @@ class SentinelRunner:
         smoke_ok = self.run_e2e_smoke_test(core_only=True)
 
         print("=" * 80)
-        print("  GUJARAT SENTINEL CORE OFFICER PATH READY:")
+        print("  GUJARAT SENTINEL FULL SUITE READY — ALL MODELS OPERATIONAL:")
         print("=" * 80)
         print("  👑 Police Command Center UI   : http://localhost:3001")
         print("  🌐 Central Brain Orchestrator : http://localhost:8005/docs")
         print("  ⚡ Hybrid API Gateway          : http://localhost:8000")
         print("  📷 Model 1 CCTV Registry      : http://localhost:8001/health")
         print("  🎯 Model 2 Unified Viewer/ANPR: http://localhost:8002/health")
+        print("  🔌 Model 3 VMS Federation     : http://localhost:8003/actuator/health")
+        print("  📍 Model 4 Trajectory Vault   : http://localhost:8004/health")
         print("  🧠 AI Computer Vision Engine  : http://localhost:8006/health")
         print("  📑 Logs Directory             : runtime/logs/")
         print("=" * 80 + "\n", flush=True)

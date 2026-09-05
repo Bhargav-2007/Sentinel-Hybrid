@@ -9,28 +9,32 @@ This guide provides the official instructions for running the **Gujarat Sentinel
 Open **PowerShell as Administrator** or standard PowerShell in the project root (`C:\Users\BHARGAV\Desktop\Sentinel-Hybrid`):
 
 ```powershell
+# Interactive menu:
 .\run.ps1
+
+# Or direct one-shot startup:
+.\run.ps1 1
 ```
 
-This launches the interactive **Windows Control Center**:
+This launches or displays the **Windows Control Center**:
 
 ```text
 ============================================================
-  GUJARAT SENTINEL — WINDOWS CONTROL CENTER
+  GUJARAT SENTINEL -- WINDOWS CONTROL CENTER
 ============================================================
   [1] Start Core Officer Path (Recommended: M1, M2, AI, Brain, UI)
-  [2] Start Full Stack (All Models & Docker Infra)
-  [3] Clean & Free Occupied Ports (8000-8006, 3001, Docker)
+  [2] Start Full Stack (All Models and Docker Infra)
+  [3] Clean and Free Occupied Ports (8000-8006, 3001, Docker)
   [4] Run Diagnostics (Doctor)
   [5] Run End-to-End Smoke Verification
   [6] Stop Application Services
-  [7] Stop All (Apps + Docker Containers)
+  [7] Stop All (Apps and Docker Containers)
   [0] Exit
 ============================================================
-👉 Enter selection [0-7, Default: 1]:
+>> Enter selection [0-7, Default: 1]:
 ```
 
-Press **Enter** (or type `1`) to launch the **Core Officer Path**.
+Press **Enter** (or type `1`) to launch the **Core Officer Path**. Or run `.\run.ps1 1` directly from anywhere!
 
 ### What Starts Automatically:
 1. **Clean Ports Engine**: Scans and frees ports `3001`, `8000`, `8001`, `8002`, `8005`, `8006` from any previous lingering runs.
@@ -81,11 +85,11 @@ The Sentinel platform is designed to **never crash** even if optional developer 
 | **Police Command Center UI** | `:3001` | React 18 + Vite + TS | **YES** (Node.js & npm) | Native dev server with instant HMR |
 | **Model 1 (Registry & GIS)** | `:8001` | Python 3.11 + FastAPI | **YES** (Python) | SQLite spatial fallback when Postgres is offline |
 | **Model 2 (Unified Viewer & ANPR)** | `:8002` | Python 3.11 + FastAPI | **YES** (Python) | OpenCV fallback when PyAV is absent, local storage |
+| **Model 3 (VMS Federation SDK)** | `:8003` | Java Spring Boot / Python | **ACTIVE & WORKABLE** | Automatically runs Python VMS Federation runner if Java absent |
+| **Model 4 (Trajectory & Video Vault)** | `:8004` | Go / Python Fast Engine | **ACTIVE & WORKABLE** | Automatically runs Python Trajectory & S3 runner if Go absent |
 | **AI Detection Microservice** | `:8006` | PyTorch + YOLOv8 | **YES** (Python) | High-speed CPU inference when CUDA kernels uncompiled |
 | **Platform Orchestrator & 65B** | `:8005` | Python 3.11 + FastAPI | **YES** (Python) | Standalone correlation engine & Section 65B signer |
-| **Hybrid API Gateway** | `:8000` | Go / Python Proxy | **NO** (Go optional) | Automatically runs Python fallback gateway if Go absent |
-| **Model 3 (VMS Federation SDK)** | `:8003` | Java 17 + Spring Boot | **NO** (Java/Maven optional) | Gracefully skipped with notice if `mvn` not installed |
-| **Model 4 (Trajectory Hub)** | `:8004` | Go 1.22 | **NO** (Go optional) | Gracefully skipped with notice if `go` not installed |
+| **Hybrid API Gateway** | `:8000` | Go / Python Proxy | **ACTIVE & WORKABLE** | Automatically runs Python fallback gateway if Go absent |
 | **Docker Infrastructure** | Various | PostgreSQL, Redis, Kafka, etc. | **NO** (Docker optional) | Platform runs in Standalone Core Mode if Docker offline |
 
 ---

@@ -76,11 +76,11 @@ class Settings(BaseSettings):
     
     # ── External AI Model Backends (HTTP Endpoints) ──
     # CRITICAL: Consumed as external services only — never modified
-    MODEL1_URL: str = "http://model1:8001/api/v1"  # Centralized Registry & PostGIS GIS
-    MODEL2_URL: str = "http://model2:8002/api/v1"  # Unified Viewing & ANPR (YOLOv8 + PaddleOCR)
-    MODEL3_URL: str = "http://model3:8003/api/v1"  # VMS Federation (Spring Boot 3.4)
-    MODEL4_URL: str = "http://model4:8004/api/v1"  # Central Trajectory Tracking & S3 (Go Gin)
-    AI_DETECTION_URL: str = "http://ai-detection:8006"  # Authoritative AI Detection Microservice (YOLO11/v8 + ByteTrack + ANPR)
+    MODEL1_URL: str = "http://localhost:8001/api/v1"  # Centralized Registry & PostGIS GIS
+    MODEL2_URL: str = "http://localhost:8002/api/v1"  # Unified Viewing & ANPR (YOLOv8 + PaddleOCR)
+    MODEL3_URL: str = "http://localhost:8003/api/v1"  # VMS Federation (Spring Boot 3.4)
+    MODEL4_URL: str = "http://localhost:8004/api/v1"  # Central Trajectory Tracking & S3 (Go Gin)
+    AI_DETECTION_URL: str = "http://localhost:8006"  # Authoritative AI Detection Microservice
     
     # Local fallback endpoints for development outside docker network
     MODEL1_LOCAL_URL: str = "http://localhost:8001/api/v1"

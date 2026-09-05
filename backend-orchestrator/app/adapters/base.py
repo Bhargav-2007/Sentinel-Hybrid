@@ -72,6 +72,12 @@ class BaseServiceClient:
             f"{root_url}/actuator/health",
             f"{self.base_url}/health"
         ]
+        extra_urls = []
+        for u in candidate_urls:
+            for h in ("model1", "model2", "model3", "model4", "ai-detection"):
+                if f"://{h}:" in u:
+                    extra_urls.append(u.replace(f"://{h}:", "://127.0.0.1:"))
+        candidate_urls = extra_urls + candidate_urls
         
         for h_url in candidate_urls:
             try:

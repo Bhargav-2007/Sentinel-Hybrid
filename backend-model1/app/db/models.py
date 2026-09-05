@@ -17,7 +17,6 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
-from geoalchemy2 import Geometry
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -28,13 +27,18 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    JSON,
+    SmallInteger,
     String,
     Text,
     UniqueConstraint,
+    Uuid,
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
+UUID = Uuid
+JSONB = JSON
+ARRAY = lambda item_type: JSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -112,9 +116,9 @@ class Department(Base):
     __tablename__ = "departments"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=uuid.uuid4,
     )
     code: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -158,9 +162,9 @@ class Camera(Base):
 
     # Primary key (platform internal UUID)
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=uuid.uuid4,
     )
 
     # Department-assigned identifier (must be unique per deployment)
@@ -168,19 +172,18 @@ class Camera(Base):
 
     # Owning department
     department_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("departments.id"), nullable=False, index=True
+        Uuid(as_uuid=True), ForeignKey("departments.id"), nullable=False, index=True
     )
     department: Mapped["Department"] = relationship("Department", back_populates="cameras")
 
     # Basic metadata
     name: Mapped[str] = mapped_column(String(200), nullable=False)
 
-    # ── Location (PostGIS) ────────────────────────────────────────────────────
-    # Stored as PostGIS Point(4326) for spatial indexing
-    # Also denormalized into columns for fast non-spatial filtering
-    location: Mapped[Any] = mapped_column(
-        Geometry(geometry_type="POINT", srid=4326),
-        nullable=False,
+    # ── Location ──────────────────────────────────────────────────────────────
+    location: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        default="POINT(72.5714 23.0225)",
     )
     latitude: Mapped[float] = mapped_column(nullable=False)
     longitude: Mapped[float] = mapped_column(nullable=False)
@@ -263,8 +266,6 @@ class Camera(Base):
     )
 
     __table_args__ = (
-        # Spatial index for bounding box and nearest-neighbour queries
-        Index("idx_cameras_location_gist", "location", postgresql_using="gist"),
         # Index for district-based filtering
         Index("idx_cameras_district", "district"),
         # Index for status + deleted_at (most common filter)
@@ -295,12 +296,12 @@ class CameraHealthCheck(Base):
     __tablename__ = "camera_health_checks"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=uuid.uuid4,
     )
     camera_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("cameras.id"), nullable=False, index=True
+        Uuid(as_uuid=True), ForeignKey("cameras.id"), nullable=False, index=True
     )
     camera: Mapped["Camera"] = relationship("Camera", back_populates="health_checks")
 
@@ -331,12 +332,12 @@ class AuditEntry(Base):
     __tablename__ = "audit_trail"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=uuid.uuid4,
     )
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
-    entity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    entity_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
     action: Mapped[AuditActionEnum] = mapped_column(
         Enum(AuditActionEnum, name="audit_action_enum"), nullable=False, index=True
     )
@@ -374,21 +375,19 @@ class CoverageZone(Base):
     __tablename__ = "coverage_zones"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        default=uuid.uuid4,
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     zone_type: Mapped[str] = mapped_column(String(50), nullable=False)  # district | intersection | border
     district: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
-    boundary: Mapped[Any] = mapped_column(
-        Geometry(geometry_type="GEOMETRY", srid=4326), nullable=False
-    )
+    boundary: Mapped[str | None] = mapped_column(Text, nullable=True)
     priority: Mapped[str] = mapped_column(String(20), default="medium")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
     __table_args__ = (
-        Index("idx_zones_boundary_gist", "boundary", postgresql_using="gist"),
+        Index("idx_zones_district", "district"),
     )

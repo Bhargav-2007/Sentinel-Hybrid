@@ -119,16 +119,17 @@ class Corp8Client:
 
         try:
             url = f"/{cam_tag}/{seg_name}"
-            with self._lock:
-                if not self._session:
-                    return None
-                resp = self._session.get(url)
+            session = self._session
+            if not session:
+                return None
+            resp = session.get(url, timeout=5.0)
             if resp.status_code == 200:
                 decrypted = self.decrypt_ts(resp.content)
-                # Keep cache bounded to 15 segments
-                if len(self._segment_cache) > 30:
-                    self._segment_cache.clear()
-                self._segment_cache[cache_key] = decrypted
+                # Keep cache bounded
+                with self._lock:
+                    if len(self._segment_cache) > 30:
+                        self._segment_cache.clear()
+                    self._segment_cache[cache_key] = decrypted
                 return decrypted
             elif resp.status_code in (401, 403):
                 # Force re-authentication on next request

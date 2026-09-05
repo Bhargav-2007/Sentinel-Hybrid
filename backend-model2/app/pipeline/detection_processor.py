@@ -64,39 +64,61 @@ class DetectionProcessor:
         # Populate watchlist cache
         await self._refresh_watchlist_cache()
 
-        # Initialize OpenSearch client
+        # Initialize OpenSearch client (optional)
+        self._opensearch_client = None
         try:
             from opensearchpy import AsyncOpenSearch
-            self._opensearch_client = AsyncOpenSearch(
+            client = AsyncOpenSearch(
                 hosts=[self.settings.opensearch_url],
                 use_ssl=False,
                 verify_certs=False,
+                timeout=3,
+                max_retries=1,
             )
+            self._opensearch_client = client
             # Create detection index if not exists
             await self._ensure_opensearch_index()
             logger.info("opensearch_connected")
-        except Exception as e:
-            logger.warning("opensearch_init_failed", error=str(e)[:100])
+        except (ConnectionResetError, ConnectionRefusedError, OSError, Exception) as e:
+            self._opensearch_client = None
+            logger.info("opensearch_offline", notice=f"OpenSearch unavailable at {self.settings.opensearch_url} (running with DB event store): {str(e)[:100]}")
 
-        # Initialize S3 client (MinIO)
+        # Initialize S3 client (MinIO, optional)
+        self._s3_client = None
         try:
+            import socket
+            from urllib.parse import urlparse
+            parsed = urlparse(self.settings.s3_endpoint)
+            s_host = parsed.hostname or "127.0.0.1"
+            s_port = parsed.port or 9000
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.5)
+                if s.connect_ex((s_host, s_port)) != 0:
+                    raise ConnectionRefusedError(f"MinIO offline at {s_host}:{s_port}")
+
             import boto3
+            from botocore.config import Config
             self._s3_client = boto3.client(
                 "s3",
                 endpoint_url=self.settings.s3_endpoint,
                 aws_access_key_id=self.settings.s3_access_key,
                 aws_secret_access_key=self.settings.s3_secret_key,
                 region_name="us-east-1",
+                config=Config(connect_timeout=1, retries={'max_attempts': 1}),
             )
             # Ensure buckets exist
             for bucket in [self.settings.s3_bucket_snapshots, self.settings.s3_bucket_clips]:
                 try:
                     self._s3_client.head_bucket(Bucket=bucket)
                 except Exception:
-                    self._s3_client.create_bucket(Bucket=bucket)
+                    try:
+                        self._s3_client.create_bucket(Bucket=bucket)
+                    except Exception:
+                        pass
             logger.info("s3_connected")
         except Exception as e:
-            logger.warning("s3_init_failed", error=str(e)[:100])
+            self._s3_client = None
+            logger.info("s3_storage_offline", notice=f"MinIO S3 storage offline at {self.settings.s3_endpoint} (using local static files): {str(e)[:100]}")
 
         logger.info("detection_processor_ready")
 

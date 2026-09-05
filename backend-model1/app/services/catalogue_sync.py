@@ -73,7 +73,7 @@ async def fetch_catalogue_from_sources() -> List[Dict[str, Any]]:
     ]
     for src in sources:
         try:
-            async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=1.0, follow_redirects=True) as client:
                 resp = await client.get(src)
                 if resp.status_code == 200:
                     data = resp.json()

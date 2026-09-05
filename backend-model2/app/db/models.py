@@ -29,7 +29,9 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON, Uuid
+UUID = Uuid
+JSONB = JSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -93,7 +95,7 @@ class StreamState(Base):
     __tablename__ = "stream_states"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"),
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     stream_id: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     camera_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
@@ -139,7 +141,7 @@ class ANPRDetection(Base):
     __tablename__ = "anpr_detections"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"),
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     camera_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     stream_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
@@ -197,7 +199,7 @@ class WatchlistEntry(Base):
     __tablename__ = "watchlist"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"),
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     type: Mapped[WatchlistTypeEnum] = mapped_column(
         Enum(WatchlistTypeEnum, name="watchlist_type_enum"), nullable=False, index=True,
@@ -238,7 +240,7 @@ class WatchlistAlert(Base):
     __tablename__ = "watchlist_alerts"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"),
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
     )
     watchlist_entry_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("watchlist.id"), nullable=False, index=True,

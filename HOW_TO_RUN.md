@@ -1,89 +1,98 @@
-# Gujarat Sentinel — How to Run the Website & Services
+# Gujarat Sentinel — How to Run the Website & Officer Services
 
-This guide provides the official instructions for running the **Gujarat Sentinel Hybrid Surveillance Platform** website, backend microservices, and live officer demonstration.
+This guide provides the official instructions for running the **Gujarat Sentinel Hybrid Surveillance Platform** on **Windows**, Linux, and macOS.
 
 ---
 
-## ⚡ Quick Start: Run the Website in 2 Minutes
+## ⚡ Quick Start: One Command on Windows
 
-If you want to launch the website immediately, choose one of the options below:
-
-### Option A: Automated One-Command Launcher (Recommended)
-
-From the project root directory in PowerShell or Terminal:
+Open **PowerShell as Administrator** or standard PowerShell in the project root (`C:\Users\BHARGAV\Desktop\Sentinel-Hybrid`):
 
 ```powershell
-# Automatically starts Backend Orchestrator (:8000), AI Engine (:8006), and Frontend Website (:3001)
 .\run.ps1
 ```
 
-Or using the cross-platform Python CLI:
-```bash
-python scripts/run.py --start
+This launches the interactive **Windows Control Center**:
+
+```text
+============================================================
+  GUJARAT SENTINEL — WINDOWS CONTROL CENTER
+============================================================
+  [1] Start Core Officer Path (Recommended: M1, M2, AI, Brain, UI)
+  [2] Start Full Stack (All Models & Docker Infra)
+  [3] Clean & Free Occupied Ports (8000-8006, 3001, Docker)
+  [4] Run Diagnostics (Doctor)
+  [5] Run End-to-End Smoke Verification
+  [6] Stop Application Services
+  [7] Stop All (Apps + Docker Containers)
+  [0] Exit
+============================================================
+👉 Enter selection [0-7, Default: 1]:
 ```
 
-* **Website URL**: [http://localhost:3001](http://localhost:3001) (fallback: [http://localhost:5173](http://localhost:5173))
-* **Backend API**: [http://localhost:8000/docs](http://localhost:8000/docs)
+Press **Enter** (or type `1`) to launch the **Core Officer Path**.
+
+### What Starts Automatically:
+1. **Clean Ports Engine**: Scans and frees ports `3001`, `8000`, `8001`, `8002`, `8005`, `8006` from any previous lingering runs.
+2. **Model 1 (CCTV Registry + GIS)** on `http://localhost:8001`
+3. **AI Detection Engine (YOLOv8 + ByteTrack)** on `http://localhost:8006`
+4. **Model 2 (Unified Video Viewing & ANPR)** on `http://localhost:8002`
+5. **Central Brain Orchestrator & Section 65B Evidence** on `http://localhost:8005`
+6. **Hybrid API Gateway & Reverse Proxy** on `http://localhost:8000` (runs Python fallback proxy if Go is not installed)
+7. **Police Command Center UI** on `http://localhost:3001`
+
+When startup completes, you can open your browser immediately:
+👉 **[http://localhost:3001](http://localhost:3001)**
 
 ---
 
-### Option B: Local Developer Terminals (Step-by-Step)
+## 💻 CLI Commands (Python Direct)
 
-If you prefer starting services manually in separate terminal windows:
+If you prefer using the Python CLI directly:
 
-#### 1. Terminal 1: Frontend Website
 ```powershell
-cd frontend
-npm install        # Run once on first setup
-npm run dev
-```
-* **Surveillance Dashboard Web UI**: [http://localhost:3001](http://localhost:3001)
+# 1. Free any occupied ports from previous runs:
+python scripts/run.py --clean-ports
 
-> **Note:** The frontend can open immediately. For live CCTV streaming, plate queries, and Section 65B evidence generation, start the backend in Terminal 2.
+# 2. Check your system dependencies:
+python scripts/run.py --doctor
 
-#### 2. Terminal 2: Central Backend Orchestrator
-Handles the 30-camera RTSP supervisor, plate search, correlation, watchlist alerts, and Section 65B HMAC evidence signing:
-```powershell
-cd backend-orchestrator
-python -m pip install -r requirements.txt   # Run once on first setup
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-* **API Base URL**: `http://localhost:8000`
-* **Interactive Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-* **Bandwidth Scalability API**: [http://localhost:8000/api/v1/orchestrator/bandwidth-savings](http://localhost:8000/api/v1/orchestrator/bandwidth-savings)
+# 3. Start the Core Officer Path:
+python scripts/run.py --core-start
 
-#### 3. Terminal 3: AI Detection & ANPR (Optional for live camera inference)
-Runs YOLOv8 vehicle/person detection, ByteTrack tracking, and PaddleOCR license plate recognition:
-```powershell
-cd ai-detection
-python -m pip install -r requirements.txt   # Run once on first setup
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8006 --reload
+# 4. Verify all endpoints:
+python scripts/run.py --verify
+
+# 5. Check live health status table:
+python scripts/run.py --status
+
+# 6. Stop all applications:
+python scripts/run.py --stop-apps
 ```
-* **AI Microservice**: [http://localhost:8006/docs](http://localhost:8006/docs)
 
 ---
 
-## 🐳 Option C: Full Enterprise Docker Stack
+## 🛠️ Toolchain & Environment Matrix
 
-To run the complete production microservices stack (PostgreSQL + PostGIS, Redis, Apache Kafka, MinIO S3, OpenSearch, Prometheus, Grafana, Models 1–4, and Hybrid Gateway):
+The Sentinel platform is designed to **never crash** even if optional developer toolchains or Docker Desktop are offline on Windows:
 
-```powershell
-# Windows PowerShell automated launcher:
-.\start_all_backends.ps1
-
-# Or standard Docker Compose:
-docker compose up -d
-
-# Start the frontend website:
-cd frontend
-npm run dev
-```
+| Subsystem | Port | Technology | Required on Windows? | Fallback Behavior |
+|---|---|---|:---:|---|
+| **Police Command Center UI** | `:3001` | React 18 + Vite + TS | **YES** (Node.js & npm) | Native dev server with instant HMR |
+| **Model 1 (Registry & GIS)** | `:8001` | Python 3.11 + FastAPI | **YES** (Python) | SQLite spatial fallback when Postgres is offline |
+| **Model 2 (Unified Viewer & ANPR)** | `:8002` | Python 3.11 + FastAPI | **YES** (Python) | OpenCV fallback when PyAV is absent, local storage |
+| **AI Detection Microservice** | `:8006` | PyTorch + YOLOv8 | **YES** (Python) | High-speed CPU inference when CUDA kernels uncompiled |
+| **Platform Orchestrator & 65B** | `:8005` | Python 3.11 + FastAPI | **YES** (Python) | Standalone correlation engine & Section 65B signer |
+| **Hybrid API Gateway** | `:8000` | Go / Python Proxy | **NO** (Go optional) | Automatically runs Python fallback gateway if Go absent |
+| **Model 3 (VMS Federation SDK)** | `:8003` | Java 17 + Spring Boot | **NO** (Java/Maven optional) | Gracefully skipped with notice if `mvn` not installed |
+| **Model 4 (Trajectory Hub)** | `:8004` | Go 1.22 | **NO** (Go optional) | Gracefully skipped with notice if `go` not installed |
+| **Docker Infrastructure** | Various | PostgreSQL, Redis, Kafka, etc. | **NO** (Docker optional) | Platform runs in Standalone Core Mode if Docker offline |
 
 ---
 
 ## 👮 Police Officer Demo Login Credentials
 
-When the website opens at [http://localhost:3001](http://localhost:3001), log in with:
+When the website opens at **[http://localhost:3001](http://localhost:3001)**:
 
 * **Officer Badge ID**: `POLICE-AHM-042`
 * **Password**: `Sentinel@2026`
@@ -92,101 +101,58 @@ When the website opens at [http://localhost:3001](http://localhost:3001), log in
 
 ---
 
-## 🎯 5-Minute Officer Feature Tour on the Website
+## 🎯 Key Screens & Police Officer Workflows
 
-Once logged in, verify the core end-to-end police workflow:
+Once logged into the tactical command center:
 
 1. **Live Video Wall (`/live`)**:
-   - Displays real multi-department CCTV feeds across Gujarat (Police, GSRTC, Municipal, Panchayat, Health).
-   - Toggle layouts (2x2, 3x3, 4x4) and view live camera frame rates.
+   - Multi-department CCTV feeds across Gujarat (Police, GSRTC, Municipal, Panchayat, Health).
+   - Switch between 2x2, 3x3, and 4x4 views; inspect live RTSP/WHEP/HLS stream stats.
 
-2. **GIS Spatial Map (`/map`)**:
-   - Interactive tactical map showing real GPS coordinates of Gujarat CCTV nodes.
-   - Real-time green/red indicators for online/offline stream health.
+2. **CCTV Camera Registry (`/cameras`)**:
+   - Filter by department (Gujarat Police, GSRTC Transport, Municipal Corporations, Health, Panchayat).
+   - Search by camera ID, address, and live connectivity status.
 
-3. **360° Plate Search & Investigation (`/investigate`)**:
-   - Enter target plate `GJ01AA0001` in the search box.
-   - Inspect the aggregated VAHAN 4.0 registration data, eGujCop hotlist status, and multi-camera sighting timeline.
-   - View the reconstructed Dijkstra road corridor route and PTS transit speeds on the map.
+3. **Threat Alerts & APBs (`/alerts`)**:
+   - Real-time priority hotlist alerts with vehicle plate detections.
+   - Filter by severity (CRITICAL, HIGH, ACKNOWLEDGED).
 
-4. **Real-Time Watchlist Alerts (`/alerts`)**:
-   - Live stream of high-priority watchlist hits with confidence scores and threat levels.
-   - Click the **"65B Evidence"** button on any alert to instantly download a court-admissible forensic dossier certified with SHA-256 HMAC signatures under the Indian Evidence Act.
+4. **360° Plate Search & Vehicle Trajectory (`/investigate`)**:
+   - Search license plates (e.g. `GJ01AA0001` or `GJ01AB1234`).
+   - Inspect VAHAN 4.0 registration data, eGujCop hotlist status, and multi-camera sighting timeline.
 
-5. **Statewide Telemetry & 80k Scalability (`/analytics`)**:
-   - Inspect the **"Edge-Federated WAN Bandwidth & 80,000-Camera Scalability Model"** card.
-   - Demonstrates how Sentinel Hybrid saves **99.95% WAN bandwidth** (reducing continuous load from 320 Gbps to 168 Mbps, saving **3,456 TB per day** across 80,000 cameras).
+5. **Section 65B Court Evidence (`/evidence`)**:
+   - Export court-admissible forensic certificates signed with SHA-256 HMAC under the Indian Evidence Act.
 
-6. **Audit & Forensics Studio (`/audit`, `/cases`)**:
-   - Review immutable chain-of-custody logs and break-glass emergency overrides conforming to the DPDP Act 2023.
+6. **Statewide Telemetry & 80k Scalability (`/analytics`)**:
+   - Interactive model showing 99.95% WAN bandwidth savings across 80,000 cameras.
 
 ---
 
-## 🧪 Automated Officer Demo & Verification Script
+## ⚠️ Troubleshooting & Solutions
 
-To verify all 10 officer requirements plus 80k scalability in under 30 seconds via API tests:
-
-```bash
-# Run automated proof script:
-python scripts/officer_demo.py --gateway http://localhost:8000
-
-# Or via Makefile:
-make officer-demo
-```
-
----
-
-## 🌐 Complete Service Endpoints Summary
-
-| Subsystem | Port / URL | Description |
-|---|---|---|
-| **👑 Police Surveillance Website** | [http://localhost:3001](http://localhost:3001) | Tactical Situational Awareness Web UI |
-| **🌐 Central Orchestrator** | [http://localhost:8000/docs](http://localhost:8000/docs) | Unified Brain, Vehicle-360, 65B Evidence |
-| **🤖 AI Computer Vision Engine** | [http://localhost:8006/docs](http://localhost:8006/docs) | YOLOv8 + ByteTrack + PaddleOCR |
-| **⚡ Hybrid API Gateway** | [http://localhost:8000](http://localhost:8000) | Reverse Proxy & Routing Layer |
-| **🗺️ Model 1 — CCTV Registry & GIS** | [http://localhost:8001/docs](http://localhost:8001/docs) | PostGIS spatial queries & camera registry |
-| **📹 Model 2 — Unified Viewer** | [http://localhost:8002/docs](http://localhost:8002/docs) | Video ingestion & ANPR pipeline |
-| **🔌 Model 3 — VMS Federation** | [http://localhost:8003/actuator/health](http://localhost:8003/actuator/health) | Multi-vendor VMS adapters (Hikvision, Dahua) |
-| **🛣️ Model 4 — Trajectory Hub** | [http://localhost:8004/health](http://localhost:8004/health) | Vehicle trajectory & clip store |
-| **📊 Grafana SRE Dashboards** | [http://localhost:3000](http://localhost:3000) | System metrics (`admin` / `admin`) |
-| **📦 MinIO S3 Console** | [http://localhost:9005](http://localhost:9005) | Legal evidence storage (`minioadmin` / `minioadmin`) |
-
----
-
-## ⚠️ Troubleshooting & Common Fixes
-
-### 1. Port Already In Use (`[WinError 10013]` or `EADDRINUSE`)
-If port `8000`, `8006`, or `3001` is already occupied, free it with PowerShell:
-
+### 1. Port Conflicts (13 Ports Occupied)
+If ports `3001`, `8000–8006`, `5432`, `6379`, `9000`, `9200`, or `29092` are held from earlier runs or dangling Docker WSL processes:
 ```powershell
-# Free port 8000 (Backend Orchestrator)
-Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
-
-# Free port 8006 (AI Detection)
-Get-NetTCPConnection -LocalPort 8006 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
-
-# Free port 3001 (Frontend Website)
-Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+.\run.ps1
+# Choose option [3] Clean & Free Occupied Ports
 ```
-
-### 2. Frontend Dependencies Installation Issues
-If you encounter npm dependency issues on Windows:
+Or directly:
 ```powershell
-cd frontend
-npm install --legacy-peer-deps
-npm run dev
+python scripts/run.py --clean-ports
 ```
+This terminates orphaned Docker backend relays (`com.docker.backend.exe`, `wslrelay.exe`) and freeing all 13 ports in <1 second.
 
-### 3. Backend Python Missing Dependencies
-```powershell
-# For Orchestrator:
-python -m pip install -r backend-orchestrator/requirements.txt
+### 2. Docker Desktop 500 / Unstable Error
+If Docker Desktop gives `500 Internal Server Error for API route ... dockerDesktopLinuxEngine/_ping`:
+- You do **NOT** need to restart or reinstall Docker.
+- Gujarat Sentinel automatically detects when Docker is unresponsive and switches to **Standalone Core Mode** using local SQLite stores and direct inter-service HTTP communication.
 
-# For AI Detection:
-python -m pip install -r ai-detection/requirements.txt
-```
+### 3. NVIDIA RTX 5050 Laptop GPU (CUDA Architecture)
+If PyTorch reports `CUDA error: no kernel image is available for execution on the device`:
+- Sentinel automatically catches this and falls back to optimized CPU inference, allowing YOLOv8 vehicle and license plate recognition to execute smoothly without crashing.
 
-### 4. Running Without Docker
-You do **not** need Docker installed to test the website. Running `Option A` (`.\run.ps1`) or `Option B` (Local Terminals) uses local in-memory SQLite and mock connectors to provide a completely functional experience.
-
-
+### 4. Stopping the Running Services
+In the terminal where `.\run.ps1` or `python scripts/run.py --core-start` is running:
+- Press **Ctrl+C**. The runner will catch the signal, gracefully stop all background processes, clean up all ports, and exit cleanly.
+- Or from another PowerShell window: `python scripts/run.py --stop-apps`.

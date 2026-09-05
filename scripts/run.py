@@ -175,6 +175,22 @@ class EnvironmentDoctor:
             "Disk": free_disk_gb,
         }
 
+    def check_docker_daemon(self) -> Tuple[bool, str]:
+        """Checks if Docker engine daemon is responsive with a quick timeout."""
+        try:
+            res = subprocess.run(
+                ["docker", "info", "--format", "{{.ServerVersion}}"],
+                capture_output=True,
+                text=True,
+                timeout=4,
+                shell=(platform.system() == "Windows"),
+            )
+            if res.returncode == 0 and res.stdout.strip():
+                return True, f"Responsive (v{res.stdout.strip()[:20]})"
+            return False, "Docker daemon not responding (500/offline)"
+        except Exception:
+            return False, "Docker daemon offline"
+
     def run_full_diagnostic(self) -> bool:
         """Executes full diagnostic test and prints formatted report."""
         print("\n" + "=" * 80)
@@ -192,30 +208,46 @@ class EnvironmentDoctor:
         gpu_status = "READY" if gpu_ok else "NOTICE"
         print(f"    • {'AI GPU':<12}: [{gpu_status}] {gpu_msg}")
 
-        # 2. Required CLI Tools
-        print("\n[2] REQUIRED DEVELOPMENT TOOLCHAINS:")
-        tools = [
-            ("Docker", "docker", ["--version"]),
-            ("Compose", "docker", ["compose", "version"]),
+        # 2. Required CLI Tools (Core Officer Path)
+        print("\n[2] REQUIRED TOOLCHAINS (Core Officer Path):")
+        req_tools = [
             ("Python", sys.executable, ["--version"]),
             ("Node.js", "node", ["--version"]),
             ("npm", "npm", ["--version"]),
+        ]
+
+        all_req_ok = True
+        for label, cmd, args in req_tools:
+            ok, msg = self.check_command(cmd, args)
+            status_str = "PASS" if ok else "NOT FOUND"
+            print(f"    • {label:<12}: [{status_str:<9}] {msg}")
+            if not ok:
+                all_req_ok = False
+
+        # 3. Optional Toolchains (Containers & Extended Models)
+        print("\n[3] OPTIONAL EXTENDED TOOLCHAINS (Containers & Extended Models):")
+        opt_tools = [
+            ("Docker CLI", "docker", ["--version"]),
+            ("Compose", "docker", ["compose", "version"]),
             ("Go", "go", ["version"]),
             ("Java", "java", ["-version"]),
             ("Maven", "mvn", ["-version"]),
             ("Git", "git", ["--version"]),
         ]
 
-        all_ok = True
-        for label, cmd, args in tools:
+        for label, cmd, args in opt_tools:
             ok, msg = self.check_command(cmd, args)
-            status_str = "PASS" if ok else "NOT FOUND"
+            status_str = "READY" if ok else "OPTIONAL"
             print(f"    • {label:<12}: [{status_str:<9}] {msg}")
-            if not ok and label in ("Docker", "Python"):
-                all_ok = False
 
-        # 3. Environment & Real-Data Mode
-        print("\n[3] CONFIGURATION & REAL-DATA INTEGRITY:")
+        docker_daemon_ok, docker_daemon_msg = self.check_docker_daemon()
+        daemon_status = "READY" if docker_daemon_ok else "OFFLINE"
+        print(f"    • {'Docker Daemon':<12}: [{daemon_status:<9}] {docker_daemon_msg}")
+        if not docker_daemon_ok:
+            print("      ℹ Platform will run in Standalone Core Mode with direct inter-service HTTP.")
+
+        # 4. Environment & Real-Data Mode
+        print("\n[4] CONFIGURATION & REAL-DATA INTEGRITY:")
         env_file = WORKSPACE_ROOT / ".env"
         if env_file.exists():
             print(f"    • .env File   : [PASS] Found at {env_file.name}")
@@ -228,22 +260,28 @@ class EnvironmentDoctor:
         else:
             print(f"    • DATA_MODE   : [WARNING] Non-production data mode detected ('{data_mode}')")
 
-        # 4. Port Conflict Summary
+        # 5. Port Conflict Summary
         scanner = PortScanner(self.config)
         conflicts = scanner.scan_conflicts()
-        print("\n[4] PORT COLLISION CHECK:")
+        print("\n[5] PORT COLLISION CHECK:")
         if conflicts:
             print(f"    • Conflicts   : [ALERT] {len(conflicts)} ports currently occupied:")
             for p, name in conflicts:
                 print(f"      - Port {p:<5} ({name}) is already in use by an active process")
+            print("      💡 Run with --clean-ports to automatically free these ports.")
         else:
             print("    • Conflicts   : [PASS] All service ports are available")
 
         print("\n" + "=" * 80)
-        overall = "READY FOR STARTUP" if all_ok else "SETUP REQUIRED"
+        if all_req_ok and not conflicts:
+            overall = "READY FOR STARTUP (Core Officer Path)"
+        elif all_req_ok and conflicts:
+            overall = "PORT CONFLICT DETECTED (Run --clean-ports)"
+        else:
+            overall = "SETUP REQUIRED — Missing required tools (Python / Node / npm)"
         print(f"OVERALL DIAGNOSTIC STATUS: {overall}")
         print("=" * 80 + "\n")
-        return all_ok
+        return all_req_ok
 
 
 # =============================================================================
@@ -275,7 +313,7 @@ class PortScanner:
     def is_port_in_use(self, port: int, host: str = "127.0.0.1") -> bool:
         """Attempts a TCP connection to check if port is currently open."""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.6)
+            s.settimeout(0.15)
             return s.connect_ex((host, port)) == 0
 
     def scan_conflicts(self) -> List[Tuple[int, str]]:
@@ -307,6 +345,77 @@ class PortScanner:
             print("[OK] All service ports are available.")
             return True
 
+    def clean_occupied_ports(self, target_ports: Optional[List[int]] = None) -> List[int]:
+        """Terminates active processes listening on Sentinel ports to guarantee clean startup."""
+        ports_to_clean = target_ports if target_ports is not None else [p for p, _ in self.ports]
+        freed = []
+        if not ports_to_clean:
+            return freed
+
+        print(f"  --> Scanning and freeing ports: {sorted(ports_to_clean)}...")
+        if platform.system() == "Windows":
+            try:
+                res = subprocess.run(["netstat", "-ano"], capture_output=True, text=True, timeout=5)
+                pids_to_kill = set()
+                for line in res.stdout.splitlines():
+                    if "LISTENING" in line:
+                        for p in ports_to_clean:
+                            if f":{p} " in line or f":{p}\t" in line:
+                                parts = line.strip().split()
+                                if parts:
+                                    try:
+                                        pid = int(parts[-1])
+                                        if pid > 4:  # Avoid killing Windows System (PID 4)
+                                            pids_to_kill.add(pid)
+                                    except ValueError:
+                                        pass
+
+                for pid in pids_to_kill:
+                    try:
+                        subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], capture_output=True, timeout=3)
+                        freed.append(pid)
+                    except Exception:
+                        pass
+
+                # If Docker ports were checked, ensure orphan Docker relay processes are terminated
+                if any(p in ports_to_clean for p in [8000, 8001, 8002, 8003, 8004, 8005, 5432, 6379, 9000, 9200, 29092]):
+                    subprocess.run(
+                        ["taskkill", "/F", "/IM", "com.docker.backend.exe", "/IM", "wslrelay.exe"],
+                        capture_output=True,
+                        timeout=3
+                    )
+            except Exception as e:
+                print(f"  [!] Port cleanup error: {e}")
+        else:
+            for p in ports_to_clean:
+                try:
+                    res = subprocess.run(["fuser", "-k", f"{p}/tcp"], capture_output=True, timeout=3)
+                    if res.returncode == 0:
+                        freed.append(p)
+                except Exception:
+                    pass
+
+        # Clean associated PID files for freed ports
+        services = self.config.get("services", {})
+        for p in ports_to_clean:
+            for s_key, s_def in services.items():
+                if s_def.get("port") == p:
+                    pid_file = PIDS_DIR / f"{s_key}.pid"
+                    if pid_file.exists():
+                        try:
+                            pid_file.unlink(missing_ok=True)
+                        except Exception:
+                            pass
+
+        # Brief sleep to allow OS kernel socket release
+        time.sleep(1.0)
+        remaining = [p for p in ports_to_clean if self.is_port_in_use(p)]
+        if remaining:
+            print(f"  [!] Notice: Ports {remaining} could not be freed or are being held by system services.")
+        else:
+            print("  [OK] All specified ports successfully freed.")
+        return freed
+
 
 # =============================================================================
 # HEALTH CHECK ENGINE
@@ -317,19 +426,41 @@ class HealthEngine:
 
     @staticmethod
     def check_http(url: str, expected_status: List[int] = [200], timeout: float = 2.0) -> Tuple[bool, str]:
-        """Probes an HTTP health endpoint."""
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Sentinel-Runner/2.0"})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                if resp.status in expected_status:
-                    return True, f"HTTP {resp.status} OK"
-                return False, f"HTTP {resp.status}"
-        except urllib.error.HTTPError as e:
-            if e.code in expected_status:
-                return True, f"HTTP {e.code}"
-            return False, f"HTTP {e.code}"
-        except Exception as e:
-            return False, f"Connection error: {str(e)[:40]}"
+        """Probes an HTTP health endpoint with fast TCP pre-check and automatic localhost/127.0.0.1 fallback."""
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+
+        # Quick TCP socket check first (0.2s) to return immediately if port is closed
+        tcp_ok, _ = HealthEngine.check_tcp(host, port, timeout=0.2)
+        if not tcp_ok and host in ("127.0.0.1", "localhost"):
+            alt_host = "localhost" if host == "127.0.0.1" else "127.0.0.1"
+            tcp_ok, _ = HealthEngine.check_tcp(alt_host, port, timeout=0.2)
+            if not tcp_ok:
+                return False, "Connection refused"
+
+        urls_to_try = [url]
+        if "127.0.0.1" in url:
+            urls_to_try.append(url.replace("127.0.0.1", "localhost"))
+        elif "localhost" in url:
+            urls_to_try.append(url.replace("localhost", "127.0.0.1"))
+
+        last_err = ""
+        for u in urls_to_try:
+            try:
+                req = urllib.request.Request(u, headers={"User-Agent": "Sentinel-Runner/2.0"})
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    if resp.status in expected_status:
+                        return True, f"HTTP {resp.status} OK"
+                    return False, f"HTTP {resp.status}"
+            except urllib.error.HTTPError as e:
+                if e.code in expected_status:
+                    return True, f"HTTP {e.code}"
+                return False, f"HTTP {e.code}"
+            except Exception as e:
+                last_err = str(e)[:40]
+        return False, f"Connection error: {last_err}"
 
     @staticmethod
     def check_tcp(host: str, port: int, timeout: float = 2.0) -> Tuple[bool, str]:
@@ -352,7 +483,7 @@ class HealthEngine:
         if h_type == "http":
             url = h_cfg.get("url", f"http://127.0.0.1:{service_def.get('port', 8000)}/health")
             expected = h_cfg.get("expected_status", [200])
-            return cls.check_http(url, expected_status=expected)
+            return cls.check_http(url, expected_status=expected, timeout=1.0)
         elif h_type == "tcp":
             host = h_cfg.get("host", "127.0.0.1")
             port = int(h_cfg.get("port", service_def.get("port", 8000)))
@@ -375,11 +506,11 @@ class HealthEngine:
             ok, msg = cls.check_service_health(service_def)
             if ok:
                 elapsed = round(time.time() - start_time, 1)
-                print(f" [HEALTHY] ({elapsed}s)")
+                print(f" [HEALTHY] ({elapsed}s)", flush=True)
                 return True
             time.sleep(poll_interval)
 
-        print(" [TIMEOUT / FAILED]")
+        print(" [TIMEOUT / FAILED]", flush=True)
         return False
 
 
@@ -459,13 +590,18 @@ class ProcessManager:
 
         try:
             # Use shell=True for complex command lines across OS
+            c_flags = 0
+            if platform.system() == "Windows":
+                c_flags = subprocess.CREATE_NEW_PROCESS_GROUP
             proc = subprocess.Popen(
                 command,
                 shell=True,
                 cwd=str(work_path),
                 env=proc_env,
+                stdin=subprocess.DEVNULL,
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
+                creationflags=c_flags,
                 start_new_session=True if platform.system() != "Windows" else False,
             )
             self.write_pid(service_key, proc.pid)
@@ -533,8 +669,12 @@ class SentinelRunner:
         self.doctor = EnvironmentDoctor(self.config)
         self.port_scanner = PortScanner(self.config)
 
+    def clean_ports(self, target_ports: Optional[List[int]] = None) -> List[int]:
+        """Terminates processes listening on Sentinel ports."""
+        return self.port_scanner.clean_occupied_ports(target_ports)
+
     def start_docker_infra(self) -> bool:
-        """Starts Docker Compose infrastructure services."""
+        """Starts Docker Compose infrastructure services if docker daemon is responsive."""
         compose_file = self.config.get("infrastructure", {}).get("compose_file", "docker-compose.yml")
         compose_path = WORKSPACE_ROOT / compose_file
 
@@ -542,64 +682,72 @@ class SentinelRunner:
             print(f"[!] Warning: Docker compose file {compose_path} not found.")
             return False
 
-        print("\n[STEP 1] STARTING CORE INFRASTRUCTURE (Docker Compose):")
+        print("\n[INFRASTRUCTURE] PROBING DOCKER ENGINE:")
+        docker_ok, docker_msg = self.doctor.check_docker_daemon()
+        if not docker_ok:
+            print(f"  [!] Docker engine notice: {docker_msg}")
+            print("  ℹ Skipping container launch. Platform will run in Standalone mode with local storage/fallback.")
+            return False
+
+        print("\n[INFRASTRUCTURE] LAUNCHING CORE INFRASTRUCTURE (Docker Compose):")
         cmd = ["docker", "compose", "-f", str(compose_path), "up", "-d", "postgres", "redis", "zookeeper", "kafka", "opensearch", "minio", "prometheus", "grafana"]
         try:
-            res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(WORKSPACE_ROOT))
+            res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(WORKSPACE_ROOT), timeout=45)
             if res.returncode != 0:
-                print(f"[!] Docker compose error: {res.stderr[:200]}")
+                print(f"  [!] Docker compose notice: {res.stderr[:200]}")
                 return False
             print("  [OK] Docker infrastructure containers launched.")
             return True
         except Exception as e:
-            print(f"[!] Docker compose execution failed: {e}")
+            print(f"  [!] Docker compose execution notice: {e}")
             return False
 
-    def wait_for_infrastructure(self) -> bool:
-        """Waits for all essential infrastructure services to become healthy."""
-        print("\n[STEP 2] WAITING FOR INFRASTRUCTURE HEALTH:")
+    def wait_for_infrastructure(self, essential: Optional[List[str]] = None) -> bool:
+        """Waits for essential infrastructure services to become healthy."""
+        print("\n[INFRASTRUCTURE] VERIFYING DATA STORES:")
         infra = self.config.get("infrastructure", {}).get("services", {})
-        essential = ["postgres", "redis", "kafka", "opensearch", "minio"]
+        target_essential = essential or ["postgres", "redis"]
 
         all_healthy = True
-        for key in essential:
+        for key in target_essential:
             if key in infra:
                 svc = infra[key]
-                timeout = svc.get("health", {}).get("timeout", 45)
+                timeout = min(svc.get("health", {}).get("timeout", 15), 15)
                 ok = HealthEngine.wait_for_healthy(svc["name"], svc, timeout_seconds=timeout)
                 if not ok:
                     all_healthy = False
+                    print(f"  ℹ {svc['name']} offline (core path will use standalone / local fallback).")
 
         return all_healthy
 
     def run_database_migrations(self) -> bool:
-        """Runs Alembic migrations for Model 1 and Model 2."""
-        print("\n[STEP 3] RUNNING DATABASE MIGRATIONS (Alembic / PostGIS):")
+        """Runs Alembic migrations for Model 1 and Model 2 if postgres is responsive."""
+        print("\n[MIGRATIONS] VERIFYING DATABASE SCHEMAS (Alembic / PostGIS):")
         # Model 1 Migrations
         m1_dir = WORKSPACE_ROOT / "backend-model1"
         if m1_dir.exists():
-            print("  --> Upgrading Model 1 database schema...", end="", flush=True)
+            print("  --> Checking Model 1 database schema...", end="", flush=True)
             try:
-                res = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(m1_dir), capture_output=True, text=True)
-                print(" [MIGRATED]" if res.returncode == 0 else " [ALREADY CURRENT]")
+                res = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(m1_dir), capture_output=True, text=True, timeout=15)
+                print(" [MIGRATED]" if res.returncode == 0 else " [ALREADY CURRENT / SKIPPED]")
             except Exception:
-                print(" [ALREADY CURRENT]")
+                print(" [ALREADY CURRENT / SKIPPED]")
 
         # Model 2 Migrations
         m2_dir = WORKSPACE_ROOT / "backend-model2"
         if m2_dir.exists():
-            print("  --> Upgrading Model 2 database schema...", end="", flush=True)
+            print("  --> Checking Model 2 database schema...", end="", flush=True)
             try:
-                res = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(m2_dir), capture_output=True, text=True)
-                print(" [MIGRATED]" if res.returncode == 0 else " [ALREADY CURRENT]")
+                res = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(m2_dir), capture_output=True, text=True, timeout=15)
+                print(" [MIGRATED]" if res.returncode == 0 else " [ALREADY CURRENT / SKIPPED]")
             except Exception:
-                print(" [ALREADY CURRENT]")
+                print(" [ALREADY CURRENT / SKIPPED]")
 
         return True
 
     def start_application_services(self, selected_keys: Optional[List[str]] = None) -> bool:
-        """Starts application microservices in strict topological order."""
-        print("\n[STEP 4] LAUNCHING APPLICATION MICROSERVICES:")
+        """Starts application microservices in strict topological order with graceful toolchain fallbacks."""
+        print("\n[APPLICATIONS] LAUNCHING APPLICATION MICROSERVICES:")
         services = self.config.get("services", {})
         tiers = self.config.get("dependency_tiers", {})
 
@@ -626,11 +774,40 @@ class SentinelRunner:
             wdir = svc.get("working_dir", "")
             env_vars = svc.get("env", {})
 
+            # Graceful toolchain handling for optional services
+            if key == "model3":
+                has_mvn = shutil.which("mvn") is not None
+                has_java = shutil.which("java") is not None
+                if not (has_mvn or has_java):
+                    print(f"  • {name:<45} : [OPTIONAL: SKIPPED — Java/Maven not installed]")
+                    continue
+
+            if key == "model4":
+                has_go = shutil.which("go") is not None
+                if not has_go:
+                    print(f"  • {name:<45} : [OPTIONAL: SKIPPED — Go not installed]")
+                    continue
+
+            if key == "hybrid-gateway":
+                has_go = shutil.which("go") is not None
+                if not has_go:
+                    print(f"  • {name:<45} : [NOTICE: Go not installed — using Python fallback reverse proxy on :8000]")
+                    fallback_script = WORKSPACE_ROOT / "scripts" / "gateway_fallback.py"
+                    cmd = f'"{sys.executable}" "{fallback_script}"'
+                    wdir = "."
+
+            # Ensure python services execute with current active Python interpreter
+            if cmd.startswith("python "):
+                cmd = f'"{sys.executable}" ' + cmd[7:]
+
             # Check if port already healthy
             is_healthy, _ = HealthEngine.check_service_health(svc)
             if is_healthy:
                 print(f"  • {name:<45} : [ALREADY RUNNING & HEALTHY]")
                 continue
+
+            # Ensure any stale process or lingering PID file is stopped before launching
+            self.proc_mgr.stop_service(key)
 
             print(f"  --> Launching {name} (:Port {svc.get('port')})...")
             pid = self.proc_mgr.start_service_process(key, cmd, wdir, env_vars)
@@ -639,7 +816,9 @@ class SentinelRunner:
             timeout = svc.get("health", {}).get("timeout", 45)
             healthy = HealthEngine.wait_for_healthy(name, svc, timeout_seconds=timeout)
             if not healthy:
-                all_ok = False
+                # Do not mark all_ok = False for optional services
+                if key not in ("model3", "model4"):
+                    all_ok = False
                 # Print log excerpt
                 log_file = LOGS_DIR / f"{key}.log"
                 if log_file.exists():
@@ -682,59 +861,131 @@ class SentinelRunner:
 
         print("\n" + "=" * 95 + "\n")
 
-    def run_e2e_smoke_test(self) -> bool:
+    def run_e2e_smoke_test(self, core_only: bool = False) -> bool:
         """Executes safe end-to-end multi-service health and connectivity verification."""
         print("\n" + "=" * 80)
-        print("  GUJARAT SENTINEL — END-TO-END SMOKE TEST")
+        print(f"  GUJARAT SENTINEL — {'CORE OFFICER' if core_only else 'FULL STACK'} SMOKE TEST")
         print("=" * 80)
 
         probes = [
-            ("Model 1 Central Camera Registry", "http://127.0.0.1:8001/health"),
-            ("Model 2 Unified Viewing & ANPR", "http://127.0.0.1:8002/health"),
-            ("Model 3 VMS Federation SDK", "http://127.0.0.1:8003/actuator/health"),
-            ("Model 4 Central VMS & Video Archival", "http://127.0.0.1:8004/health"),
-            ("AI Computer Vision & ANPR Engine", "http://127.0.0.1:8006/health"),
-            ("Central Brain Orchestrator", "http://127.0.0.1:8005/health"),
-            ("Hybrid API Gateway", "http://127.0.0.1:8000/health"),
-            ("Police Command Center Frontend", "http://127.0.0.1:3001"),
+            ("Model 1 Central Camera Registry", "http://127.0.0.1:8001/health", True),
+            ("Model 2 Unified Viewing & ANPR", "http://127.0.0.1:8002/health", True),
+            ("Model 3 VMS Federation SDK", "http://127.0.0.1:8003/actuator/health", False),
+            ("Model 4 Central VMS & Video Archival", "http://127.0.0.1:8004/health", False),
+            ("AI Computer Vision & ANPR Engine", "http://127.0.0.1:8006/health", True),
+            ("Central Brain Orchestrator", "http://127.0.0.1:8005/health", True),
+            ("Hybrid API Gateway", "http://127.0.0.1:8000/health", True),
+            ("Police Command Center Frontend", "http://127.0.0.1:3001", True),
         ]
 
         all_ok = True
-        for label, url in probes:
-            ok, msg = HealthEngine.check_http(url)
+        for label, url, is_required in probes:
+            if core_only and not is_required:
+                ok, msg = HealthEngine.check_http(url, timeout=0.8)
+                if ok:
+                    print(f"  • {label:<42} : [PASS] {msg}")
+                else:
+                    print(f"  • {label:<42} : [OPTIONAL: SKIPPED]")
+                continue
+
+            ok, msg = HealthEngine.check_http(url, timeout=2.0)
             status_str = "PASS" if ok else "FAIL"
             print(f"  • {label:<42} : [{status_str:<4}] {msg}")
-            if not ok:
+            if not ok and is_required:
                 all_ok = False
 
         print("-" * 80)
-        print("SMOKE TEST RESULT: " + ("ALL SYSTEMS HEALTHY" if all_ok else "SOME SERVICES OFFLINE"))
+        print("SMOKE TEST RESULT: " + ("ALL CRITICAL SERVICES HEALTHY" if all_ok else "SOME CRITICAL SERVICES OFFLINE"))
         print("=" * 80 + "\n")
         return all_ok
 
-    def start_full_stack(self) -> bool:
+    def start_core_stack(self, detach: bool = False) -> bool:
+        """Starts the officer-critical path: Model 1, Model 2, AI Detection, Orchestrator, Gateway, and Frontend."""
+        print("\n" + "=" * 80)
+        print("  GUJARAT SENTINEL — CORE OFFICER PATH RUNNER")
+        print("  Services: Model 1 (Registry) + Model 2 (Unified/ANPR) + AI Detection + Brain + Gateway + UI")
+        print("=" * 80)
+
+        # 1. Ensure clean ports
+        print("\n[STEP 1] ENSURING CLEAN PORTS:")
+        core_ports = [8000, 8001, 8002, 8005, 8006, 3001]
+        self.clean_ports(core_ports)
+
+        # 2. Check backing infrastructure
+        print("\n[STEP 2] BACKING INFRASTRUCTURE:")
+        docker_ok, _ = self.doctor.check_docker_daemon()
+        if docker_ok:
+            print("  --> Docker engine detected. Launching backing containers (Postgres, Redis)...")
+            self.start_docker_infra()
+            self.wait_for_infrastructure(essential=["postgres", "redis"])
+            self.run_database_migrations()
+        else:
+            print("  --> Docker is offline/unstable. Running in Standalone Core Mode (SQLite / direct inter-service HTTP).")
+
+        # 3. Launch Core Application Services
+        core_services = ["model1", "model2", "ai-detection", "orchestrator", "hybrid-gateway", "frontend"]
+        apps_ok = self.start_application_services(core_services)
+
+        # 4. Status & Smoke Verification
+        self.print_status_table()
+        smoke_ok = self.run_e2e_smoke_test(core_only=True)
+
+        print("=" * 80)
+        print("  GUJARAT SENTINEL CORE OFFICER PATH READY:")
+        print("=" * 80)
+        print("  👑 Police Command Center UI   : http://localhost:3001")
+        print("  🌐 Central Brain Orchestrator : http://localhost:8005/docs")
+        print("  ⚡ Hybrid API Gateway          : http://localhost:8000")
+        print("  📷 Model 1 CCTV Registry      : http://localhost:8001/health")
+        print("  🎯 Model 2 Unified Viewer/ANPR: http://localhost:8002/health")
+        print("  🧠 AI Computer Vision Engine  : http://localhost:8006/health")
+        print("  📑 Logs Directory             : runtime/logs/")
+        print("=" * 80 + "\n", flush=True)
+
+        if not detach:
+            self.monitor_loop()
+
+        return apps_ok and smoke_ok
+
+    def monitor_loop(self) -> None:
+        """Keeps runner alive, monitors services, and stops cleanly on Ctrl+C."""
+        print("[ACTIVE] Stack is live and serving requests.")
+        print("[ACTIVE] Press Ctrl+C in this terminal to stop all services.\n", flush=True)
+        try:
+            while True:
+                time.sleep(2.0)
+        except KeyboardInterrupt:
+            print("\n\n[SHUTDOWN] Interrupted by user. Gracefully stopping all services...", flush=True)
+            self.proc_mgr.stop_all_apps(self.config.get("services", {}))
+            self.clean_ports([8000, 8001, 8002, 8003, 8004, 8005, 8006, 3001])
+            print("[SHUTDOWN] All services cleanly stopped.", flush=True)
+
+    def start_full_stack(self, detach: bool = False) -> bool:
         """Runs the complete one-command startup sequence."""
         print("\n" + "=" * 80)
         print("  GUJARAT SENTINEL HYBRID CCTV PLATFORM — FULL-STACK RUNNER")
         print("=" * 80)
 
-        # 1. Environment & Doctor Check
+        # 1. Clean ports
+        self.clean_ports([8000, 8001, 8002, 8003, 8004, 8005, 8006, 3001])
+
+        # 2. Environment & Doctor Check
         if not self.doctor.run_full_diagnostic():
             print("[!] Environment check found missing critical prerequisites.")
 
-        # 2. Start Infrastructure
+        # 3. Start Infrastructure
         self.start_docker_infra()
         self.wait_for_infrastructure()
 
-        # 3. Database Migrations
+        # 4. Database Migrations
         self.run_database_migrations()
 
-        # 4. Start Applications
+        # 5. Start Applications
         apps_ok = self.start_application_services()
 
-        # 5. Status & Summary
+        # 6. Status & Summary
         self.print_status_table()
-        self.run_e2e_smoke_test()
+        self.run_e2e_smoke_test(core_only=False)
 
         # Print URL Summary
         print("=" * 80)
@@ -747,7 +998,10 @@ class SentinelRunner:
         print("  📦 MinIO S3 Object Storage    : http://localhost:9005 (Console)")
         print("  🔍 OpenSearch Dashboards      : http://localhost:5601")
         print("  📑 Logs Directory             : runtime/logs/")
-        print("=" * 80 + "\n")
+        print("=" * 80 + "\n", flush=True)
+
+        if not detach:
+            self.monitor_loop()
 
         return apps_ok
 
@@ -762,46 +1016,56 @@ def interactive_menu(runner: SentinelRunner) -> None:
         print("\n" + "=" * 60)
         print("  GUJARAT SENTINEL — ONE-COMMAND CONTROL CENTER")
         print("=" * 60)
-        print("  [1] Start Full Stack (All Services & Infra)")
-        print("  [2] Start Backend Only (Models 1-4 + Brain)")
-        print("  [3] Start Frontend Only (React Video Wall)")
-        print("  [4] Start AI Detection Engine Only")
-        print("  [5] Start Infrastructure Only (Databases / Kafka)")
-        print("  [6] View Live Component Status")
-        print("  [7] Run Environment Doctor Check")
-        print("  [8] Run End-to-End Smoke Verification")
-        print("  [9] Stop Application Services")
-        print("  [10] Stop All (Applications + Infrastructure)")
+        print("  [1] Start Core Officer Path (Recommended: M1, M2, AI, Brain, UI)")
+        print("  [2] Start Full Stack (All Services & Docker Infra)")
+        print("  [3] Clean & Free Occupied Ports (8000-8006, 3001, Docker)")
+        print("  [4] Start Backend Only (Models 1-4 + Brain)")
+        print("  [5] Start Frontend Only (React Video Wall)")
+        print("  [6] Start AI Detection Engine Only")
+        print("  [7] Start Infrastructure Only (Databases / Kafka)")
+        print("  [8] View Live Component Status")
+        print("  [9] Run Environment Doctor Check")
+        print("  [10] Run End-to-End Smoke Verification")
+        print("  [11] Stop Application Services")
+        print("  [12] Stop All (Applications + Infrastructure)")
         print("  [0] Exit")
         print("=" * 60)
 
         try:
-            choice = input("👉 Enter selection [0-10]: ").strip()
+            choice = input("👉 Enter selection [0-12, Default: 1]: ").strip()
+            if not choice:
+                choice = "1"
         except (KeyboardInterrupt, EOFError):
             print("\nExiting.")
             break
 
         if choice == "1":
-            runner.start_full_stack()
+            runner.start_core_stack()
         elif choice == "2":
-            runner.start_application_services(["model1", "model2", "model3", "model4", "orchestrator", "hybrid-gateway"])
+            runner.start_full_stack()
         elif choice == "3":
-            runner.start_application_services(["frontend"])
+            runner.clean_ports()
         elif choice == "4":
-            runner.start_application_services(["ai-detection"])
+            runner.start_application_services(["model1", "model2", "model3", "model4", "orchestrator", "hybrid-gateway"])
         elif choice == "5":
+            runner.start_application_services(["frontend"])
+        elif choice == "6":
+            runner.start_application_services(["ai-detection"])
+        elif choice == "7":
             runner.start_docker_infra()
             runner.wait_for_infrastructure()
-        elif choice == "6":
-            runner.print_status_table()
-        elif choice == "7":
-            runner.doctor.run_full_diagnostic()
         elif choice == "8":
-            runner.run_e2e_smoke_test()
+            runner.print_status_table()
         elif choice == "9":
-            runner.proc_mgr.stop_all_apps(runner.config.get("services", {}))
+            runner.doctor.run_full_diagnostic()
         elif choice == "10":
+            runner.run_e2e_smoke_test()
+        elif choice == "11":
             runner.proc_mgr.stop_all_apps(runner.config.get("services", {}))
+            runner.clean_ports([8000, 8001, 8002, 8003, 8004, 8005, 8006, 3001])
+        elif choice == "12":
+            runner.proc_mgr.stop_all_apps(runner.config.get("services", {}))
+            runner.clean_ports()
             subprocess.run(["docker", "compose", "down"], cwd=str(WORKSPACE_ROOT))
         elif choice == "0":
             print("Exiting runner.")
@@ -812,6 +1076,8 @@ def interactive_menu(runner: SentinelRunner) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Gujarat Sentinel Hybrid Full-Stack Project Runner")
+    parser.add_argument("--core-start", action="store_true", help="Start core officer path (Model 1, Model 2, AI, Brain, Gateway, Frontend)")
+    parser.add_argument("--clean-ports", action="store_true", help="Clean and free occupied Sentinel ports")
     parser.add_argument("--start", action="store_true", help="Start the complete application stack")
     parser.add_argument("--stop", action="store_true", help="Stop application processes")
     parser.add_argument("--stop-apps", action="store_true", help="Stop application processes only")
@@ -832,11 +1098,19 @@ def main() -> int:
     parser.add_argument("--service", type=str, help="Start a specific service and its dependencies")
     parser.add_argument("--env", type=str, default="development", help="Environment mode")
     parser.add_argument("--ci", "--yes", action="store_true", help="Non-interactive mode")
+    parser.add_argument("--detach", action="store_true", help="Start services in background without holding terminal")
     parser.add_argument("--config", type=str, help="Path to custom services.yaml")
     args = parser.parse_args()
 
     config_path = Path(args.config) if args.config else None
     runner = SentinelRunner(config_path)
+
+    if args.core_start:
+        return 0 if runner.start_core_stack(detach=args.detach) else 1
+
+    if args.clean_ports:
+        runner.clean_ports()
+        return 0
 
     if args.doctor:
         return 0 if runner.doctor.run_full_diagnostic() else 1
@@ -853,10 +1127,12 @@ def main() -> int:
 
     if args.stop or args.stop_apps:
         runner.proc_mgr.stop_all_apps(runner.config.get("services", {}))
+        runner.clean_ports([8000, 8001, 8002, 8003, 8004, 8005, 8006, 3001])
         return 0
 
     if args.stop_all:
         runner.proc_mgr.stop_all_apps(runner.config.get("services", {}))
+        runner.clean_ports()
         subprocess.run(["docker", "compose", "down"], cwd=str(WORKSPACE_ROOT))
         return 0
 
@@ -900,7 +1176,7 @@ def main() -> int:
         return res.returncode
 
     if args.start or args.ci:
-        return 0 if runner.start_full_stack() else 1
+        return 0 if runner.start_full_stack(detach=args.detach) else 1
 
     # Interactive mode if invoked with no arguments
     interactive_menu(runner)

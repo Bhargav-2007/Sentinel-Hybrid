@@ -24,7 +24,18 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-import av
+try:
+    import av
+    AVError = av.AVError
+except ImportError:
+    av = None
+    AVError = Exception
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+
 import httpx
 import numpy as np
 import structlog
@@ -160,8 +171,53 @@ class RTSPConsumer:
             "probesize": "2000000",
         }
 
-        # PyAV/FFmpeg RTSP connection — runs in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
+
+        # Fallback to OpenCV VideoCapture if PyAV is not installed
+        if av is None:
+            if cv2 is None:
+                raise RuntimeError("Neither PyAV nor OpenCV is available for video streaming.")
+            cap = await loop.run_in_executor(None, lambda: cv2.VideoCapture(self.rtsp_url))
+            if not cap.isOpened():
+                raise RuntimeError(f"Failed to open RTSP stream with OpenCV: {self.rtsp_url}")
+
+            try:
+                self._reconnect_count = 0
+                await self._update_status(StreamStatusEnum.live)
+                frame_skip = self.settings.rtsp_frame_skip
+                frame_count = 0
+
+                while self._running:
+                    ret, frame_np = await loop.run_in_executor(None, cap.read)
+                    if not ret:
+                        break
+                    frame_count += 1
+                    self._frames_decoded += 1
+                    pts_ms = int(time.time() * 1000)
+
+                    if frame_count % frame_skip == 0:
+                        self._last_frame_time = time.monotonic()
+                        try:
+                            await self.on_frame(
+                                stream_id=self.stream_id,
+                                frame=frame_np,
+                                pts_ms=pts_ms,
+                                metadata={
+                                    "camera_id": self.camera_id,
+                                    "frame_number": frame_count,
+                                    **self.metadata,
+                                },
+                            )
+                        except Exception as e:
+                            logger.error("analytics_callback_error", stream_id=self.stream_id, error=str(e)[:200])
+
+                    if frame_count % 50 == 0:
+                        await asyncio.sleep(0)
+            finally:
+                cap.release()
+            return
+
+        # PyAV/FFmpeg RTSP connection — runs in thread pool to avoid blocking
         container = await loop.run_in_executor(
             None,
             lambda: av.open(self.rtsp_url, options=options, timeout=15),
@@ -220,7 +276,7 @@ class RTSPConsumer:
                         # Yield control to event loop periodically
                         if frame_count % 100 == 0:
                             await asyncio.sleep(0)
-                except (av.AVError, ValueError, UnicodeDecodeError) as decode_err:
+                except (AVError, ValueError, UnicodeDecodeError) as decode_err:
                     # Integration Reference Section 3: DON'T — Treat decode warnings at join as fatal.
                     # Attaching mid-stream can produce RPS / POC reference errors until first IDR arrives.
                     logger.debug(

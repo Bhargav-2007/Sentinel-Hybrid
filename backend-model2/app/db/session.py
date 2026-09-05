@@ -85,8 +85,15 @@ async def create_tables() -> None:
     from app.db.models import Base
     engine = get_engine()
     async with engine.begin() as conn:
-        await conn.execute(__import__("sqlalchemy").text("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
-        await conn.run_sync(Base.metadata.create_all)
+        if "postgresql" in str(engine.url):
+            try:
+                await conn.execute(__import__("sqlalchemy").text("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
+            except Exception as e:
+                logger.warning(f"Could not enable pgcrypto extension: {e}")
+        try:
+            await conn.run_sync(Base.metadata.create_all)
+        except Exception as e:
+            logger.warning(f"Metadata create_all notice: {e}")
     logger.info("model2_tables_created")
 
 

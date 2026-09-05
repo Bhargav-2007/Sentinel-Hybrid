@@ -75,8 +75,22 @@ class LicensePlateDetector:
 
         # Path 1: If dedicated plate model is available, run direct inference
         if self.has_custom_model and self.model is not None:
+            results = None
             try:
                 results = self.model.predict(source=frame, conf=conf, device=self.device, verbose=False)
+            except Exception as e:
+                err_str = str(e).lower()
+                if "cuda" in err_str or "kernel" in err_str or "device" in err_str:
+                    logger.warning(f"CUDA execution error during license plate prediction: {e}. Falling back to CPU.")
+                    self.device = "cpu"
+                    try:
+                        results = self.model.predict(source=frame, conf=conf, device="cpu", verbose=False)
+                    except Exception as cpu_err:
+                        logger.error(f"CPU fallback for license plate detector also failed: {cpu_err}")
+                else:
+                    logger.error(f"License plate inference error: {e}")
+
+            if results is not None:
                 for r in results:
                     for box in r.boxes:
                         score = float(box.conf[0].item())
@@ -94,8 +108,6 @@ class LicensePlateDetector:
 
                 if detected_plates:
                     return detected_plates
-            except Exception as e:
-                logger.error(f"License plate inference error: {e}")
 
         # Path 2: Vehicle-centric morphological bumper localization
         if vehicle_boxes:

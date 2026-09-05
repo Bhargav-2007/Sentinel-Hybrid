@@ -68,33 +68,41 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from app.services.stream_service import set_stream_manager
     set_stream_manager(stream_manager)
 
-    # Sync stream catalogue
+    # ── 3. Sync stream catalogue in background (non-blocking) ────────────
+    async def _initial_catalogue_sync():
+        try:
+            synced = await asyncio.wait_for(stream_manager.sync_stream_catalogue(), timeout=4.0)
+            logger.info("stream_catalogue_synced", count=synced)
+        except Exception as e:
+            logger.warning("stream_sync_notice", error=str(e)[:150])
+
+    asyncio.create_task(_initial_catalogue_sync(), name="initial-catalogue-sync")
+
+    # ── 4. Sync watchlist from eGujCop in background (non-blocking) ───────
+    async def _initial_watchlist_sync():
+        try:
+            from app.db.session import get_session_factory
+            from app.services.watchlist_service import WatchlistService
+
+            factory = get_session_factory()
+            async with factory() as db:
+                ws = WatchlistService(db)
+                result = await asyncio.wait_for(ws.sync_from_egujcop(), timeout=4.0)
+                await db.commit()
+                logger.info("watchlist_synced", **result)
+        except Exception as e:
+            logger.warning("watchlist_sync_notice", error=str(e)[:150])
+
+    asyncio.create_task(_initial_watchlist_sync(), name="initial-watchlist-sync")
+
+    # ── 5. Start Kafka consumer for camera events (optional/resilient) ───
+    camera_consumer_task = None
     try:
-        synced = await stream_manager.sync_stream_catalogue()
-        logger.info("stream_catalogue_synced", count=synced)
+        camera_consumer_task = asyncio.create_task(
+            _consume_camera_events(settings), name="camera-events-consumer"
+        )
     except Exception as e:
-        logger.warning("stream_sync_failed_at_startup", error=str(e)[:200])
-
-    # ── 4. Sync watchlist from eGujCop ────────────────────────────────────
-    try:
-        from app.db.session import get_session_factory
-        from app.services.watchlist_service import WatchlistService
-
-        factory = get_session_factory()
-        async with factory() as db:
-            ws = WatchlistService(db)
-            result = await ws.sync_from_egujcop()
-            await db.commit()
-            logger.info("watchlist_synced", **result)
-    except Exception as e:
-        logger.warning("watchlist_sync_failed_at_startup", error=str(e)[:200])
-
-    # ── 5. Start Kafka consumer for camera events ─────────────────────────
-    # Listen for camera.registered / camera.updated from Model 1
-    # to keep stream catalogue in sync
-    camera_consumer_task = asyncio.create_task(
-        _consume_camera_events(settings), name="camera-events-consumer"
-    )
+        logger.warning("kafka_consumer_launch_skipped", error=str(e)[:150])
 
     # ── 6. Start Vehicle Corridor & Trajectory Tracking Worker ────────────
     # In production (DATA_MODE=real), detections arrive strictly from real RTSP/AI ingest
@@ -130,18 +138,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("model2_shutting_down")
 
     # Cancel camera event consumer
-    camera_consumer_task.cancel()
-    try:
-        await camera_consumer_task
-    except asyncio.CancelledError:
-        pass
+    if camera_consumer_task and not camera_consumer_task.done():
+        camera_consumer_task.cancel()
+        try:
+            await camera_consumer_task
+        except (asyncio.CancelledError, Exception):
+            pass
 
     # Disconnect all streams
-    await stream_manager.disconnect_all()
+    try:
+        await stream_manager.disconnect_all()
+    except Exception as e:
+        logger.debug("stream_disconnect_notice", error=str(e)[:100])
 
     # Dispose DB
-    from app.db.session import dispose_engine
-    await dispose_engine()
+    try:
+        from app.db.session import dispose_engine
+        await dispose_engine()
+    except Exception:
+        pass
 
     logger.info("model2_shutdown_complete")
 
@@ -150,7 +165,9 @@ async def _consume_camera_events(settings) -> None:
     """
     Kafka consumer: listen for camera lifecycle events from Model 1.
     Re-syncs stream catalogue when cameras are registered/updated/deleted.
+    Resilient: will never crash the server if Kafka is unavailable.
     """
+    consumer = None
     try:
         from aiokafka import AIOKafkaConsumer
         import json
@@ -161,6 +178,7 @@ async def _consume_camera_events(settings) -> None:
             group_id=f"{settings.kafka_group_id}-camera-sync",
             auto_offset_reset="latest",
             enable_auto_commit=True,
+            request_timeout_ms=3000,
         )
         await consumer.start()
         logger.info("kafka_camera_consumer_started")
@@ -175,16 +193,21 @@ async def _consume_camera_events(settings) -> None:
                         type=event_type,
                         source=event.get("source"),
                     )
-                    # Could trigger stream catalogue re-sync here
                 except Exception as e:
                     logger.warning("camera_event_parse_error", error=str(e)[:100])
-        finally:
-            await consumer.stop()
-
+        except (asyncio.CancelledError, Exception) as inner_err:
+            logger.debug("kafka_consumer_stream_notice", error=str(inner_err)[:100])
     except asyncio.CancelledError:
-        raise
-    except Exception as e:
-        logger.warning("kafka_camera_consumer_failed", error=str(e)[:200])
+        pass
+    except (ConnectionResetError, ConnectionRefusedError, OSError, Exception) as e:
+        logger.info("kafka_camera_consumer_offline", notice=f"Kafka not reachable at {settings.kafka_bootstrap_servers} (operating in standalone HTTP fallback mode): {str(e)[:100]}")
+    finally:
+        if consumer:
+            try:
+                await consumer.stop()
+            except Exception:
+                pass
+
 
 
 def create_app() -> FastAPI:

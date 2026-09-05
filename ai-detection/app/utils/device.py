@@ -8,18 +8,19 @@ logger = logging.getLogger("sentinel.ai.device")
 def get_optimal_device(requested_device: str = "auto") -> str:
     """
     Determines the best available compute device for YOLO and OCR inference:
-    1. NVIDIA CUDA GPU (if available and operational)
+    1. NVIDIA CUDA GPU (if available and operational for the current architecture)
     2. Apple Silicon MPS (if available)
     3. CPU fallback
     """
-    if requested_device and requested_device != "auto":
-        return requested_device
+    req = (requested_device or "auto").strip().lower()
+    if req == "cpu":
+        return "cpu"
 
     try:
         import torch
         if torch.cuda.is_available():
             device_name = torch.cuda.get_device_name(0)
-            # Verify that kernel execution works for the current GPU architecture (e.g. sm_120)
+            # Verify that kernel execution actually works for the current GPU architecture (e.g. sm_120 / RTX 5050)
             try:
                 test_t = torch.zeros(1, device="cuda")
                 _ = test_t + 1

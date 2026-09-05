@@ -43,13 +43,14 @@ DEFAULT_WHEP_PORT = 8889
 
 
 def normalize_cam_tag(camera_id: str) -> str:
-    """Normalizes camera IDs to cam01..cam30 format."""
-    clean = camera_id.lower().replace("cam-", "").replace("cam", "").replace("home-live-", "")
-    try:
-        num = int(clean)
-        return f"cam{num:02d}"
-    except ValueError:
-        return "cam01" if not camera_id.startswith("cam") else camera_id.lower()
+    """Normalizes any camera ID variant to cam01..cam50 format."""
+    s = str(camera_id).lower()
+    match = re.search(r'\d+', s)
+    if match:
+        num = int(match.group(0))
+        clamped = max(1, min(50, num))
+        return f"cam{clamped:02d}"
+    return "cam01"
 
 
 def get_stream_tag_for_camera(cam) -> str:
@@ -379,17 +380,59 @@ async def get_camera_snapshot(camera_id: str):
     except Exception as e:
         logger.debug(f"Corp8 snapshot fallback error: {e}")
 
-    if worker:
-        state = worker.state.value if worker.state else "UNKNOWN"
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Camera {cam_tag} supervisor state={state}. No frames decoded yet.",
-        )
+    # Path 3: Direct authenticated RTSP frame grab from sandbox server
+    # This is the guaranteed fallback — pulls a real frame directly with credentials.
+    try:
+        rtsp_url = settings.get_authenticated_rtsp_url(cam_tag)
+        logger.debug(f"Direct RTSP grab for {cam_tag}: {rtsp_url}")
 
-    # Path 3: Camera not registered in supervisor at all
+        def _grab_rtsp_frame() -> Optional[bytes]:
+            cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            jpeg_bytes = None
+            # Read up to 5 frames to skip buffered stale frames
+            for _ in range(5):
+                ret, frame = cap.read()
+                if ret and frame is not None:
+                    # Overlay minimal HUD
+                    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                    cv2.rectangle(frame, (8, 8), (440, 50), (8, 12, 20), -1)
+                    cv2.rectangle(frame, (8, 8), (440, 50), (0, 220, 255), 1)
+                    cv2.putText(frame, f"GUJARAT POLICE SENTINEL \u2014 {cam_tag.upper()}",
+                                (16, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (0, 220, 255), 1, cv2.LINE_AA)
+                    cv2.putText(frame, ts, (16, 43),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.34, (0, 255, 140), 1, cv2.LINE_AA)
+                    if frame.shape[1] > 1280:
+                        frame = cv2.resize(frame, (1280, 720))
+                    ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                    if ok:
+                        jpeg_bytes = buf.tobytes()
+                    break
+            cap.release()
+            return jpeg_bytes
+
+        rtsp_jpeg = await asyncio.wait_for(
+            asyncio.to_thread(_grab_rtsp_frame),
+            timeout=10.0
+        )
+        if rtsp_jpeg:
+            return Response(
+                content=rtsp_jpeg,
+                media_type="image/jpeg",
+                headers={
+                    "X-Sentinel-Observation-Time": now_utc.isoformat(),
+                    "X-Sentinel-Camera": cam_tag,
+                    "X-Sentinel-Frame-Source": "RTSP_DIRECT_GRAB",
+                    "Cache-Control": "no-store, no-cache, must-revalidate",
+                },
+            )
+    except Exception as e:
+        logger.warning(f"Direct RTSP grab failed for {cam_tag}: {e}")
+
+    # All paths exhausted
     raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Camera {cam_tag} is not registered in the stream supervisor.",
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail=f"Camera {cam_tag}: no frames available from supervisor, corp8, or RTSP direct. Check stream credentials.",
     )
 
 

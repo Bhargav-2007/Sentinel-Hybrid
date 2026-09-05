@@ -54,7 +54,7 @@ export const ContextDrawer: React.FC = () => {
         {/* Live Camera Snapshot Preview with HUD Overlay */}
         <div className="mt-3 relative rounded-md overflow-hidden border border-[#30363d] bg-black aspect-video flex items-center justify-center shadow-inner">
           <img
-            src={`http://localhost:8000/api/v1/streams/${camId}/snapshot?t=${Date.now()}`}
+            src={`/api/v1/streams/${camId}/snapshot?t=${Date.now()}`}
             alt={camName}
             className="w-full h-full object-cover"
             onError={(e) => {

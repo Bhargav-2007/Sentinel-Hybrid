@@ -56,8 +56,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const hlsUrl = `${apiBase}/api/v1/streams/${camTag}/hls/index.m3u8`;
 
   // State
-  const [transport, setTransport] = useState<VideoTransport>('WHEP');
-  const [activeTransport, setActiveTransport] = useState<VideoTransport>('WHEP');
+  const [transport, setTransport] = useState<VideoTransport>('SNAPSHOT');
+  const [activeTransport, setActiveTransport] = useState<VideoTransport>('SNAPSHOT');
   const [connectionStatus, setConnectionStatus] = useState<string>('Connecting...');
   const [frameSrc, setFrameSrc] = useState<string>('');
   const [isMuted, setIsMuted] = useState(true);
@@ -234,8 +234,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         if (state === 'connected' || state === 'completed') {
           setConnectionStatus('ICE Connected');
         } else if (state === 'failed' || state === 'disconnected') {
-          console.warn(`WHEP ICE disconnected on ${camTag}, falling back to HLS`);
-          startHls();
+          console.warn(`WHEP ICE disconnected on ${camTag}, falling back to Snapshot`);
+          startSnapshotLoop();
         }
       };
 
@@ -243,13 +243,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      // Timeout guard: if WHEP negotiation doesn't resolve in 3.5 seconds, fallback to HLS/Snapshot
+      // Timeout guard: if WHEP negotiation doesn't resolve in 5s, fallback to Snapshot
       const timeoutId = setTimeout(() => {
-        if (isMountedRef.current && (!hasVideoMedia || pc.iceConnectionState === 'new')) {
-          console.info(`WHEP negotiation timeout for ${camTag}; gracefully activating HLS`);
-          startHls();
+        if (isMountedRef.current && !hasVideoMedia) {
+          console.info(`WHEP negotiation timeout for ${camTag}; activating Snapshot fallback`);
+          startSnapshotLoop();
         }
-      }, 3500);
+      }, 5000);
 
       const response = await fetch(whepUrl, {
         method: 'POST',
@@ -262,8 +262,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.warn(`WHEP endpoint returned ${response.status} for ${camTag}, switching to HLS`);
-        startHls();
+        console.warn(`WHEP endpoint returned ${response.status} for ${camTag}, switching to Snapshot`);
+        startSnapshotLoop();
         return;
       }
 
@@ -283,21 +283,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     } catch (err) {
       console.warn(`WHEP SDP exchange failed for ${camTag}:`, err);
-      startHls();
+      startSnapshotLoop();
     }
-  }, [whepUrl, camTag, teardownPipelines, startHls, hasVideoMedia]);
+  }, [whepUrl, camTag, teardownPipelines, startHls, startSnapshotLoop, hasVideoMedia]);
 
   // Main Effect: Orchestrate selected transport
   useEffect(() => {
     isMountedRef.current = true;
 
+    // Always start snapshot loop immediately so footage is visible from first render
+    startSnapshotLoop();
+
     if (transport === 'WHEP') {
       startWhep();
     } else if (transport === 'HLS') {
       startHls();
-    } else {
-      startSnapshotLoop();
     }
+    // SNAPSHOT mode: snapshot loop above is sufficient
 
     return () => {
       isMountedRef.current = false;

@@ -1,167 +1,192 @@
-# Gujarat Sentinel — How to Run Backends & Frontend
+# Gujarat Sentinel — How to Run the Website & Services
 
-This guide outlines the official steps for starting, configuring, and running the **Gujarat Sentinel CCTV Surveillance Platform** services and web frontend.
-
----
-
-## 🚀 Option 1: Fast Developer Mode (Local Terminals)
-
-This is the fastest, lightweight method for local development without running full Docker containers.
-
-### Prerequisites
-* **Python**: 3.11+ installed and in PATH
-* **Node.js**: v18+ and npm installed
+This guide provides the official instructions for running the **Gujarat Sentinel Hybrid Surveillance Platform** website, backend microservices, and live officer demonstration.
 
 ---
 
-### Terminal 1: Central Backend Orchestrator
-Handles the 30-camera RTSP supervisor, AI scheduling, database persistence (PostgreSQL with automatic SQLite fallback `sentinel_platform.db`), and Section 65B HMAC evidence.
+## ⚡ Quick Start: Run the Website in 2 Minutes
+
+If you want to launch the website immediately, choose one of the options below:
+
+### Option A: Automated One-Command Launcher (Recommended)
+
+From the project root directory in PowerShell or Terminal:
 
 ```powershell
-cd backend-orchestrator
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# Automatically starts Backend Orchestrator (:8000), AI Engine (:8006), and Frontend Website (:3001)
+.\run.ps1
 ```
-* **API Base URL**: `http://localhost:8000`
-* **Interactive Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-* **Fleet Telemetry Endpoint**: [http://localhost:8000/api/v1/cameras/health/summary](http://localhost:8000/api/v1/cameras/health/summary)
+
+Or using the cross-platform Python CLI:
+```bash
+python scripts/run.py --start
+```
+
+* **Website URL**: [http://localhost:3001](http://localhost:3001) (fallback: [http://localhost:5173](http://localhost:5173))
+* **Backend API**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-### Terminal 2: AI Computer Vision & ANPR Microservice
-Executes YOLOv8 person/vehicle detection, ByteTrack tracking, and PaddleOCR/EasyOCR license plate recognition.
+### Option B: Local Developer Terminals (Step-by-Step)
 
-```powershell
-cd ai-detection
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8006 --reload
-```
-* **API Base URL**: `http://localhost:8006`
-* **Interactive Swagger Docs**: [http://localhost:8006/docs](http://localhost:8006/docs)
-* **Health Endpoint**: [http://localhost:8006/health](http://localhost:8006/health)
+If you prefer starting services manually in separate terminal windows:
 
----
-
-### Terminal 3: Police Surveillance Video Wall Frontend
-React 18 + Vite situational awareness UI, interactive Leaflet GIS map, 30-camera live grid, and real-time ANPR triage.
-
+#### 1. Terminal 1: Frontend Website
 ```powershell
 cd frontend
-npm install   # Run once on first setup
+npm install        # Run once on first setup
 npm run dev
 ```
 * **Surveillance Dashboard Web UI**: [http://localhost:3001](http://localhost:3001)
 
----
+> **Note:** The frontend can open immediately. For live CCTV streaming, plate queries, and Section 65B evidence generation, start the backend in Terminal 2.
 
-## ⚡ Option 2: Unified Platform Runner
-
-The repository contains automated orchestration scripts that launch and monitor all processes in topological order:
-
-### Windows PowerShell
+#### 2. Terminal 2: Central Backend Orchestrator
+Handles the 30-camera RTSP supervisor, plate search, correlation, watchlist alerts, and Section 65B HMAC evidence signing:
 ```powershell
-# Interactive menu and launch
-.\run.ps1
+cd backend-orchestrator
+python -m pip install -r requirements.txt   # Run once on first setup
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+* **API Base URL**: `http://localhost:8000`
+* **Interactive Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+* **Bandwidth Scalability API**: [http://localhost:8000/api/v1/orchestrator/bandwidth-savings](http://localhost:8000/api/v1/orchestrator/bandwidth-savings)
 
-### Cross-Platform Python CLI
-```bash
-# Start full application stack
-python scripts/run.py --start
-
-# Start only backend services and databases
-python scripts/run.py --backend-only
-
-# Start only frontend Video Wall UI
-python scripts/run.py --frontend-only
-
-# Start only AI computer vision microservice
-python scripts/run.py --ai-only
-
-# Check live health status across all services and ports
-python scripts/run.py --status
-
-# Run dependency & toolchain diagnostics
-python scripts/run.py --doctor
-
-# Stop all running application processes
-python scripts/run.py --stop
+#### 3. Terminal 3: AI Detection & ANPR (Optional for live camera inference)
+Runs YOLOv8 vehicle/person detection, ByteTrack tracking, and PaddleOCR license plate recognition:
+```powershell
+cd ai-detection
+python -m pip install -r requirements.txt   # Run once on first setup
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8006 --reload
 ```
+* **AI Microservice**: [http://localhost:8006/docs](http://localhost:8006/docs)
 
 ---
 
-## 🐳 Option 3: Full Docker Infrastructure Stack
+## 🐳 Option C: Full Enterprise Docker Stack
 
-For testing the complete enterprise microservices topology (PostgreSQL 16 + PostGIS, Redis 7, Apache Kafka, MinIO S3, OpenSearch, Prometheus, Grafana, and Models 1–4):
+To run the complete production microservices stack (PostgreSQL + PostGIS, Redis, Apache Kafka, MinIO S3, OpenSearch, Prometheus, Grafana, Models 1–4, and Hybrid Gateway):
 
 ```powershell
 # Windows PowerShell automated launcher:
 .\start_all_backends.ps1
 
-# Or standard Docker Compose command:
+# Or standard Docker Compose:
 docker compose up -d
+
+# Start the frontend website:
+cd frontend
+npm run dev
 ```
 
 ---
 
-## 🌐 Live Service Endpoints & Access Points
+## 👮 Police Officer Demo Login Credentials
 
-| Component / Subsystem | Local URL | Description |
-|---|---|---|
-| **👑 Police Command Center UI** | [http://localhost:3001](http://localhost:3001) | React Situational Awareness Video Wall |
-| **🌐 Central Brain Orchestrator** | [http://localhost:8000/docs](http://localhost:8000/docs) | FastAPI Brain, Section 65B HMAC, Officer Auth |
-| **🤖 AI Vision & ANPR Engine** | [http://localhost:8006/docs](http://localhost:8006/docs) | YOLOv8 + ByteTrack + PaddleOCR Microservice |
-| **📹 30-Camera Live Telemetry** | [http://localhost:8000/api/v1/cameras/health/summary](http://localhost:8000/api/v1/cameras/health/summary) | Live fleet health & decode rates |
-| **⚡ Hybrid API Gateway** | [http://localhost:8000](http://localhost:8000) | Go/FastAPI Gateway |
-| **🗺️ Model 1 — CCTV Registry & GIS** | [http://localhost:8001/docs](http://localhost:8001/docs) | PostGIS spatial queries & camera registry |
-| **📹 Model 2 — Unified Viewer** | [http://localhost:8002/docs](http://localhost:8002/docs) | Video ingestion & ANPR pipeline |
-| **🔌 Model 3 — VMS Federation** | [http://localhost:8003/actuator/health](http://localhost:8003/actuator/health) | Spring Boot VMS integration |
-| **🛣️ Model 4 — Trajectory Hub** | [http://localhost:8004/health](http://localhost:8004/health) | Multi-camera trajectory store |
-| **📊 Grafana SRE Dashboards** | [http://localhost:3000](http://localhost:3000) | SOC command metrics (`admin` / `admin`) |
-| **📦 MinIO S3 Console** | [http://localhost:9005](http://localhost:9005) | Evidence clips (`minioadmin` / `minioadmin`) |
-| **🔍 OpenSearch Dashboards** | [http://localhost:5601](http://localhost:5601) | Forensic logs & event store |
-
----
-
-## 👮 Police Officer Demo Credentials
-
-Use these credentials to log in to the Frontend Web UI:
+When the website opens at [http://localhost:3001](http://localhost:3001), log in with:
 
 * **Officer Badge ID**: `POLICE-AHM-042`
 * **Password**: `Sentinel@2026`
-* **Jurisdiction**: Ahmedabad City Police / State Cyber Command
-* **Assigned Role**: `SUPERVISOR` / `ADMIN` (Full operational clearance)
+* **Clearance**: `SUPERVISOR` / `ADMIN` (Full operational clearance)
+* *(Or click "Bypass / Dev Login" to enter immediately)*
 
 ---
 
-## 🧪 Running Automated Tests
+## 🎯 5-Minute Officer Feature Tour on the Website
+
+Once logged in, verify the core end-to-end police workflow:
+
+1. **Live Video Wall (`/live`)**:
+   - Displays real multi-department CCTV feeds across Gujarat (Police, GSRTC, Municipal, Panchayat, Health).
+   - Toggle layouts (2x2, 3x3, 4x4) and view live camera frame rates.
+
+2. **GIS Spatial Map (`/map`)**:
+   - Interactive tactical map showing real GPS coordinates of Gujarat CCTV nodes.
+   - Real-time green/red indicators for online/offline stream health.
+
+3. **360° Plate Search & Investigation (`/investigate`)**:
+   - Enter target plate `GJ01AA0001` in the search box.
+   - Inspect the aggregated VAHAN 4.0 registration data, eGujCop hotlist status, and multi-camera sighting timeline.
+   - View the reconstructed Dijkstra road corridor route and PTS transit speeds on the map.
+
+4. **Real-Time Watchlist Alerts (`/alerts`)**:
+   - Live stream of high-priority watchlist hits with confidence scores and threat levels.
+   - Click the **"65B Evidence"** button on any alert to instantly download a court-admissible forensic dossier certified with SHA-256 HMAC signatures under the Indian Evidence Act.
+
+5. **Statewide Telemetry & 80k Scalability (`/analytics`)**:
+   - Inspect the **"Edge-Federated WAN Bandwidth & 80,000-Camera Scalability Model"** card.
+   - Demonstrates how Sentinel Hybrid saves **99.95% WAN bandwidth** (reducing continuous load from 320 Gbps to 168 Mbps, saving **3,456 TB per day** across 80,000 cameras).
+
+6. **Audit & Forensics Studio (`/audit`, `/cases`)**:
+   - Review immutable chain-of-custody logs and break-glass emergency overrides conforming to the DPDP Act 2023.
+
+---
+
+## 🧪 Automated Officer Demo & Verification Script
+
+To verify all 10 officer requirements plus 80k scalability in under 30 seconds via API tests:
 
 ```bash
-# Run backend orchestrator test suite (21 tests):
-python -m pytest backend-orchestrator/tests -v
+# Run automated proof script:
+python scripts/officer_demo.py --gateway http://localhost:8000
 
-# Run AI detection test suite (22 tests):
-python -m pytest ai-detection/tests -v
-
-# Run frontend type-check & build:
-cd frontend && npm run build
+# Or via Makefile:
+make officer-demo
 ```
 
 ---
 
-## ⚠️ Troubleshooting: `[WinError 10013]` (Port Already In Use)
+## 🌐 Complete Service Endpoints Summary
 
-If you see:
-```text
-ERROR: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions
-```
-This means another process is already listening on that port (usually port `8000` or `8006`).
+| Subsystem | Port / URL | Description |
+|---|---|---|
+| **👑 Police Surveillance Website** | [http://localhost:3001](http://localhost:3001) | Tactical Situational Awareness Web UI |
+| **🌐 Central Orchestrator** | [http://localhost:8000/docs](http://localhost:8000/docs) | Unified Brain, Vehicle-360, 65B Evidence |
+| **🤖 AI Computer Vision Engine** | [http://localhost:8006/docs](http://localhost:8006/docs) | YOLOv8 + ByteTrack + PaddleOCR |
+| **⚡ Hybrid API Gateway** | [http://localhost:8000](http://localhost:8000) | Reverse Proxy & Routing Layer |
+| **🗺️ Model 1 — CCTV Registry & GIS** | [http://localhost:8001/docs](http://localhost:8001/docs) | PostGIS spatial queries & camera registry |
+| **📹 Model 2 — Unified Viewer** | [http://localhost:8002/docs](http://localhost:8002/docs) | Video ingestion & ANPR pipeline |
+| **🔌 Model 3 — VMS Federation** | [http://localhost:8003/actuator/health](http://localhost:8003/actuator/health) | Multi-vendor VMS adapters (Hikvision, Dahua) |
+| **🛣️ Model 4 — Trajectory Hub** | [http://localhost:8004/health](http://localhost:8004/health) | Vehicle trajectory & clip store |
+| **📊 Grafana SRE Dashboards** | [http://localhost:3000](http://localhost:3000) | System metrics (`admin` / `admin`) |
+| **📦 MinIO S3 Console** | [http://localhost:9005](http://localhost:9005) | Legal evidence storage (`minioadmin` / `minioadmin`) |
 
-**To free port 8000 instantly in PowerShell:**
+---
+
+## ⚠️ Troubleshooting & Common Fixes
+
+### 1. Port Already In Use (`[WinError 10013]` or `EADDRINUSE`)
+If port `8000`, `8006`, or `3001` is already occupied, free it with PowerShell:
+
 ```powershell
+# Free port 8000 (Backend Orchestrator)
 Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+
+# Free port 8006 (AI Detection)
+Get-NetTCPConnection -LocalPort 8006 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+
+# Free port 3001 (Frontend Website)
+Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
 ```
 
-**To free port 8006:**
+### 2. Frontend Dependencies Installation Issues
+If you encounter npm dependency issues on Windows:
 ```powershell
-Get-NetTCPConnection -LocalPort 8006 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+cd frontend
+npm install --legacy-peer-deps
+npm run dev
 ```
+
+### 3. Backend Python Missing Dependencies
+```powershell
+# For Orchestrator:
+python -m pip install -r backend-orchestrator/requirements.txt
+
+# For AI Detection:
+python -m pip install -r ai-detection/requirements.txt
+```
+
+### 4. Running Without Docker
+You do **not** need Docker installed to test the website. Running `Option A` (`.\run.ps1`) or `Option B` (Local Terminals) uses local in-memory SQLite and mock connectors to provide a completely functional experience.
+
 
